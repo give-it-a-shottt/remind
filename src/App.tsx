@@ -10,7 +10,11 @@ import WrongPage from './pages/WrongPage'
 
 function ScrollTop() {
   const { pathname } = useLocation()
-  useEffect(() => window.scrollTo(0, 0), [pathname])
+  // 블록으로 감싸 반환값을 버린다. scrollTo를 덮어쓰는 확장 프로그램이 값을 돌려주면
+  // React가 그 값을 cleanup 함수로 호출해 "is not a function" 에러가 난다
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [pathname])
   return null
 }
 
