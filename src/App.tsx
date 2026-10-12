@@ -1,17 +1,33 @@
-import { topics, tracks } from './data'
+import { useEffect } from 'react'
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import Home from './pages/Home'
+import QuizPage from './pages/QuizPage'
+import ResultPage from './pages/ResultPage'
+import SettingsPage from './pages/SettingsPage'
+import TopicPage from './pages/TopicPage'
+import TrackPage from './pages/TrackPage'
+import WrongPage from './pages/WrongPage'
+
+function ScrollTop() {
+  const { pathname } = useLocation()
+  useEffect(() => window.scrollTo(0, 0), [pathname])
+  return null
+}
 
 export default function App() {
   return (
-    <main className="mx-auto max-w-2xl p-6">
-      <h1 className="text-2xl font-bold">remind</h1>
-      <p className="mt-2 text-sm text-gray-500">UI는 피그마 디자인 확정 후 구현 예정</p>
-      <ul className="mt-6 space-y-1">
-        {tracks.map((t) => (
-          <li key={t.id}>
-            {t.emoji} {t.label} — {topics.filter((x) => x.track === t.id).length}개 토픽
-          </li>
-        ))}
-      </ul>
-    </main>
+    <BrowserRouter>
+      <ScrollTop />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/track/:trackId" element={<TrackPage />} />
+        <Route path="/topic/:topicId" element={<TopicPage />} />
+        <Route path="/quiz" element={<QuizPage />} />
+        <Route path="/quiz/result" element={<ResultPage />} />
+        <Route path="/wrong" element={<WrongPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   )
 }

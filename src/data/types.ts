@@ -61,6 +61,12 @@ export interface Topic {
   order: number
   /** 원본 노션 페이지 ID (자체 작성 콘텐츠면 생략) */
   notionId?: string
+  /** 주간 업데이트로 새로 추가된 날짜 (YYYY-MM-DD). 최초 일괄 생성분은 생략 */
+  addedAt?: string
+  /** 주간 업데이트로 내용이 바뀐 날짜 (YYYY-MM-DD) */
+  updatedAt?: string
+  /** updatedAt 때 바뀐 섹션 title 목록 */
+  changedSections?: string[]
   /** 개념 설명 — 모든 섹션에 문제가 1개 이상, 모든 문제의 source 는 섹션 title 중 하나 */
   sections: Section[]
   questions: Question[]
