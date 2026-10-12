@@ -1,0 +1,1207 @@
+{
+  "notionRoot": "3f6df951bf8080449c0cc0b30936faff",
+  "lastSyncedAt": "2026-10-12",
+  "containerPages": [
+    "3f3df951bf8080928cfcc5c56486ceb9",
+    "2c9df951bf80808b9419d386d306daaa",
+    "3b6df951bf8080ada7bdf125077357ef",
+    "3b6df951bf80805db0daf2d3d4bc68b0",
+    "2c9df951bf808018bf9dd5f35eed7436",
+    "3f4df951bf80800c8907e62da6c588bf",
+    "3efdf951bf8080b8abdad8b9f0375fa7",
+    "3efdf951bf808093ba36c7f283514456",
+    "3f1df951bf8080f9b4c8fb5342a61477"
+  ],
+  "excluded": [
+    {
+      "id": "3b1df951bf808040aa04f9c18e4f469f",
+      "title": "피그마 UI/UX",
+      "reason": "사용자 요청: 피그마는 노션 폴더를 참고하지 않고 자체 작성"
+    }
+  ],
+  "pages": [
+    {
+      "id": "3efdf951bf808116b944c8d76f4bf385",
+      "title": "0강 - 준비: 웹 프론트엔드 개요와 개발 환경",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "웹페이지 = HTML + CSS + JavaScript",
+        "브라우저가 화면을 그리는 과정",
+        "개발 환경",
+        "VS Code 필수 단축키 / Emmet",
+        "크롬 개발자 도구",
+        "폴더 구조 예시"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081029c13d0e11049bfa2",
+      "title": "1강 - HTML 정리",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "HTML 기본 구조",
+        "태그, 요소, 속성",
+        "텍스트 태그",
+        "링크와 이미지",
+        "목록",
+        "표",
+        "폼",
+        "시맨틱 태그",
+        "id vs class"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081a6842be9808974569b",
+      "title": "2강 - CSS 기본",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "CSS 문법",
+        "CSS 적용 방법",
+        "색상 표현",
+        "Cascading: 어떤 스타일이 이기나?",
+        "브라우저 기본 스타일"
+      ]
+    },
+    {
+      "id": "3efdf951bf808174a291c8dac33febca",
+      "title": "3강 - CSS 단위",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "px",
+        "%",
+        "em",
+        "rem",
+        "vw, vh",
+        "어떤 단위를 쓸까?",
+        "함께 쓰면 좋은 함수"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081809626f9802b633933",
+      "title": "4강 - CSS 선택자",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "기본 선택자",
+        "조합 선택자",
+        "속성 선택자",
+        "가상 클래스",
+        "가상 요소",
+        "선택자 작성 팁"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081848e84d87dfb89d8e3",
+      "title": "5강 - 박스 모델",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "모든 요소는 상자다",
+        "단축 속성",
+        "box-sizing",
+        "margin 상쇄",
+        "가운데 정렬",
+        "overflow",
+        "기타 박스 속성",
+        "디버깅 팁"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081de9d2fc4a98a7b758d",
+      "title": "6강 - 배경 (background)",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:14:14.232Z",
+      "sections": [
+        "기본 속성",
+        "background-size: cover vs contain",
+        "background-attachment: fixed",
+        "단축 속성",
+        "그라디언트",
+        "배경 위에 어두운 막 씌우기",
+        "img 태그 vs background-image"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081e6b3dcea056fe69ceb",
+      "title": "7강 - display (block, inline, inline-block)",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "block",
+        "inline",
+        "inline-block",
+        "display로 성질 바꾸기",
+        "숨기기: display: none vs visibility: hidden vs opacity: 0",
+        "정리표"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081989dc4e0bb020db59b",
+      "title": "8강 - 폰트와 텍스트 (font)",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "font 속성",
+        "웹폰트",
+        "텍스트 속성",
+        "말줄임 (...) 처리"
+      ]
+    },
+    {
+      "id": "3efdf951bf808129b2a8d94874dc21a5",
+      "title": "9강 - position",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "position 값",
+        "패턴 1: 카드 모서리 배지",
+        "패턴 2: 고정 헤더와 플로팅 버튼",
+        "패턴 3: 스크롤하면 붙는 메뉴",
+        "패턴 4: 정중앙 배치",
+        "z-index: 겹치는 순서"
+      ]
+    },
+    {
+      "id": "3efdf951bf80812b9b92d48d4c482833",
+      "title": "10강 - transition",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "transition",
+        "4가지 속성",
+        "타이밍 함수",
+        "예제: 버튼 hover",
+        "예제: 카드 이미지 확대",
+        "성능 팁"
+      ]
+    },
+    {
+      "id": "3efdf951bf80818b979bf501cc09f2f5",
+      "title": "11강 - animation",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "transition vs animation",
+        "@keyframes",
+        "animation 속성",
+        "예제 1: 로딩 스피너",
+        "예제 2: 등장 효과",
+        "예제 3: hover 하면 멈추기",
+        "접근성"
+      ]
+    },
+    {
+      "id": "3efdf951bf80814b9b77e438727ede6f",
+      "title": "12강 - transform",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "transform",
+        "2D 함수",
+        "transform-origin",
+        "여러 변형 조합",
+        "3D: 카드 뒤집기",
+        "자주 쓰는 곳"
+      ]
+    },
+    {
+      "id": "3efdf951bf808113b2d3feb8e3c3c4b7",
+      "title": "13강 - float",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "float",
+        "문제: 부모 높이가 사라짐",
+        "해결 1: clear",
+        "해결 2: clearfix",
+        "해결 3: BFC (flow-root)",
+        "요즘은?"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081cba4c2f88c275fd1e3",
+      "title": "14강 - 상속 (inheritance)",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:17:57.206Z",
+      "sections": [
+        "상속이란?",
+        "상속되는 속성",
+        "상속되지 않는 속성",
+        "상속 제어 키워드",
+        "상속 vs 캐스케이딩",
+        "활용 팁 (CSS 변수)"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081d1a04bc720c986f980",
+      "title": "15강 - 미디어 쿼리와 반응형 웹",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:19:45.516Z",
+      "sections": [
+        "반응형 웹",
+        "viewport meta",
+        "@media 문법",
+        "브레이크포인트",
+        "모바일 퍼스트",
+        "반응형 이미지",
+        "미디어 쿼리 없이도 반응형",
+        "테스트"
+      ]
+    },
+    {
+      "id": "3efdf951bf808127b78defb3abf27333",
+      "title": "16강 - 레이아웃 (Flexbox & Grid)",
+      "track": "frontend",
+      "group": "HTML/CSS",
+      "lastEdited": "2026-10-04T04:19:45.516Z",
+      "sections": [
+        "Flexbox",
+        "컨테이너 속성",
+        "아이템 속성",
+        "flex 패턴",
+        "Grid",
+        "flex vs grid",
+        "연습 추천"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081829f51f5c34e0bf50e",
+      "title": "1강 - 주피터 노트북 & 파이썬 시작",
+      "track": "backend",
+      "group": "Python 기초",
+      "lastEdited": "2026-10-04T03:37:13.768Z",
+      "sections": [
+        "주피터 노트북 사용법",
+        "마크다운 문법",
+        "출력과 계산",
+        "변수와 데이터 타입",
+        "비교 연산자",
+        "입력과 타입 변환",
+        "함수 핵심 개념"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081278b07e013b599a969",
+      "title": "2강 - 문자열 & 리스트",
+      "track": "backend",
+      "group": "Python 기초",
+      "lastEdited": "2026-10-04T03:37:37.824Z",
+      "sections": [
+        "문자열 인덱스와 슬라이싱",
+        "문자열 함수",
+        "포맷 출력",
+        "리스트",
+        "리스트 함수"
+      ]
+    },
+    {
+      "id": "3efdf951bf80819e9e47c640c3a3095f",
+      "title": "3강 - 조건문 & 반복문",
+      "track": "backend",
+      "group": "Python 기초",
+      "lastEdited": "2026-10-04T03:37:48.174Z",
+      "sections": [
+        "조건문 기본 구조",
+        "예제: 나이로 구분하기",
+        "조건문 안에 조건문",
+        "for 반복문",
+        "while 반복문"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081ee8850c7e3d6b13c5c",
+      "title": "4강 - 함수 & 튜플·딕셔너리·집합",
+      "track": "backend",
+      "group": "Python 기초",
+      "lastEdited": "2026-10-04T03:44:27.711Z",
+      "sections": [
+        "함수",
+        "튜플 (Tuple)",
+        "딕셔너리 (Dictionary)",
+        "집합 (Set)"
+      ]
+    },
+    {
+      "id": "3efdf951bf80811a9d1de277bbb8f7ed",
+      "title": "5강 - 풀스택 개발 이해 & 프레임워크",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T03:44:37.666Z",
+      "sections": [
+        "강의 목표와 원칙",
+        "학습 곡선 (러닝 커브)",
+        "스타트업 개발 프로세스",
+        "프레임워크란?",
+        "왜 Flask?",
+        "왜 Django가 아닌가?"
+      ]
+    },
+    {
+      "id": "3efdf951bf808190ab34eb3d97e84dc0",
+      "title": "6강 - 웹 서비스 흐름 & Flask 시작",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T03:44:44.498Z",
+      "sections": [
+        "웹 서비스 개발 흐름",
+        "풀스택 프레임워크 vs 마이크로 프레임워크",
+        "Flask 설치와 객체 생성",
+        "__name__ 이란?",
+        "시작점 (entry point)"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081e09ef6d423f70984d2",
+      "title": "7강 - 라우팅 & Flask 서버 실행",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T03:44:49.404Z",
+      "sections": [
+        "URL vs URI",
+        "라우팅이란?",
+        "서버 실행: app.run()",
+        "전체 기본 코드",
+        "Web Server vs WAS"
+      ]
+    },
+    {
+      "id": "3efdf951bf808142b13df5bd00c4a917",
+      "title": "8강 - 데코레이터 ① 중첩 함수 & First-class 함수",
+      "track": "backend",
+      "group": "데코레이터",
+      "lastEdited": "2026-10-04T03:44:55.908Z",
+      "sections": [
+        "왜 데코레이터?",
+        "중첩 함수",
+        "First-class 함수",
+        "예시",
+        "연습: 목차 기호 붙이는 함수"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081ebab07d7c8c1112978",
+      "title": "9강 - 데코레이터 ② Closure",
+      "track": "backend",
+      "group": "데코레이터",
+      "lastEdited": "2026-10-04T03:59:30.452Z",
+      "sections": [
+        "Closure란?",
+        "정리",
+        "언제 쓰나?",
+        "연습: 1승~5승 계산 함수"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081faad83c5aa0c575c3f",
+      "title": "10강 - 데코레이터 ③ 작성법 & 파라미터",
+      "track": "backend",
+      "group": "데코레이터",
+      "lastEdited": "2026-10-04T03:59:35.383Z",
+      "sections": [
+        "데코레이터란?",
+        "작성법",
+        "데코레이터를 풀어서 쓰면",
+        "파라미터가 있는 함수에 적용",
+        "연습: type_checker 데코레이터",
+        "어떤 함수에도 쓸 수 있는 데코레이터"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081a1abeae8f03c744e48",
+      "title": "11강 - 데코레이터 ④ 여러 개·메서드·파라미터 데코레이터",
+      "track": "backend",
+      "group": "데코레이터",
+      "lastEdited": "2026-10-04T04:00:51.754Z",
+      "sections": [
+        "데코레이터 여러 개 지정",
+        "도전 과제: HTML 태그 붙이기",
+        "메서드에 데코레이터 적용",
+        "format() 함수 복습",
+        "파라미터가 있는 데코레이터"
+      ]
+    },
+    {
+      "id": "3efdf951bf808141a071fd4cbb558ff9",
+      "title": "12강 - Flask 라우팅 심화",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:00:59.459Z",
+      "sections": [
+        "정적 페이지 리턴",
+        "URI를 변수로 사용",
+        "변수에 데이터 타입 지정",
+        "실습: 숫자 + 5 출력하기"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081bb922cd8bbf0ed803b",
+      "title": "13강 - HTTP & REST API 개념",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:01:10.558Z",
+      "sections": [
+        "HTTP",
+        "REST",
+        "REST API",
+        "Flask에서 REST API 만드는 방법",
+        "httpie 설치와 사용법"
+      ]
+    },
+    {
+      "id": "3efdf951bf808199b333e12b0e63ba46",
+      "title": "14강 - jsonify로 REST API 구현 & VS Code",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:01:19.635Z",
+      "sections": [
+        "jsonify()",
+        "참고: jsonify 없이도 됨?",
+        "VS Code를 쓰는 이유",
+        "VS Code 설치"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081d0a7cacadcbe6e2608",
+      "title": "15강 - GET 파라미터 & render_template",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:01:24.887Z",
+      "sections": [
+        "GET 파라미터",
+        "HTML 로그인 폼 만들기",
+        "render_template()",
+        "static_url_path"
+      ]
+    },
+    {
+      "id": "3efdf951bf80815a82bddec479d5ce62",
+      "title": "16강 - Jinja2 템플릿 ① 변수 & 반복문",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:01:43.952Z",
+      "sections": [
+        "Jinja2 템플릿",
+        "변수 출력",
+        "반복문",
+        "반복문 추가 문법"
+      ]
+    },
+    {
+      "id": "3efdf951bf80818fafb6d7a70eaf38ac",
+      "title": "17강 - Jinja2 템플릿 ② 조건문 & 주석",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:11.285Z",
+      "sections": [
+        "조건문",
+        "주석",
+        "크롤링 결과 그대로 리턴"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081deb46cd917937eab25",
+      "title": "18강 - CDN & Vue + axios 연동",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:16.284Z",
+      "sections": [
+        "CDN",
+        "폴더 구성",
+        "Vue 코드 추가 순서",
+        "버튼으로 Flask API 호출하기"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081598e39c4da0c36cf64",
+      "title": "19강 - CORS & HTTP 요청 메서드",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:39.159Z",
+      "sections": [
+        "Same Origin Policy",
+        "CORS",
+        "flask_cors로 해결",
+        "메서드별로 파라미터 받기 (Flask)",
+        "axios에서 보내는 방법 (프론트)",
+        "HTTP 요청 메서드 정리"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081e6bf73ca497056d696",
+      "title": "20강 - 에러 처리 & 로깅",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:43.669Z",
+      "sections": [
+        "errorhandler",
+        "로깅이 필요한 이유",
+        "로그 레벨",
+        "주요 로깅 핸들러",
+        "Flask에 적용"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081d9a1ebdb20a03e7151",
+      "title": "21강 - before_request & after_request",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:49.016Z",
+      "sections": [
+        "데코레이터 정리",
+        "첫 요청 때만 실행하기",
+        "활용 예"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081ff82c7d0b204182be2",
+      "title": "22강 - 블로그 서비스 기획 (MVP & MVC)",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:54.358Z",
+      "sections": [
+        "풀스택 웹서비스 구현",
+        "MVP",
+        "블로그 프로젝트 목표 기능",
+        "MVC 패턴",
+        "현실에서는?"
+      ]
+    },
+    {
+      "id": "3efdf951bf80810d9b84c4922dc76208",
+      "title": "23강 - 프로젝트 폴더 구조 & Blueprint",
+      "track": "backend",
+      "group": "Flask",
+      "lastEdited": "2026-10-04T04:04:58.847Z",
+      "sections": [
+        "왜 파일을 나누나?",
+        "폴더 구조",
+        "Blueprint",
+        "하위 파일",
+        "메인 파일"
+      ]
+    },
+    {
+      "id": "3efdf951bf80819ab08cdba80c22bde2",
+      "title": "24강 - Flask & MySQL (pymysql)",
+      "track": "backend",
+      "group": "DB",
+      "lastEdited": "2026-10-04T04:05:03.087Z",
+      "sections": [
+        "웹서비스와 데이터베이스",
+        "SQLAlchemy vs pymysql",
+        "pymysql 사용 순서",
+        "연결",
+        "사용자 테이블",
+        "CRUD 예시",
+        "팁 (SQL 인젝션)"
+      ]
+    },
+    {
+      "id": "3efdf951bf808154afacd2a64ca5c595",
+      "title": "25강 - Flask & MongoDB (pymongo)",
+      "track": "backend",
+      "group": "DB",
+      "lastEdited": "2026-10-04T04:05:07.040Z",
+      "sections": [
+        "로그를 MongoDB에 저장하는 이유",
+        "연결",
+        "연결 확인이 필요한 이유",
+        "CRUD"
+      ]
+    },
+    {
+      "id": "3efdf951bf80817abb60e92382bb6efa",
+      "title": "26강 - 클래스 기본 (class & object)",
+      "track": "backend",
+      "group": "클래스·배포",
+      "lastEdited": "2026-10-04T04:05:12.251Z",
+      "sections": [
+        "클래스 선언",
+        "attribute (속성)",
+        "method (메서드)",
+        "self를 꼭 넣는 이유"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081ada6a4fe809ac5761b",
+      "title": "27강 - 상속 & 메서드 재정의",
+      "track": "backend",
+      "group": "클래스·배포",
+      "lastEdited": "2026-10-04T04:05:16.281Z",
+      "sections": [
+        "추상화와 상속",
+        "상속 방법",
+        "관계 확인",
+        "메서드 재정의 (Override)",
+        "super()와 self"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081798cc5cbbf7c22b9c9",
+      "title": "28강 - 클래스 변수 & static·class 메서드",
+      "track": "backend",
+      "group": "클래스·배포",
+      "lastEdited": "2026-10-04T04:05:20.583Z",
+      "sections": [
+        "클래스 변수 vs 인스턴스 변수",
+        "instance method",
+        "static method",
+        "class method",
+        "static vs class method 차이"
+      ]
+    },
+    {
+      "id": "3efdf951bf80816987ffde25fc69913a",
+      "title": "29강 - flask_login & Control 클래스",
+      "track": "backend",
+      "group": "클래스·배포",
+      "lastEdited": "2026-10-04T04:05:24.960Z",
+      "sections": [
+        "flask_login이란?",
+        "동작 방식",
+        "세션이 전달되는 과정",
+        "초기 설정",
+        "미리 선언해야 하는 함수 2개",
+        "세션 생성",
+        "User 클래스",
+        "BlogSession 클래스",
+        "클래스로 Control을 만드는 이유",
+        "주의"
+      ]
+    },
+    {
+      "id": "3efdf951bf80818bb289e4782b910ad0",
+      "title": "30강 - 배포 (ngrok & AWS)",
+      "track": "backend",
+      "group": "클래스·배포",
+      "lastEdited": "2026-10-04T04:05:28.795Z",
+      "sections": [
+        "배포란?",
+        "ngrok: 초간단 배포",
+        "1. EC2 서버 만들기",
+        "2. 서버 접속",
+        "3. Apache 웹서버 설치",
+        "4. Anaconda 설치",
+        "5. Flask를 Apache에 연결 (mod_wsgi)",
+        "runserver.wsgi 예시",
+        "정리"
+      ]
+    },
+    {
+      "id": "3efdf951bf808157a036c1577d79644d",
+      "title": "MySQL 1강 - 데이터베이스와 RDBMS 개념",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:07:18.905Z",
+      "sections": [
+        "데이터베이스란?",
+        "RDBMS (관계형 데이터베이스)",
+        "스키마 (Schema)",
+        "SQL",
+        "MySQL"
+      ]
+    },
+    {
+      "id": "3efdf951bf80817db4e8f62c8f32e1df",
+      "title": "MySQL 2강 - DDL: 데이터베이스와 테이블 만들기",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:07:28.973Z",
+      "sections": [
+        "데이터베이스 다루기",
+        "테이블 생성 기본 구조",
+        "컬럼 옵션",
+        "주요 데이터 타입",
+        "기본키 지정",
+        "실습: 고객 테이블 만들기",
+        "테이블 조회와 삭제",
+        "ALTER로 구조 수정",
+        "연습: mytable 컬럼 수정"
+      ]
+    },
+    {
+      "id": "3efdf951bf80815f9a40d4819038b9ca",
+      "title": "MySQL 3강 - DML: 데이터 CRUD",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:07:44.793Z",
+      "sections": [
+        "CRUD",
+        "실습용 테이블",
+        "INSERT",
+        "SELECT",
+        "WHERE 조건",
+        "LIKE (부분 일치)",
+        "UPDATE",
+        "DELETE",
+        "주의"
+      ]
+    },
+    {
+      "id": "3efdf951bf80813d8ad4de8af1bdd7f7",
+      "title": "MySQL 4강 - DCL: 사용자와 권한 관리",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:07:50.889Z",
+      "sections": [
+        "MySQL 접속",
+        "사용자 관리",
+        "권한 관리",
+        "옵션 정리",
+        "실무 감각"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081c3ab6dc3b5d4c0528d",
+      "title": "MySQL 5강 - SELECT 심화 (Sakila 실습)",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:07:55.883Z",
+      "sections": [
+        "Sakila 데이터베이스",
+        "LIMIT",
+        "COUNT",
+        "DISTINCT",
+        "집계 함수",
+        "WHERE 복합 조건",
+        "GROUP BY",
+        "ORDER BY",
+        "AS",
+        "SQL 구문 순서"
+      ]
+    },
+    {
+      "id": "3efdf951bf80815593d8ef50293c054f",
+      "title": "MySQL 6강 - 외래키 & GROUP BY + HAVING",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:08:00.113Z",
+      "sections": [
+        "외래키 (FOREIGN KEY)",
+        "외래키가 막아주는 것",
+        "현업에서는?",
+        "HAVING",
+        "WHERE + GROUP BY + HAVING + ORDER BY",
+        "실습 환경"
+      ]
+    },
+    {
+      "id": "3efdf951bf808121b05edb966958d9e4",
+      "title": "MySQL 7강 - JOIN & 서브쿼리",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:08:04.429Z",
+      "sections": [
+        "JOIN이란?",
+        "INNER JOIN",
+        "JOIN 연습",
+        "OUTER JOIN 활용",
+        "서브쿼리",
+        "같은 문제를 두 가지로",
+        "서브쿼리가 들어갈 수 있는 위치",
+        "연습: 할인가 10만원 이상 상품 수",
+        "추가 연습"
+      ]
+    },
+    {
+      "id": "3efdf951bf808153863cc0f4367acf3e",
+      "title": "MySQL 8강 - 인덱스 (INDEX)",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:08:11.669Z",
+      "sections": [
+        "인덱스란?",
+        "인덱스 종류",
+        "인덱스 확인",
+        "인덱스 만들기",
+        "인덱스 삭제",
+        "연습",
+        "참고"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081d28650fb1b07a48c28",
+      "title": "MySQL 9강 - pymysql로 파이썬에서 MySQL 다루기",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:08:16.604Z",
+      "sections": [
+        "pymysql",
+        "기본 흐름 7단계",
+        "접속",
+        "테이블 만들기",
+        "INSERT",
+        "SELECT",
+        "fetch 메서드",
+        "UPDATE / DELETE",
+        "주의: SQL 인젝션",
+        "팁"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081c88fdcc74323cc24b7",
+      "title": "MySQL 10강 - 크롤링 데이터 MySQL 저장 실습",
+      "track": "backend",
+      "group": "MySQL",
+      "lastEdited": "2026-10-04T04:08:23.146Z",
+      "sections": [
+        "전체 흐름",
+        "1. 스키마",
+        "2~3. 크롤링 + 저장",
+        "4. 조회와 분석",
+        "정리"
+      ]
+    },
+    {
+      "id": "3efdf951bf808194831ef91ab5254c23",
+      "title": "MongoDB 1강 - NoSQL과 MongoDB 개념",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:08:38.276Z",
+      "sections": [
+        "NoSQL (Not only SQL)",
+        "MongoDB",
+        "데이터 구조 비교",
+        "설치와 보안",
+        "GUI 도구",
+        "기본 명령",
+        "Capped Collection",
+        "주요 데이터 타입"
+      ]
+    },
+    {
+      "id": "3efdf951bf80818c81ecdeb74d4faaca",
+      "title": "MongoDB 2강 - CRUD ① 삽입과 조회",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:08:46.197Z",
+      "sections": [
+        "예제 데이터",
+        "삽입",
+        "조회 기본 구조",
+        "SQL과 비교",
+        "비교 연산자",
+        "논리 연산자",
+        "연습"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081c5b7f6cd8d3fa61c04",
+      "title": "MongoDB 3강 - CRUD ② 검색 심화, 수정, 삭제",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:08:49.925Z",
+      "sections": [
+        "정규표현식 ($regex)",
+        "정렬, 개수, 일부만",
+        "배열 검색",
+        "수정",
+        "삭제",
+        "교재에서 헷갈리기 쉬운 부분"
+      ]
+    },
+    {
+      "id": "3efdf951bf80812abe25e63b8fb84cf2",
+      "title": "MongoDB 4강 - Aggregation ① 파이프라인과 기본 스테이지",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:09:05.650Z",
+      "sections": [
+        "Aggregation Framework",
+        "예제 데이터",
+        "주요 스테이지",
+        "$group 구조",
+        "누산기(accumulator)",
+        "예시",
+        "$unwind: 배열 풀기",
+        "데이터 타입 주의"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081ae9eabe559f5572274",
+      "title": "MongoDB 5강 - Aggregation ② $project, $lookup 등",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:09:09.996Z",
+      "sections": [
+        "예제 데이터 추가: 리뷰 컬렉션",
+        "$project: 필드 고르고 만들기",
+        "$lookup: 다른 컬렉션과 조인",
+        "$skip",
+        "$facet",
+        "$redact",
+        "연습"
+      ]
+    },
+    {
+      "id": "3efdf951bf80819a8352e7237f303d32",
+      "title": "MongoDB 6강 - pymongo 기본 (파이썬으로 CRUD)",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:10:35.064Z",
+      "sections": [
+        "pymongo",
+        "연결과 선택",
+        "삽입",
+        "조회",
+        "수정",
+        "삭제",
+        "연결 종료",
+        "기본 템플릿",
+        "주의"
+      ]
+    },
+    {
+      "id": "3efdf951bf8081a99f3fe339dcd343a3",
+      "title": "MongoDB 7강 - pymongo 심화 (find 옵션 & aggregate)",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:10:30.082Z",
+      "sections": [
+        "projection과 연산자",
+        "sort / skip / limit",
+        "정규표현식",
+        "distinct / $exists / count_documents",
+        "aggregate()",
+        "자주 쓰는 패턴",
+        "팁"
+      ]
+    },
+    {
+      "id": "3efdf951bf80814fac73d2b96a1671eb",
+      "title": "MongoDB 8강 - 인덱스와 텍스트 검색",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:10:26.027Z",
+      "sections": [
+        "인덱스란?",
+        "인덱스 종류",
+        "셸 문법",
+        "pymongo로 인덱스 다루기",
+        "텍스트 검색",
+        "가중치와 적합도 점수",
+        "참고: 한글 텍스트 검색"
+      ]
+    },
+    {
+      "id": "3efdf951bf80811ba911d0f8fdfee971",
+      "title": "MongoDB 9강 - 크롤링 데이터 MongoDB 저장 실습",
+      "track": "backend",
+      "group": "MongoDB",
+      "lastEdited": "2026-10-04T04:10:21.557Z",
+      "sections": [
+        "MySQL과 다른 점",
+        "크롤링 + 저장",
+        "분석 연습",
+        "$regex vs $text",
+        "정리"
+      ]
+    },
+    {
+      "id": "3f1df951bf80804bba8cf4d374e4b665",
+      "title": "FastAPI 1강",
+      "track": "backend",
+      "group": "FastAPI",
+      "lastEdited": "2026-10-06T23:45:02.065Z",
+      "sections": [],
+      "empty": true
+    },
+    {
+      "id": "3f6df951bf8080b99181d2356eb81eaf",
+      "title": "자주 까먹는 내용",
+      "track": "backend",
+      "group": "기타",
+      "lastEdited": "2026-10-11T13:43:13.005Z",
+      "sections": [],
+      "empty": true
+    },
+    {
+      "id": "3f0df951bf8080ea9430c9f678a9a054",
+      "title": "디자인 기초",
+      "track": "design",
+      "group": "디자인 기초",
+      "lastEdited": "2026-10-11T11:47:38.995Z",
+      "sections": [
+        "모션그래픽이란?",
+        "실무 핵심 앱",
+        "추천 독학 순서",
+        "제작 파이프라인",
+        "형태감",
+        "빛과 그림자",
+        "재질(텍스처)",
+        "아트웍의 3요소",
+        "메시지의 시각화",
+        "폰트의 종류",
+        "대표적인 폰트",
+        "폰트 구하는 곳",
+        "타이포그래피 팁 5가지",
+        "색별 감정과 브랜드 사례",
+        "색의 3속성과 색상환",
+        "컬러 잘 쓰는 법 7가지",
+        "레이아웃",
+        "레이아웃 기초 규칙",
+        "핵심 원칙 5가지",
+        "12원칙 나머지 7가지",
+        "덜 단조로워 보이는 팁 6가지",
+        "사운드 작업 순서",
+        "원칙을 툴로 구현하기",
+        "영상 기본 용어"
+      ]
+    },
+    {
+      "id": "3efdf951bf8080beb779ecde4838b7ce",
+      "title": "포토샵 1. 조정 레이어 & Selective Color",
+      "track": "design",
+      "group": "포토샵/일러스트",
+      "lastEdited": "2026-10-08T02:43:29.094Z",
+      "sections": [
+        "도형을 이용한 폴라로이드 프레임",
+        "조정 레이어(Adjustment Layer)",
+        "1. 파일 열고 수평 맞추기 (Open vs Place)",
+        "2. Selective Color로 색감 보정",
+        "3. Curves로 밝기 조절",
+        "보색",
+        "잔디 색을 Yellows로 보정하는 이유",
+        "Relative vs Absolute",
+        "Selective Color 슬라이더 4개의 의미",
+        "색 합성 공식",
+        "조정 레이어 마스크",
+        "Vibrance vs Saturation",
+        "저장 팁",
+        "Curves 단축키 주의",
+        "Selective Color 실전 레시피"
+      ]
+    },
+    {
+      "id": "3f0df951bf8080b6a520d09c38f3aa24",
+      "title": "포토샵 2. 클리핑 마스크 타이포 합성",
+      "track": "design",
+      "group": "포토샵/일러스트",
+      "lastEdited": "2026-10-08T02:43:33.677Z",
+      "sections": [
+        "클리핑 마스크(Clipping Mask)",
+        "Rulers & Guidelines / Select Subject",
+        "1. 가이드라인 추가 후 피사체 선택",
+        "2. 클리핑 마스크의 마스크 준비",
+        "3. 클리핑 마스크로 텍스트 합성",
+        "최종 레이어 구조",
+        "클리핑 마스크 vs 레이어 마스크",
+        "클리핑 마스크 더 활용하기",
+        "타이포 합성이 예쁘게 나오는 조건",
+        "Subject 선택이 깔끔하지 않을 때",
+        "자간 단위",
+        "저장"
+      ]
+    },
+    {
+      "id": "3f3df951bf808002ad47dbe48a173071",
+      "title": "포토샵 3. 블렌딩 모드 · Opacity · Levels",
+      "track": "design",
+      "group": "포토샵/일러스트",
+      "lastEdited": "2026-10-08T03:26:54.542Z",
+      "sections": [
+        "Blending Mode",
+        "계열별 정리",
+        "실습: 블렌딩 모드 연습 세트 합성",
+        "Opacity(불투명도)",
+        "Levels(레벨)",
+        "다시 봐야할 문제",
+        "면접 숙제",
+        "복습"
+      ]
+    },
+    {
+      "id": "3f4df951bf8080b386d6ea387d6549c6",
+      "title": "알고리즘 1. 해시 (오픈채팅방 · 신고 결과 받기)",
+      "track": "backend",
+      "group": "알고리즘",
+      "lastEdited": "2026-10-12T01:11:59.787Z",
+      "sections": [
+        "해시 (파이썬 dict)",
+        "자료구조별 만들기 · 추가",
+        "문법 정리",
+        "[프론트] 오픈채팅방",
+        "[백엔드] 신고 결과 받기",
+        "오픈채팅방 사고 과정",
+        "신고 결과 받기 사고 과정",
+        "트러블슈팅",
+        "면접 숙제"
+      ]
+    },
+    {
+      "id": "3f5df951bf8080d0943bf46bf8e85ebf",
+      "title": "알고리즘 2. 스택 (올바른 괄호 · 과제 진행하기)",
+      "track": "backend",
+      "group": "알고리즘",
+      "lastEdited": "2026-10-12T01:14:11.336Z",
+      "sections": [
+        "스택 (LIFO)",
+        "스택 vs 큐",
+        "문법 정리",
+        "[프론트] 올바른 괄호",
+        "[백엔드] 과제 진행하기",
+        "과제 진행하기 코드 Q&A (sorted/key/lambda/[-1])",
+        "올바른 괄호 사고 과정",
+        "과제 진행하기 사고 과정",
+        "트러블슈팅",
+        "면접 숙제"
+      ]
+    },
+    {
+      "id": "3f6df951bf80806c9e9bdf5434eec14d",
+      "title": "알고리즘 3. 큐 (다리를 지나는 트럭 · 프로세스)",
+      "track": "backend",
+      "group": "알고리즘",
+      "lastEdited": "2026-10-12T01:16:03.386Z",
+      "sections": [
+        "큐 (FIFO)",
+        "튜플 vs 리스트",
+        "언패킹 vs 인덱스",
+        "튜플끼리 비교와 max",
+        "[프론트] 다리를 지나는 트럭",
+        "[백엔드] 프로세스",
+        "다리를 지나는 트럭 사고 과정",
+        "프로세스 사고 과정",
+        "시간 초과 판단법",
+        "트러블슈팅",
+        "면접 숙제"
+      ]
+    },
+    {
+      "id": "3f7df951bf808096986fc7f52bbe4d05",
+      "title": "알고리즘 4. BFS (게임 맵 최단거리 · 네트워크)",
+      "track": "backend",
+      "group": "알고리즘",
+      "lastEdited": "2026-10-12T01:11:18.289Z",
+      "sections": [
+        "BFS (너비 우선 탐색)",
+        "BFS vs DFS",
+        "방문 표시는 언제 찍나",
+        "그리드 탐색 표준 패턴",
+        "[프론트] 게임 맵 최단거리",
+        "[백엔드] 네트워크",
+        "트러블슈팅",
+        "면접 숙제"
+      ]
+    }
+  ]
+}
