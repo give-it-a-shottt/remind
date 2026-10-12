@@ -8,6 +8,7 @@ interface QuestionBase {
   question: string
   /** 문제와 함께 보여줄 코드 */
   code?: string
+  /** 정답 해설 (필수) — 왜 이게 정답인지 노트 내용을 근거로 설명 */
   explanation: string
 }
 
@@ -16,6 +17,8 @@ export interface McqQuestion extends QuestionBase {
   choices: string[]
   /** choices 의 정답 인덱스 */
   answer: number
+  /** 선택지별 설명 (choices 와 같은 길이) — 오답이 왜 틀렸는지 */
+  choiceExplanations?: string[]
 }
 
 export interface OxQuestion extends QuestionBase {
@@ -38,6 +41,16 @@ export interface EssayQuestion extends QuestionBase {
 
 export type Question = McqQuestion | OxQuestion | ShortQuestion | EssayQuestion
 
+/** 문제 풀기 전에 읽는 개념 설명 — 노션 소제목 하나에 대응 */
+export interface Section {
+  /** 노션 원문 소제목. 문제의 source 와 같은 문자열 */
+  title: string
+  /** 핵심 설명 (짧은 문장 여러 개) */
+  points: string[]
+  /** 대표 예시 코드 */
+  code?: string
+}
+
 export interface Topic {
   /** URL 에 쓰이는 고정 slug */
   id: string
@@ -48,7 +61,7 @@ export interface Topic {
   order: number
   /** 원본 노션 페이지 ID (자체 작성 콘텐츠면 생략) */
   notionId?: string
-  /** 노션 원문의 소제목 목록 — 모든 소제목에 문제가 1개 이상 있어야 함 */
-  sections: string[]
+  /** 개념 설명 — 모든 섹션에 문제가 1개 이상, 모든 문제의 source 는 섹션 title 중 하나 */
+  sections: Section[]
   questions: Question[]
 }
