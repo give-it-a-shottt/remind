@@ -11,7 +11,7 @@ const topic: Topic = {
   sections: [
     {
       title: 'package.json',
-      notionId: '3f2df951bf8081b5aa90dce471c374c6',
+      notionIds: ['3f2df951bf8081b5aa90dce471c374c6'],
       points: [
         'scripts: dev = vite(5173), build = tsc -b && vite build, lint = eslint ., preview = vite preview(dist 미리보기)',
         '"type": "module" → .js 파일을 ES 모듈(import/export)로 해석',
@@ -22,7 +22,7 @@ const topic: Topic = {
     },
     {
       title: 'vite.config.ts',
-      notionId: '3f2df951bf8081eaabbefe50949a2b0a',
+      notionIds: ['3f2df951bf8081eaabbefe50949a2b0a'],
       code: `export default defineConfig({
   plugins: [react(), tailwindcss()],
 })`,
@@ -35,7 +35,7 @@ const topic: Topic = {
     },
     {
       title: 'index.html',
-      notionId: '3f2df951bf8081d9bbdfdd99e313e816',
+      notionIds: ['3f2df951bf8081d9bbdfdd99e313e816'],
       points: [
         '브라우저가 가장 먼저 받는 파일: 빈 div#root + <script type="module" src="/src/main.tsx"> 뿐 (SPA)',
         'Pretendard 가변 폰트 dynamic-subset — 필요한 글자만 나눠 받음',
@@ -45,7 +45,7 @@ const topic: Topic = {
     },
     {
       title: 'tsconfig 3종',
-      notionId: '3f2df951bf808152a5e3f826bd7e033c',
+      notionIds: ['3f2df951bf808152a5e3f826bd7e033c'],
       points: [
         'tsconfig.json: files: [] + references 로 app·node 두 프로젝트를 묶음. tsc -b 가 참조를 따라 둘 다 검사',
         'tsconfig.app.json (src 전용): types ["vite/client"], moduleResolution "bundler", noEmit',
@@ -57,7 +57,7 @@ const topic: Topic = {
     },
     {
       title: 'eslint.config.js',
-      notionId: '3f2df951bf8081ffb375d083030e0b84',
+      notionIds: ['3f2df951bf8081ffb375d083030e0b84'],
       points: [
         'ESLint 9+ flat config 형식, globalIgnores(["dist"])',
         'js·typescript-eslint recommended + react-hooks(훅은 최상단에서만, useEffect 의존성 검사) + react-refresh(파일이 컴포넌트만 export 하는지)',

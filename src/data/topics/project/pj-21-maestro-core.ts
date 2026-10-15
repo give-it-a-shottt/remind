@@ -20,7 +20,7 @@ const topic: Topic = {
     },
     {
       title: 'app/main.py',
-      notionId: '3f2df951bf8081d7ad3de82039b5d0fe',
+      notionIds: ['3f2df951bf8081d7ad3de82039b5d0fe'],
       points: [
         'create_app(): CORS → 라우터 4개(health, regions, score, places) → register_error_handlers 순서',
         'DB 가 없으니 lifespan 도 없음',
@@ -29,7 +29,7 @@ const topic: Topic = {
     },
     {
       title: 'app/core/config.py',
-      notionId: '3f2df951bf8081659794db0d06676288',
+      notionIds: ['3f2df951bf8081659794db0d06676288'],
       code: `class Settings(BaseSettings):
     app_name: str = "Maestro API"
     environment: Literal["local", "production"] = "local"
@@ -45,7 +45,7 @@ const topic: Topic = {
     },
     {
       title: 'app/core/errors.py',
-      notionId: '3f2df951bf8081478a52f02e7193f3ef',
+      notionIds: ['3f2df951bf8081478a52f02e7193f3ef'],
       points: [
         '파이썬 예외 → HTTP 상태 코드 + {"detail": {"code", "message"}} 일정한 모양',
         'NotFound → 404 not_found (매장·문의·예약 없음)',
@@ -57,7 +57,7 @@ const topic: Topic = {
     },
     {
       title: 'app/core/schemas.py',
-      notionId: '3f2df951bf808116b64bc45c4e49c3f1',
+      notionIds: ['3f2df951bf808116b64bc45c4e49c3f1'],
       code: `class CamelModel(BaseModel):
     model_config = ConfigDict(
         alias_generator=to_camel,   # open_now ↔ openNow
@@ -73,7 +73,7 @@ const topic: Topic = {
     },
     {
       title: 'health · regions 라우터',
-      notionId: '3f2df951bf8081a58dd2e66c17c88953',
+      notionIds: ['3f2df951bf8081a58dd2e66c17c88953', '3f2df951bf8081afaebde4aef3768ae2'],
       points: [
         'GET /health → {"status":"ok","environment":...,"yumi_mode":"mock"}',
         'Render 헬스체크, 프론트 wakeServer(), 발표 직전 mock/real 확인에 모두 쓰임',

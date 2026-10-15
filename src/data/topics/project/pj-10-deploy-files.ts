@@ -11,7 +11,7 @@ const topic: Topic = {
   sections: [
     {
       title: 'render.yaml',
-      notionId: '3f2df951bf8081ca8025db2e1ab2f8b4',
+      notionIds: ['3f2df951bf8081ca8025db2e1ab2f8b4'],
       code: `services:
   - type: web
     name: maestro-api
@@ -33,7 +33,7 @@ const topic: Topic = {
     },
     {
       title: 'keep-supabase-awake.yml',
-      notionId: '3f2df951bf808109b245d91164134fb6',
+      notionIds: ['3f2df951bf808109b245d91164134fb6'],
       code: `on:
   schedule:
     - cron: "0 0 */3 * *"
@@ -52,7 +52,7 @@ const topic: Topic = {
     },
     {
       title: '.gitignore · README.md',
-      notionId: '3f2df951bf80812ea983cdc15db2b9bb',
+      notionIds: ['3f2df951bf80812ea983cdc15db2b9bb'],
       points: [
         '.gitignore 에 빠진 파일은 Vercel·Render 도 못 본다 — 배포와 직결',
         'node_modules/, dist/ — 서버가 직접 설치·빌드하므로 올리지 않음',

@@ -19,7 +19,7 @@ const topic: Topic = {
     },
     {
       title: 'app/main.py',
-      notionId: '3f2df951bf8081ecba62f43fa1189aa2',
+      notionIds: ['3f2df951bf8081ecba62f43fa1189aa2'],
       code: `@asynccontextmanager
 async def lifespan(app: FastAPI):
     yield                    # 여기까지 = 켜질 때, 이후 = 꺼질 때
@@ -41,7 +41,7 @@ app = create_app()   # fastapi run 이 찾는 변수`,
     },
     {
       title: 'app/core/config.py',
-      notionId: '3f2df951bf8081a7ab80e9c4f1ff6849',
+      notionIds: ['3f2df951bf8081a7ab80e9c4f1ff6849'],
       code: `class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     app_name: str = "Accio API"
@@ -58,7 +58,7 @@ app = create_app()   # fastapi run 이 찾는 변수`,
     },
     {
       title: 'app/core/db.py',
-      notionId: '3f2df951bf80814a9339c630d8229ae3',
+      notionIds: ['3f2df951bf80814a9339c630d8229ae3'],
       code: `engine = create_async_engine(
     get_settings().database_url,   # postgresql+asyncpg://...
     pool_size=5, max_overflow=5,
@@ -81,7 +81,7 @@ async def get_db():
     },
     {
       title: 'app/health/router.py',
-      notionId: '3f2df951bf80813dbeabfb5b732b2183',
+      notionIds: ['3f2df951bf80813dbeabfb5b732b2183'],
       code: `@router.get("/db")
 async def readiness(settings: Annotated[Settings, Depends(get_settings)],
                     db: Annotated[AsyncSession, Depends(get_db)]) -> HealthResponse:
@@ -100,7 +100,7 @@ async def readiness(settings: Annotated[Settings, Depends(get_settings)],
     },
     {
       title: 'tests/test_health.py',
-      notionId: '3f2df951bf8081b09040ccbcb5913f72',
+      notionIds: ['3f2df951bf8081b09040ccbcb5913f72'],
       points: [
         'TestClient(app): 실제 서버를 띄우지 않고 앱에 직접 요청을 넣어보는 도구',
         'test_liveness_returns_ok: 200 + {"status": "ok", "environment": "local"}',
@@ -109,7 +109,7 @@ async def readiness(settings: Annotated[Settings, Depends(get_settings)],
     },
     {
       title: '설정 파일 (pyproject · docker-compose · .env.example)',
-      notionId: '3f2df951bf80812c82bfdba14d36b939',
+      notionIds: ['3f2df951bf80812c82bfdba14d36b939'],
       points: [
         'dependencies: asyncpg(Postgres 비동기 드라이버), fastapi[standard](uvicorn·httpx·CLI 포함), pydantic-settings, sqlalchemy[asyncio]',
         'dependency-groups dev: pytest, ruff 등 — --no-dev 로 운영 설치에서 제외',

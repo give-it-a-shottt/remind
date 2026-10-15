@@ -47,7 +47,7 @@ for (const t of topics) {
 
 // sync.json 에 있는 (빈 페이지가 아닌) 노션 페이지는 모두 토픽이 있어야 한다
 const sync = JSON.parse(readFileSync(join(root, 'content/sync.json'), 'utf8'))
-const covered = new Set(topics.flatMap((t) => [t.notionId, ...t.sections.map((s) => s.notionId)]).filter(Boolean))
+const covered = new Set(topics.flatMap((t) => [t.notionId, ...t.sections.flatMap((s) => s.notionIds ?? [])]).filter(Boolean))
 const missing = sync.pages.filter((p: { id: string; empty?: boolean }) => !p.empty && !covered.has(p.id))
 
 const total = topics.reduce((n, t) => n + t.questions.length, 0)

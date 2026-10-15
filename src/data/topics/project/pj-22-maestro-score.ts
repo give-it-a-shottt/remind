@@ -11,7 +11,7 @@ const topic: Topic = {
   sections: [
     {
       title: 'app/score/router.py',
-      notionId: '3f2df951bf808104ac7fdb4c7d09a55b',
+      notionIds: ['3f2df951bf808104ac7fdb4c7d09a55b'],
       code: `@router.post("/score")
 async def create_score(request: ScoreRequest,
                        yumi: Annotated[YumiClient, Depends(get_yumi_client)]) -> Score:
@@ -25,7 +25,7 @@ async def create_score(request: ScoreRequest,
     },
     {
       title: 'app/score/schemas.py',
-      notionId: '3f2df951bf8081489e3efde4f8a57e74',
+      notionIds: ['3f2df951bf8081489e3efde4f8a57e74'],
       code: `class MealIn(CamelModel):
     at: datetime
     dong: str = Field(min_length=1)
@@ -45,7 +45,7 @@ class ScoreRequest(CamelModel):
     },
     {
       title: 'app/score/service.py',
-      notionId: '3f2df951bf8081ffb216e571c237ff3f',
+      notionIds: ['3f2df951bf8081ffb216e571c237ff3f'],
       code: `def _rank(places):
     def doubt(place):
         stale = (place.freshness_score or 0) < MIN_FRESHNESS
@@ -64,7 +64,7 @@ class ScoreRequest(CamelModel):
     },
     {
       title: 'app/situations.py',
-      notionId: '3f2df951bf8081c98238eb1f01515e01',
+      notionIds: ['3f2df951bf8081c98238eb1f01515e01'],
       code: `@dataclass(frozen=True)
 class Situation:
     key: SituationKey; emoji: str; label: str; reason: str

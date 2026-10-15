@@ -11,7 +11,7 @@ const topic: Topic = {
   sections: [
     {
       title: 'app/places/router.py',
-      notionId: '3f2df951bf808137b55cd886e30ee9ad',
+      notionIds: ['3f2df951bf808137b55cd886e30ee9ad'],
       code: `POST /api/places/{id}/live-status   → {queryId, status: "pending"}
 GET  /api/live-status/{queryId}?wait=10
      → available / limited / unavailable / soon / not_offered / no_response`,
@@ -26,7 +26,7 @@ GET  /api/live-status/{queryId}?wait=10
     },
     {
       title: 'app/yumi/client.py',
-      notionId: '3f2df951bf808159a617c6dee7b6f24d',
+      notionIds: ['3f2df951bf808159a617c6dee7b6f24d'],
       points: [
         'YumiClient(Protocol): mock 과 real 이 똑같이 갖춰야 하는 메서드 7개 (resolve_region, search_nearby, get_place, ask/get_live_status, request/get_reservation)',
         'Protocol = 구조적 타이핑. 상속하지 않아도 같은 메서드가 있으면 타입 검사 통과',
@@ -36,7 +36,7 @@ GET  /api/live-status/{queryId}?wait=10
     },
     {
       title: 'app/yumi/deps.py',
-      notionId: '3f2df951bf8081b6b4a0f97cd3f1eb20',
+      notionIds: ['3f2df951bf8081b6b4a0f97cd3f1eb20'],
       code: `@lru_cache
 def _mock_client() -> MockYumiClient:
     return MockYumiClient()
@@ -54,7 +54,7 @@ def get_yumi_client(settings = Depends(get_settings)) -> YumiClient:
     },
     {
       title: 'app/yumi/filters.py',
-      notionId: '3f2df951bf8081569aadd8a73a99c3b3',
+      notionIds: ['3f2df951bf8081569aadd8a73a99c3b3'],
       points: [
         'matches(place, filters): 유미 필터를 "이 매장이 통과하나?"로 판정 + distance_m(하버사인 공식)',
         '쓰는 곳 두 군데: mock 의 필터 흉내, 악보 만들기에서 넓은 검색 결과를 상황 6개로 나눌 때',
@@ -66,7 +66,7 @@ def get_yumi_client(settings = Depends(get_settings)) -> YumiClient:
     },
     {
       title: 'app/yumi/mock.py',
-      notionId: '3f2df951bf8081c4b153dd7ce3e4ffac',
+      notionIds: ['3f2df951bf8081c4b153dd7ce3e4ffac'],
       code: `MOCK_ANSWERS = {
     "wait":  ("limited",   "지금 대기 약 10분이에요"),
     "seats": ("available", "바로 앉으실 수 있어요"),
@@ -83,7 +83,7 @@ def get_yumi_client(settings = Depends(get_settings)) -> YumiClient:
     },
     {
       title: 'app/yumi/models.py',
-      notionId: '3f2df951bf8081d993ddeef7a22e5799',
+      notionIds: ['3f2df951bf8081d993ddeef7a22e5799'],
       code: `def _none_to(empty):
     return BeforeValidator(lambda value: empty() if value is None else value)
 
@@ -98,7 +98,7 @@ Strings = Annotated[list[str], _none_to(list), Field(default_factory=list)]`,
     },
     {
       title: 'app/yumi/real.py',
-      notionId: '3f2df951bf80815cbf77ef571659f0a1',
+      notionIds: ['3f2df951bf80815cbf77ef571659f0a1'],
       points: [
         '① 같은 검색은 10분(600초) 메모리 캐시 ② Semaphore(4) 동시 4개까지 ③ 타임아웃이면 1번 재시도, 그래도면 504',
         '④ 429: Retry-After 가 MAX_RETRY_AFTER 보다 길면(하루 한도) 기다리지 않고 바로 YumiError(429), 짧으면 기다렸다 1번 더',
@@ -112,7 +112,7 @@ Strings = Annotated[list[str], _none_to(list), Field(default_factory=list)]`,
     },
     {
       title: 'app/yumi/fixtures/',
-      notionId: '3f2df951bf808117ba60dd06f609a144',
+      notionIds: ['3f2df951bf808117ba60dd06f609a144'],
       points: [
         'mock 데이터는 실제 유미 응답과 같은 모양(camelCase)',
         'places.json: 가상 매장 29곳 (을지로 mock-ej-* 16곳, 성수 mock-ss-* 13곳), 그중 파트너(yumiReservable: true) 6곳',

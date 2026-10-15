@@ -11,7 +11,7 @@ const topic: Topic = {
   sections: [
     {
       title: 'tests/conftest.py',
-      notionId: '3f2df951bf80819c9119dad4c450a5b0',
+      notionIds: ['3f2df951bf80819c9119dad4c450a5b0'],
       code: `@pytest.fixture
 def client():
     yumi = MockYumiClient(answer_delay=0.2)
@@ -52,7 +52,7 @@ assert Counting.searches == len(PLAN["meals"])`,
     },
     {
       title: '프로젝트 설정 파일',
-      notionId: '3f2df951bf8081ff96d8f93c083a8773',
+      notionIds: ['3f2df951bf8081ff96d8f93c083a8773'],
       points: [
         'dependencies 는 fastapi[standard] + pydantic-settings 뿐 — DB 드라이버 없음. httpx 는 fastapi[standard] 에 포함',
         'dev 그룹: pytest, ruff 등',
