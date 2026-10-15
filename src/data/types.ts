@@ -49,6 +49,8 @@ export interface Section {
   points: string[]
   /** 대표 예시 코드 */
   code?: string
+  /** 이 섹션의 원본 노션 하위 페이지 ID (파일별 하위 페이지를 섹션으로 묶은 경우) */
+  notionId?: string
 }
 
 export interface Topic {
