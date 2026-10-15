@@ -83,7 +83,7 @@ export default function Home() {
 
         <section>
           <SectionTitle>트랙</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
             {tracks.map((t) => {
               const st = trackStats(t.id, p)
               return <TrackCard key={t.id} track={t.id} topics={st.topics} done={st.done} progress={st.progress} accuracy={st.accuracy} />

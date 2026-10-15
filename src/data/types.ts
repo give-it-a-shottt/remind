@@ -1,4 +1,4 @@
-export type Track = 'frontend' | 'backend' | 'design'
+export type Track = 'frontend' | 'backend' | 'design' | 'project'
 
 interface QuestionBase {
   /** 고정 ID. 한 번 정하면 바꾸지 않는다 (학습 기록이 이 ID에 묶임) */

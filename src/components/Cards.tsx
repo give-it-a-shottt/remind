@@ -10,6 +10,7 @@ export const TRACK_STYLE: Record<Track, { bg: string; ink: string; label: string
   frontend: { bg: 'bg-cat-sky', ink: 'text-cat-sky-ink', label: '프론트엔드', title: 'HTML · CSS · 웹 기초' },
   backend: { bg: 'bg-cat-mint', ink: 'text-cat-mint-ink', label: '백엔드', title: 'Python · Flask · DB · 알고리즘' },
   design: { bg: 'bg-cat-pink', ink: 'text-cat-pink-ink', label: '디자인', title: '디자인 기초 · 포토샵 · 피그마' },
+  project: { bg: 'bg-cat-lavender', ink: 'text-cat-lavender-ink', label: '프로젝트', title: '포트폴리오 · Accio · Maestro' },
 }
 
 export function TrackCard({ track, topics, done, progress, accuracy }: { track: Track; topics: number; done: number; progress: number; accuracy: number | null }) {

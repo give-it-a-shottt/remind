@@ -1,6 +1,6 @@
 {
   "notionRoot": "3f6df951bf8080449c0cc0b30936faff",
-  "lastSyncedAt": "2026-10-12",
+  "lastSyncedAt": "2026-10-15",
   "containerPages": [
     "3f3df951bf8080928cfcc5c56486ceb9",
     "2c9df951bf80808b9419d386d306daaa",
@@ -10,7 +10,8 @@
     "3f4df951bf80800c8907e62da6c588bf",
     "3efdf951bf8080b8abdad8b9f0375fa7",
     "3efdf951bf808093ba36c7f283514456",
-    "3f1df951bf8080f9b4c8fb5342a61477"
+    "3f1df951bf8080f9b4c8fb5342a61477",
+    "3f2df951bf8080e381ecec53dc80e0cb"
   ],
   "excluded": [
     {
@@ -1201,6 +1202,114 @@
         "[백엔드] 네트워크",
         "트러블슈팅",
         "면접 숙제"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081cc8b2cd0f08de6e66f",
+      "title": "00. 전체 지도",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:46:41.407Z",
+      "sections": [
+        "한 줄 요약",
+        "폴더 트리",
+        "기술 스택과 쓰는 이유",
+        "전체 구조 그림",
+        "추천 읽기 순서"
+      ]
+    },
+    {
+      "id": "3f2df951bf80814f8a8aec3197ba02e0",
+      "title": "01. 배포",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:18:13.357Z",
+      "sections": [
+        "GitHub Actions",
+        "Vercel (프론트)",
+        "Render (백엔드)",
+        "프론트 ↔ 백엔드 연결",
+        "git push 부터 반영까지"
+      ]
+    },
+    {
+      "id": "3f2df951bf808125a735efee11a5cfa9",
+      "title": "02. 백엔드",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:12.108Z",
+      "sections": [
+        "서버가 켜지는 순간",
+        "요청 하나의 흐름",
+        "하루 70요청 설계",
+        "모든 API",
+        "AI 기능의 실체",
+        "로컬에서 돌려보기"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a0a023c2871cdb7ccb",
+      "title": "03. 기능 코드(프론트)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-15T11:47:05.790Z",
+      "sections": [
+        "해시 라우팅",
+        "상태 저장 위치",
+        "포트폴리오 흐름",
+        "Accio 흐름",
+        "Maestro 흐름"
+      ]
+    },
+    {
+      "id": "3f2df951bf80817c8541c751612be7a9",
+      "title": "04. 디자인 코드",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-15T11:47:54.726Z",
+      "sections": [
+        "스타일 방식",
+        "토큰 규칙",
+        "공통 컴포넌트",
+        "애니메이션",
+        "반응형"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d98d96d4f088fe56b6",
+      "title": "05. 복습",
+      "track": "project",
+      "group": "복습",
+      "lastEdited": "2026-10-15T11:48:48.005Z",
+      "sections": [
+        "전체 핵심 요약",
+        "연습 과제",
+        "면접 질문"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081469103e55e4f50ea96",
+      "title": "06. 업데이트 기록",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:49:12.736Z",
+      "sections": [
+        "PC 마우스 대응 (27941ec)",
+        "accio-v1 · 디자인 사례 (8f3d4e2 ~ 9dc7dde)",
+        "인트로 교체 (98c1bcd)",
+        "사례 정리와 상세 (f1810ec ~ 113f81f)"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081eb8af9dc08aa3d8f00",
+      "title": "07. 처음부터 다시 만들기",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:24:01.215Z",
+      "sections": [
+        "전체 순서",
+        "읽는 법",
+        "노션만으로 재현할 수 없는 것"
       ]
     }
   ]
