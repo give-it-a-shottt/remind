@@ -50,16 +50,16 @@ export function TopicRow({ topic, stats, badge }: { topic: Topic; stats: TopicSt
 
 export function ConceptCard({ section, count, updated, to }: { section: Section; count: number; updated?: boolean; to?: string }) {
   return (
-    <article className={`flex flex-col gap-3 rounded-card bg-surface p-5 ${updated ? 'ring-1 ring-hint' : ''}`}>
+    <article className={`flex min-w-0 flex-col gap-3 rounded-card bg-surface p-5 ${updated ? 'ring-1 ring-hint' : ''}`}>
       <div className="flex items-start gap-2">
-        <h3 className="flex-1 text-18 font-semibold">{section.title}</h3>
+        <h3 className="min-w-0 flex-1 text-18 font-semibold [overflow-wrap:anywhere]">{section.title}</h3>
         {updated && <Badge type="UPDATED" />}
       </div>
       <ul className="flex flex-col gap-1.5">
         {section.points.map((p) => (
           <li key={p} className="flex gap-2 text-15 text-ink-sub">
             <span className="text-ink-weak">•</span>
-            <span>{p}</span>
+            <span className="min-w-0 [overflow-wrap:anywhere]">{p}</span>
           </li>
         ))}
       </ul>

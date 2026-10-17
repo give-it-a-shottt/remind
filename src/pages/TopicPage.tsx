@@ -40,7 +40,7 @@ export default function TopicPage() {
 
   return (
     <AppShell back title={topic.title} bottom={actions}>
-      <div className="lg:grid lg:grid-cols-[1fr_360px] lg:gap-10">
+      <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-10">
         <div className="flex flex-col gap-5">
           <div>
             <div className={`text-14 font-medium ${s.ink}`}>
@@ -80,7 +80,7 @@ export default function TopicPage() {
           </div>
 
           {tab === 'concept' ? (
-            <div className="grid gap-4 md:grid-cols-2 md:gap-6">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
               {topic.sections.map((sec) => (
                 <ConceptCard
                   key={sec.title}

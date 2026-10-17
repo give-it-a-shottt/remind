@@ -42,7 +42,7 @@ export default function WrongPage() {
             <LinkButton to={quizUrl({ mode: 'wrong', track: track === 'all' ? undefined : track })} full className="md:w-auto md:self-start">
               오답 {shown.length}문제 전체 풀기
             </LinkButton>
-            <div className="grid gap-3 lg:grid-cols-2 lg:gap-4">
+            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:gap-4">
               {shown.map(({ id, e }) => {
                 const r = p.questions[id]
                 return (
