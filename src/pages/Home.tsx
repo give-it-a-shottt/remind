@@ -21,7 +21,7 @@ export default function Home() {
   return (
     <AppShell tabBar>
       <div className="flex flex-col gap-8 md:gap-10">
-        <div className="grid gap-6 lg:grid-cols-[1fr_480px]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_480px]">
           <div className="flex flex-col gap-4">
             {queue.length > 0 ? (
               <section className="rounded-card bg-brand-soft p-4">
@@ -83,7 +83,7 @@ export default function Home() {
 
         <section>
           <SectionTitle>트랙</SectionTitle>
-          <div className="grid gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-6 xl:grid-cols-4">
             {tracks.map((t) => {
               const st = trackStats(t.id, p)
               return <TrackCard key={t.id} track={t.id} topics={st.topics} done={st.done} progress={st.progress} accuracy={st.accuracy} />

@@ -188,7 +188,7 @@ function QuizRunner({ session, onExit, onFinished }: { session: Session; onExit:
                 onChange={(e) => setText(e.target.value)}
                 readOnly={!!graded}
                 placeholder="정답을 입력하세요"
-                className={`h-12 w-full rounded-input px-4 text-15 outline-none placeholder:text-ink-disabled ${
+                className={`h-12 w-full rounded-input px-4 text-16 outline-none md:text-15 placeholder:text-ink-disabled ${
                   !graded ? 'border border-line bg-surface focus:border-brand' : isCorrect ? 'border-2 border-correct bg-correct-bg' : 'border-2 border-wrong bg-wrong-bg'
                 }`}
               />
@@ -202,7 +202,7 @@ function QuizRunner({ session, onExit, onFinished }: { session: Session; onExit:
                 onChange={(e) => setText(e.target.value)}
                 placeholder="생각나는 대로 적어보세요 (선택)"
                 rows={4}
-                className="w-full resize-y rounded-input border border-line bg-surface px-4 py-3.5 text-15 outline-none placeholder:text-ink-disabled focus:border-brand"
+                className="w-full resize-y rounded-input border border-line bg-surface px-4 py-3.5 text-16 outline-none md:text-15 placeholder:text-ink-disabled focus:border-brand"
               />
               {revealed && (
                 <section className="flex flex-col gap-3 rounded-card bg-brand-soft p-5">

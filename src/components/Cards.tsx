@@ -10,6 +10,7 @@ export const TRACK_STYLE: Record<Track, { bg: string; ink: string; label: string
   frontend: { bg: 'bg-cat-sky', ink: 'text-cat-sky-ink', label: '프론트엔드', title: 'HTML · CSS · 웹 기초' },
   backend: { bg: 'bg-cat-mint', ink: 'text-cat-mint-ink', label: '백엔드', title: 'Python · Flask · DB · 알고리즘' },
   design: { bg: 'bg-cat-pink', ink: 'text-cat-pink-ink', label: '디자인', title: '디자인 기초 · 포토샵 · 피그마' },
+  project: { bg: 'bg-cat-lavender', ink: 'text-cat-lavender-ink', label: '프로젝트', title: '포트폴리오 · Accio · Maestro' },
 }
 
 export function TrackCard({ track, topics, done, progress, accuracy }: { track: Track; topics: number; done: number; progress: number; accuracy: number | null }) {
@@ -49,16 +50,16 @@ export function TopicRow({ topic, stats, badge }: { topic: Topic; stats: TopicSt
 
 export function ConceptCard({ section, count, updated, to }: { section: Section; count: number; updated?: boolean; to?: string }) {
   return (
-    <article className={`flex flex-col gap-3 rounded-card bg-surface p-5 ${updated ? 'ring-1 ring-hint' : ''}`}>
+    <article className={`flex min-w-0 flex-col gap-3 rounded-card bg-surface p-5 ${updated ? 'ring-1 ring-hint' : ''}`}>
       <div className="flex items-start gap-2">
-        <h3 className="flex-1 text-18 font-semibold">{section.title}</h3>
+        <h3 className="min-w-0 flex-1 text-18 font-semibold [overflow-wrap:anywhere]">{section.title}</h3>
         {updated && <Badge type="UPDATED" />}
       </div>
       <ul className="flex flex-col gap-1.5">
         {section.points.map((p) => (
           <li key={p} className="flex gap-2 text-15 text-ink-sub">
             <span className="text-ink-weak">•</span>
-            <span>{p}</span>
+            <span className="min-w-0 [overflow-wrap:anywhere]">{p}</span>
           </li>
         ))}
       </ul>

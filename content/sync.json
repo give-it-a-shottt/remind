@@ -1,6 +1,6 @@
 {
   "notionRoot": "3f6df951bf8080449c0cc0b30936faff",
-  "lastSyncedAt": "2026-10-12",
+  "lastSyncedAt": "2026-10-15",
   "containerPages": [
     "3f3df951bf8080928cfcc5c56486ceb9",
     "2c9df951bf80808b9419d386d306daaa",
@@ -10,7 +10,8 @@
     "3f4df951bf80800c8907e62da6c588bf",
     "3efdf951bf8080b8abdad8b9f0375fa7",
     "3efdf951bf808093ba36c7f283514456",
-    "3f1df951bf8080f9b4c8fb5342a61477"
+    "3f1df951bf8080f9b4c8fb5342a61477",
+    "3f2df951bf8080e381ecec53dc80e0cb"
   ],
   "excluded": [
     {
@@ -1201,6 +1202,1303 @@
         "[백엔드] 네트워크",
         "트러블슈팅",
         "면접 숙제"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081cc8b2cd0f08de6e66f",
+      "title": "00. 전체 지도",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:46:41.407Z",
+      "sections": [
+        "한 줄 요약",
+        "폴더 트리",
+        "기술 스택과 쓰는 이유",
+        "전체 구조 그림",
+        "추천 읽기 순서"
+      ]
+    },
+    {
+      "id": "3f2df951bf80814f8a8aec3197ba02e0",
+      "title": "01. 배포",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:18:13.357Z",
+      "sections": [
+        "GitHub Actions",
+        "Vercel (프론트)",
+        "Render (백엔드)",
+        "프론트 ↔ 백엔드 연결",
+        "git push 부터 반영까지"
+      ]
+    },
+    {
+      "id": "3f2df951bf808125a735efee11a5cfa9",
+      "title": "02. 백엔드",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:12.108Z",
+      "sections": [
+        "서버가 켜지는 순간",
+        "요청 하나의 흐름",
+        "하루 70요청 설계",
+        "모든 API",
+        "AI 기능의 실체",
+        "로컬에서 돌려보기"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a0a023c2871cdb7ccb",
+      "title": "03. 기능 코드(프론트)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-15T11:47:05.790Z",
+      "sections": [
+        "해시 라우팅",
+        "상태 저장 위치",
+        "포트폴리오 흐름",
+        "Accio 흐름",
+        "Maestro 흐름"
+      ]
+    },
+    {
+      "id": "3f2df951bf80817c8541c751612be7a9",
+      "title": "04. 디자인 코드",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-15T11:47:54.726Z",
+      "sections": [
+        "스타일 방식",
+        "토큰 규칙",
+        "공통 컴포넌트",
+        "애니메이션",
+        "반응형"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d98d96d4f088fe56b6",
+      "title": "05. 복습",
+      "track": "project",
+      "group": "복습",
+      "lastEdited": "2026-10-15T11:48:48.005Z",
+      "sections": [
+        "전체 핵심 요약",
+        "연습 과제",
+        "면접 질문"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081469103e55e4f50ea96",
+      "title": "06. 업데이트 기록",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:49:12.736Z",
+      "sections": [
+        "PC 마우스 대응 (27941ec)",
+        "accio-v1 · 디자인 사례 (8f3d4e2 ~ 9dc7dde)",
+        "인트로 교체 (98c1bcd)",
+        "사례 정리와 상세 (f1810ec ~ 113f81f)"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081eb8af9dc08aa3d8f00",
+      "title": "07. 처음부터 다시 만들기",
+      "track": "project",
+      "group": "개요",
+      "lastEdited": "2026-10-15T11:24:01.215Z",
+      "sections": [
+        "전체 순서",
+        "읽는 법",
+        "노션만으로 재현할 수 없는 것"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ca8025db2e1ab2f8b4",
+      "title": "render.yaml",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "render.yaml",
+        "keep-supabase-awake.yml",
+        ".gitignore · README.md"
+      ]
+    },
+    {
+      "id": "3f2df951bf808109b245d91164134fb6",
+      "title": ".github/workflows/keep-supabase-awake.yml",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "keep-supabase-awake.yml"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b5aa90dce471c374c6",
+      "title": "Portfolio/frontend/package.json",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "package.json",
+        "vite.config.ts",
+        "index.html",
+        "tsconfig 3종",
+        "eslint.config.js"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081eaabbefe50949a2b0a",
+      "title": "Portfolio/frontend/vite.config.ts",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "vite.config.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d9bbdfdd99e313e816",
+      "title": "Portfolio/frontend/index.html",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "index.html"
+      ]
+    },
+    {
+      "id": "3f2df951bf808152a5e3f826bd7e033c",
+      "title": "tsconfig.json · tsconfig.app.json · tsconfig.node.json",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:18:14.706Z",
+      "sections": [
+        "tsconfig 3종"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ffb375d083030e0b84",
+      "title": "Portfolio/frontend/eslint.config.js",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:06:49.468Z",
+      "sections": [
+        "eslint.config.js"
+      ]
+    },
+    {
+      "id": "3f2df951bf80812ea983cdc15db2b9bb",
+      "title": ".gitignore · README.md (루트)",
+      "track": "project",
+      "group": "배포",
+      "lastEdited": "2026-10-07T02:20:18.252Z",
+      "sections": [
+        ".gitignore · README.md"
+      ]
+    },
+    {
+      "id": "3f2df951bf808157bfd2de04cee34956",
+      "title": "📁 backend/accio",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:09:37.251Z",
+      "sections": [
+        "폴더 개요",
+        "app/main.py",
+        "app/core/config.py",
+        "app/core/db.py",
+        "app/health/router.py",
+        "tests/test_health.py",
+        "설정 파일 (pyproject · docker-compose · .env.example)"
+      ]
+    },
+    {
+      "id": "3f2df951bf808182ae6ac8fcceba1bfd",
+      "title": "📁 backend/maestro",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:09:37.251Z",
+      "sections": [
+        "폴더 개요와 계층",
+        "app/main.py",
+        "app/core/config.py",
+        "app/core/errors.py",
+        "app/core/schemas.py",
+        "health · regions 라우터"
+      ]
+    },
+    {
+      "id": "3f2df951bf80813a89cee0cbfcae20e1",
+      "title": "📁 src (앱 입구 · shared)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:26:05.447Z",
+      "sections": [
+        "src 폴더 구성",
+        "main.tsx",
+        "App.tsx",
+        "shared/hooks/useHashRoute.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081dd9ef5f8f2e4c754f5",
+      "title": "📁 src/portfolio",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-15T11:47:56.498Z",
+      "sections": [
+        "폴더 개요",
+        "PortfolioApp.tsx",
+        "PortfolioHero.tsx (삭제됨)",
+        "PortfolioHeader · SearchHome",
+        "SearchBox.tsx",
+        "SearchResults · DesignCaseDetail · CaseMeta",
+        "data.ts · routes.ts",
+        "demos (StayLoginDemo)"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d69807e9acb022bef2",
+      "title": "📁 src/projects/accio",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:26:05.447Z",
+      "sections": [
+        "AccioApp · routes.ts",
+        "data/mock.ts",
+        "useMediaQuery · format.ts",
+        "헤더 3종",
+        "AiSearchHero.tsx",
+        "FeatureBanners.tsx",
+        "ShortForm · ProductSection · ProductCard"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081cda392fbeaa45290fc",
+      "title": "📁 src/projects/maestro",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:26:05.447Z",
+      "sections": [
+        "폴더 개요 · MaestroApp · routes.ts",
+        "api.ts",
+        "store.ts",
+        "types.ts · format.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ecba62f43fa1189aa2",
+      "title": "accio app/main.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:07.290Z",
+      "sections": [
+        "app/main.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a7ab80e9c4f1ff6849",
+      "title": "accio app/core/config.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:08.193Z",
+      "sections": [
+        "app/core/config.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf80814a9339c630d8229ae3",
+      "title": "accio app/core/db.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:08.739Z",
+      "sections": [
+        "app/core/db.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf80813dbeabfb5b732b2183",
+      "title": "accio app/health/router.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:09.434Z",
+      "sections": [
+        "app/health/router.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b09040ccbcb5913f72",
+      "title": "accio tests/test_health.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:13.074Z",
+      "sections": [
+        "tests/test_health.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf80812c82bfdba14d36b939",
+      "title": "accio pyproject.toml · docker-compose.yml · .env.example · .python-version",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:14.807Z",
+      "sections": [
+        "설정 파일 (pyproject · docker-compose · .env.example)"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d7ad3de82039b5d0fe",
+      "title": "maestro app/main.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:18:51.958Z",
+      "sections": [
+        "app/main.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081659794db0d06676288",
+      "title": "maestro app/core/config.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:20.463Z",
+      "sections": [
+        "app/core/config.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081478a52f02e7193f3ef",
+      "title": "maestro app/core/errors.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:22.398Z",
+      "sections": [
+        "app/core/errors.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf808116b64bc45c4e49c3f1",
+      "title": "maestro app/core/schemas.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:23.651Z",
+      "sections": [
+        "app/core/schemas.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a58dd2e66c17c88953",
+      "title": "maestro app/health/router.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:24.819Z",
+      "sections": [
+        "health · regions 라우터"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081afaebde4aef3768ae2",
+      "title": "maestro app/regions/router.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:26.077Z",
+      "sections": [
+        "health · regions 라우터"
+      ]
+    },
+    {
+      "id": "3f2df951bf808104ac7fdb4c7d09a55b",
+      "title": "maestro app/score/router.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:27.813Z",
+      "sections": [
+        "app/score/router.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081489e3efde4f8a57e74",
+      "title": "maestro app/score/schemas.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:29.069Z",
+      "sections": [
+        "app/score/schemas.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ffb216e571c237ff3f",
+      "title": "maestro app/score/service.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:30.285Z",
+      "sections": [
+        "app/score/router.py",
+        "app/score/schemas.py",
+        "app/score/service.py",
+        "app/situations.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c98238eb1f01515e01",
+      "title": "maestro app/situations.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:47.705Z",
+      "sections": [
+        "app/situations.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf808137b55cd886e30ee9ad",
+      "title": "maestro app/places/router.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:31.904Z",
+      "sections": [
+        "app/places/router.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf808159a617c6dee7b6f24d",
+      "title": "maestro app/yumi/client.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:33.122Z",
+      "sections": [
+        "app/yumi/client.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b6b4a0f97cd3f1eb20",
+      "title": "maestro app/yumi/deps.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:58.322Z",
+      "sections": [
+        "app/yumi/deps.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081569aadd8a73a99c3b3",
+      "title": "maestro app/yumi/filters.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:40.800Z",
+      "sections": [
+        "app/yumi/filters.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c4b153dd7ce3e4ffac",
+      "title": "maestro app/yumi/mock.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:35.899Z",
+      "sections": [
+        "app/yumi/mock.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d993ddeef7a22e5799",
+      "title": "maestro app/yumi/models.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:00.152Z",
+      "sections": [
+        "app/yumi/models.py"
+      ]
+    },
+    {
+      "id": "3f2df951bf80815cbf77ef571659f0a1",
+      "title": "maestro app/yumi/real.py",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:36.991Z",
+      "sections": [
+        "app/places/router.py",
+        "app/yumi/client.py",
+        "app/yumi/deps.py",
+        "app/yumi/filters.py",
+        "app/yumi/mock.py",
+        "app/yumi/models.py",
+        "app/yumi/real.py",
+        "app/yumi/fixtures/"
+      ]
+    },
+    {
+      "id": "3f2df951bf808117ba60dd06f609a144",
+      "title": "maestro app/yumi/fixtures/",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:17:32.143Z",
+      "sections": [
+        "app/yumi/fixtures/"
+      ]
+    },
+    {
+      "id": "3f2df951bf80819c9119dad4c450a5b0",
+      "title": "maestro tests/",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:19:52.603Z",
+      "sections": [
+        "tests/conftest.py",
+        "테스트 파일 6개",
+        "스파이와 TDD",
+        "프로젝트 설정 파일"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ff96d8f93c083a8773",
+      "title": "maestro pyproject.toml · .env.example · .python-version · README.md",
+      "track": "project",
+      "group": "백엔드",
+      "lastEdited": "2026-10-07T02:20:01.668Z",
+      "sections": [
+        "프로젝트 설정 파일"
+      ]
+    },
+    {
+      "id": "3f2df951bf80812b8357d5d05e55eea3",
+      "title": "main.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:27:04.886Z",
+      "sections": [
+        "main.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d38900d71808233ee4",
+      "title": "App.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:27:04.886Z",
+      "sections": [
+        "App.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ea860dce63befb24db",
+      "title": "shared/hooks/useHashRoute.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:27:04.886Z",
+      "sections": [
+        "shared/hooks/useHashRoute.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081aaae57edc6d0634296",
+      "title": "PortfolioApp.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:28:54.943Z",
+      "sections": [
+        "PortfolioApp.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf80812ba4dfe7f4056bdb6d",
+      "title": "PortfolioHero.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-15T11:47:55.699Z",
+      "sections": [
+        "PortfolioHero.tsx (삭제됨)"
+      ]
+    },
+    {
+      "id": "3f2df951bf80812090e4d969a71084ec",
+      "title": "PortfolioHeader.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:28:54.943Z",
+      "sections": [
+        "PortfolioHeader · SearchHome"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ab825ff0b681f2af8b",
+      "title": "SearchHome.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:28:54.943Z",
+      "sections": [
+        "PortfolioHeader · SearchHome"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081068539dbc332d3503f",
+      "title": "SearchBox.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:28:54.943Z",
+      "sections": [
+        "SearchBox.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf808179a456ce7cd1f3ed7f",
+      "title": "SearchResults.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:28:54.943Z",
+      "sections": [
+        "SearchResults · DesignCaseDetail · CaseMeta"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081858a4ec2fd9fe7e641",
+      "title": "DesignCaseDetail.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:30:14.689Z",
+      "sections": [
+        "SearchResults · DesignCaseDetail · CaseMeta"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ccac44c3a6dff2f944",
+      "title": "CaseMeta.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:30:14.689Z",
+      "sections": [
+        "SearchResults · DesignCaseDetail · CaseMeta"
+      ]
+    },
+    {
+      "id": "3f2df951bf80816488c4e5a14d55a1df",
+      "title": "data.ts (portfolio)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:30:20.119Z",
+      "sections": [
+        "data.ts · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf808104ae90cd418d26b164",
+      "title": "routes.ts (portfolio)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:30:14.689Z",
+      "sections": [
+        "data.ts · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081e98574e54d587bba8a",
+      "title": "demos/index.ts · demos/StayLoginDemo.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:30:14.689Z",
+      "sections": [
+        "demos (StayLoginDemo)"
+      ]
+    },
+    {
+      "id": "3f2df951bf80813e8be4e2807d7c43e5",
+      "title": "AccioApp.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "AccioApp · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf80810e8828e6f4a8379afd",
+      "title": "routes.ts (accio)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "AccioApp · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081f18d79fd2243cdcee3",
+      "title": "data/mock.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "data/mock.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf808199a49bd66345404df5",
+      "title": "hooks/useMediaQuery.ts · utils/format.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "useMediaQuery · format.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081fa820be66b49b4adcd",
+      "title": "components/TopUtilityHeader.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "헤더 3종"
+      ]
+    },
+    {
+      "id": "3f2df951bf808149a346c9c8998b5a76",
+      "title": "components/MainHeader.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "헤더 3종"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081bebd85d7e35ecd563d",
+      "title": "components/CategoryNav.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:31:44.886Z",
+      "sections": [
+        "헤더 3종"
+      ]
+    },
+    {
+      "id": "3f2df951bf80815c9c6acbae6ed07cd8",
+      "title": "components/AiSearchHero.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "AiSearchHero.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a5a22fd0e44e5d8269",
+      "title": "components/FeatureBanners.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "FeatureBanners.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf80816a9a15e641aece704e",
+      "title": "components/ShortFormSection.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "ShortForm · ProductSection · ProductCard"
+      ]
+    },
+    {
+      "id": "3f2df951bf80817098aadd342f0f1e9f",
+      "title": "components/ProductSection.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "ShortForm · ProductSection · ProductCard"
+      ]
+    },
+    {
+      "id": "3f2df951bf808154bfb3d4e87cebcfa0",
+      "title": "components/ProductCard.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "ShortForm · ProductSection · ProductCard"
+      ]
+    },
+    {
+      "id": "3f2df951bf808158bdc2ef819998584f",
+      "title": "components/BrandSection.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:28.816Z",
+      "sections": [
+        "BrandSection · Footer · LoginPage"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b28f3dfb709d17e678",
+      "title": "components/Footer.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:33:21.169Z",
+      "sections": [
+        "BrandSection · Footer · LoginPage"
+      ]
+    },
+    {
+      "id": "3f2df951bf80817ba7dde102a275da96",
+      "title": "components/LoginPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "BrandSection · Footer · LoginPage"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c0b8d0c116b2ea0738",
+      "title": "components/ListPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "ListPage.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b5a17fec1df384e2b3",
+      "title": "components/DetailPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "DetailPage · ReviewSection"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c09165da642b255423",
+      "title": "components/ReviewSection.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "DetailPage · ReviewSection"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ba9e3fd6d1936ce2e8",
+      "title": "components/AiChatPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "AiChatPage.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf808183834de5dc0e872567",
+      "title": "components/CartPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "BrandSection · Footer · LoginPage",
+        "ListPage.tsx",
+        "DetailPage · ReviewSection",
+        "AiChatPage.tsx",
+        "CartPage.tsx",
+        "MyPage · OrderTrackingPage",
+        "SupportPage.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ba9c55c962a467393c",
+      "title": "components/MyPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "MyPage · OrderTrackingPage"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081858733da1025c16641",
+      "title": "components/OrderTrackingPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "MyPage · OrderTrackingPage"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081b29dbfd413fe059f34",
+      "title": "components/SupportPage.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:36:06.251Z",
+      "sections": [
+        "SupportPage.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf80818ea9e9dadd4985e445",
+      "title": "MaestroApp.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:06.817Z",
+      "sections": [
+        "폴더 개요 · MaestroApp · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081f3951fef7e1f9eafe0",
+      "title": "routes.ts (maestro)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:01.322Z",
+      "sections": [
+        "폴더 개요 · MaestroApp · routes.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c48a75d7625712dc4c",
+      "title": "api.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:01.322Z",
+      "sections": [
+        "api.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d08e2ad0df344cf2d1",
+      "title": "store.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:01.322Z",
+      "sections": [
+        "store.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081e4bbbcea2077370b94",
+      "title": "types.ts",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:01.322Z",
+      "sections": [
+        "types.ts · format.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf80818083a0ed2a5c7e50d1",
+      "title": "format.ts (maestro)",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:38:01.322Z",
+      "sections": [
+        "types.ts · format.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf80814d8a67cccb2b13c0f8",
+      "title": "screens/HomeScreen.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:39:59.523Z",
+      "sections": [
+        "HomeScreen · ScoreScreen"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081d2ae7af8ae38b9c8ea",
+      "title": "screens/PlanScreen.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:39:59.523Z",
+      "sections": [
+        "PlanScreen · MealSheet"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ecb4a7eee8504f44b1",
+      "title": "screens/ScoreScreen.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:40:06.959Z",
+      "sections": [
+        "HomeScreen · ScoreScreen"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081a981a5fc55e047d8a1",
+      "title": "screens/LiveScreen.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T05:45:57.390Z",
+      "sections": [
+        "HomeScreen · ScoreScreen",
+        "PlanScreen · MealSheet",
+        "LiveScreen (당일 모드)",
+        "PlaceScreen · PlaceActions"
+      ]
+    },
+    {
+      "id": "3f2df951bf808141bfd7daf4552b37eb",
+      "title": "screens/PlaceScreen.tsx",
+      "track": "project",
+      "group": "프론트",
+      "lastEdited": "2026-10-07T02:39:59.523Z",
+      "sections": [
+        "PlaceScreen · PlaceActions"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081079549fb04cccae913",
+      "title": "src/index.css",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:44:25.633Z",
+      "sections": [
+        "src/index.css",
+        "shared/icons.tsx",
+        "shared/MobileFrame.tsx · frameLayer.ts",
+        "portfolio/motion.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081bfa5c3ee11043cfe0b",
+      "title": "shared/icons.tsx",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:44:32.242Z",
+      "sections": [
+        "shared/icons.tsx"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081c4b738c7807e0fb8d1",
+      "title": "shared/MobileFrame.tsx",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:44:25.633Z",
+      "sections": [
+        "shared/MobileFrame.tsx · frameLayer.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf80815e9c0cd72151666076",
+      "title": "shared/frameLayer.ts",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:44:25.633Z",
+      "sections": [
+        "shared/MobileFrame.tsx · frameLayer.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ac8672cdef7de678b1",
+      "title": "portfolio/motion.ts",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-15T11:47:57.515Z",
+      "sections": [
+        "portfolio/motion.ts"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081fd8a42f055a2bbffec",
+      "title": "accio/components/Container.tsx",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:46:12.809Z",
+      "sections": [
+        "Container · layout.ts · PageLayout"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081f08c5dcc6cf109fb35",
+      "title": "accio/components/layout.ts",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:46:12.809Z",
+      "sections": [
+        "Container · layout.ts · PageLayout"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081ac85dbdc53aa7140ec",
+      "title": "accio/components/PageLayout.tsx",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:46:12.809Z",
+      "sections": [
+        "Container · layout.ts · PageLayout"
+      ]
+    },
+    {
+      "id": "3f2df951bf80818e87e9dd1199b28087",
+      "title": "maestro/components.tsx",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T05:46:33.147Z",
+      "sections": [
+        "Container · layout.ts · PageLayout",
+        "maestro/components.tsx",
+        "BottomSheet 접근성과 드래그",
+        "design_import/ (시안 파일)"
+      ]
+    },
+    {
+      "id": "3f2df951bf8081dab782ea49e28667c4",
+      "title": "📁 design_import/ (시안 파일)",
+      "track": "project",
+      "group": "디자인",
+      "lastEdited": "2026-10-07T02:46:12.809Z",
+      "sections": [
+        "design_import/ (시안 파일)"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081d08354e05e77c97ee2",
+      "title": "07-0 준비물",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:25:43.476Z",
+      "sections": [
+        "07-0 준비물"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081e0a588e395714c7a23",
+      "title": "07-1 저장소 뼈대",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:25:43.476Z",
+      "sections": [
+        "07-1 저장소 뼈대"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081d0bb9ac40544075b17",
+      "title": "07-2 프론트 시작 (Vite + React + TypeScript)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:27:25.904Z",
+      "sections": [
+        "07-0 준비물",
+        "07-1 저장소 뼈대",
+        "07-2 프론트 시작"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081c1a8faf4cadf61ab3c",
+      "title": "07-3 Tailwind 4 + 디자인 토큰",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:49:43.651Z",
+      "sections": [
+        "07-3 Tailwind 4 설치와 vite.config",
+        "07-3 @theme 변수 → 클래스 규칙",
+        "07-4 임시 App 으로 라우터 확인"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081079961eba0fd0458ae",
+      "title": "07-4 해시 라우터와 앱 입구",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:29:54.470Z",
+      "sections": [
+        "07-4 임시 App 으로 라우터 확인"
+      ]
+    },
+    {
+      "id": "3fadf951bf80810db88df256c20a292c",
+      "title": "07-5 검색형 포트폴리오",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:33:25.817Z",
+      "sections": [
+        "만드는 순서와 데이터",
+        "rank.ts · routes.ts",
+        "PortfolioApp 조립",
+        "사례 상세와 ?raw",
+        "인트로 · 파비콘"
+      ]
+    },
+    {
+      "id": "3fadf951bf808158a803ecf230d148ce",
+      "title": "07-6 Accio 쇼핑몰 (목업)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:36:14.378Z",
+      "sections": [
+        "07-6 Accio 만드는 순서",
+        "07-7 accio-v1 정적 빌드"
+      ]
+    },
+    {
+      "id": "3fadf951bf80814bbc4bc3104ba2387a",
+      "title": "07-7 accio-v1 정적 빌드 붙이기",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:36:28.909Z",
+      "sections": [
+        "07-7 accio-v1 정적 빌드"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081e18466c79756a99e3d",
+      "title": "07-8 Maestro 백엔드 (FastAPI + uv)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:51:04.523Z",
+      "sections": [
+        "프로젝트 만들기 (uv)",
+        "폴더 · 환경변수 · 뼈대",
+        "기능을 올리는 순서"
+      ]
+    },
+    {
+      "id": "3fadf951bf808165bc26ff59c4270d4c",
+      "title": "07-9 Maestro 프론트 (백엔드 연결)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:41:54.741Z",
+      "sections": [
+        "07-9 Maestro 프론트 연결"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081f78fefc355887d3412",
+      "title": "07-10 Accio 백엔드 + DB (SQLAlchemy 비동기 + Supabase)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:51:19.486Z",
+      "sections": [
+        "07-9 Maestro 프론트 연결",
+        "07-10 Accio 백엔드 만들기",
+        "07-10 Supabase 연결"
+      ]
+    },
+    {
+      "id": "3fadf951bf8081d88d52f27d46b87a8f",
+      "title": "07-11 배포 (Render · Vercel · GitHub Actions)",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:51:20.258Z",
+      "sections": [
+        "07-11 배포 순서",
+        "07-11 Vercel · CORS · Actions",
+        "07-12 최종 점검과 자주 막히는 곳"
+      ]
+    },
+    {
+      "id": "3fadf951bf80812dbe74f18e2394cea4",
+      "title": "07-12 최종 점검표",
+      "track": "project",
+      "group": "다시 만들기",
+      "lastEdited": "2026-10-15T11:46:11.582Z",
+      "sections": [
+        "07-12 최종 점검과 자주 막히는 곳"
       ]
     }
   ]
