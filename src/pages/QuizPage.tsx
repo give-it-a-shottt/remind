@@ -218,7 +218,7 @@ function QuizRunner({ session, onExit, onFinished }: { session: Session; onExit:
                       ))}
                     </div>
                   )}
-                  <p className="text-15 text-ink-sub">{q.explanation}</p>
+                  <p className="whitespace-pre-line text-15 text-ink-sub">{q.explanation}</p>
                   {section && (
                     <button type="button" onClick={() => setSheet(true)} className="flex items-center gap-1 self-start text-14 font-medium text-brand-text">
                       <Icon name="book" size={16} />
@@ -267,7 +267,7 @@ function QuestionCard({ q, meta }: { q: Question; meta: string }) {
   return (
     <section className="rounded-card bg-surface px-5 py-6 md:p-8">
       <div className="text-14 font-medium text-ink-weak">{meta}</div>
-      <h1 className="mt-1 text-20 font-semibold md:text-24">{q.question}</h1>
+      <h1 className="mt-1 whitespace-pre-line text-20 font-semibold md:text-24">{q.question}</h1>
       {q.code && (
         <div className="mt-4">
           <CodeBlock code={q.code} />

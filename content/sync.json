@@ -18,6 +18,31 @@
       "id": "3b1df951bf808040aa04f9c18e4f469f",
       "title": "피그마 UI/UX",
       "reason": "사용자 요청: 피그마는 노션 폴더를 참고하지 않고 자체 작성"
+    },
+    {
+      "id": "3efdf951bf8081829f51f5c34e0bf50e",
+      "title": "1강 - 주피터 노트북 & 파이썬 시작",
+      "reason": "백엔드 트랙을 FastAPI·DB 자체 커리큘럼으로 재구성(2026-10-20): 파이썬 기초 문법·Vue CDN 내용은 새 커리큘럼 범위 밖"
+    },
+    {
+      "id": "3efdf951bf8081278b07e013b599a969",
+      "title": "2강 - 문자열 & 리스트",
+      "reason": "백엔드 트랙을 FastAPI·DB 자체 커리큘럼으로 재구성(2026-10-20): 파이썬 기초 문법·Vue CDN 내용은 새 커리큘럼 범위 밖"
+    },
+    {
+      "id": "3efdf951bf80819e9e47c640c3a3095f",
+      "title": "3강 - 조건문 & 반복문",
+      "reason": "백엔드 트랙을 FastAPI·DB 자체 커리큘럼으로 재구성(2026-10-20): 파이썬 기초 문법·Vue CDN 내용은 새 커리큘럼 범위 밖"
+    },
+    {
+      "id": "3efdf951bf8081ee8850c7e3d6b13c5c",
+      "title": "4강 - 함수 & 튜플·딕셔너리·집합",
+      "reason": "백엔드 트랙을 FastAPI·DB 자체 커리큘럼으로 재구성(2026-10-20): 파이썬 기초 문법·Vue CDN 내용은 새 커리큘럼 범위 밖"
+    },
+    {
+      "id": "3efdf951bf8081deb46cd917937eab25",
+      "title": "18강 - CDN & Vue + axios 연동",
+      "reason": "백엔드 트랙을 FastAPI·DB 자체 커리큘럼으로 재구성(2026-10-20): 파이썬 기초 문법·Vue CDN 내용은 새 커리큘럼 범위 밖"
     }
   ],
   "pages": [
@@ -285,63 +310,6 @@
       ]
     },
     {
-      "id": "3efdf951bf8081829f51f5c34e0bf50e",
-      "title": "1강 - 주피터 노트북 & 파이썬 시작",
-      "track": "backend",
-      "group": "Python 기초",
-      "lastEdited": "2026-10-04T03:37:13.768Z",
-      "sections": [
-        "주피터 노트북 사용법",
-        "마크다운 문법",
-        "출력과 계산",
-        "변수와 데이터 타입",
-        "비교 연산자",
-        "입력과 타입 변환",
-        "함수 핵심 개념"
-      ]
-    },
-    {
-      "id": "3efdf951bf8081278b07e013b599a969",
-      "title": "2강 - 문자열 & 리스트",
-      "track": "backend",
-      "group": "Python 기초",
-      "lastEdited": "2026-10-04T03:37:37.824Z",
-      "sections": [
-        "문자열 인덱스와 슬라이싱",
-        "문자열 함수",
-        "포맷 출력",
-        "리스트",
-        "리스트 함수"
-      ]
-    },
-    {
-      "id": "3efdf951bf80819e9e47c640c3a3095f",
-      "title": "3강 - 조건문 & 반복문",
-      "track": "backend",
-      "group": "Python 기초",
-      "lastEdited": "2026-10-04T03:37:48.174Z",
-      "sections": [
-        "조건문 기본 구조",
-        "예제: 나이로 구분하기",
-        "조건문 안에 조건문",
-        "for 반복문",
-        "while 반복문"
-      ]
-    },
-    {
-      "id": "3efdf951bf8081ee8850c7e3d6b13c5c",
-      "title": "4강 - 함수 & 튜플·딕셔너리·집합",
-      "track": "backend",
-      "group": "Python 기초",
-      "lastEdited": "2026-10-04T03:44:27.711Z",
-      "sections": [
-        "함수",
-        "튜플 (Tuple)",
-        "딕셔너리 (Dictionary)",
-        "집합 (Set)"
-      ]
-    },
-    {
       "id": "3efdf951bf80811a9d1de277bbb8f7ed",
       "title": "5강 - 풀스택 개발 이해 & 프레임워크",
       "track": "backend",
@@ -516,19 +484,6 @@
         "조건문",
         "주석",
         "크롤링 결과 그대로 리턴"
-      ]
-    },
-    {
-      "id": "3efdf951bf8081deb46cd917937eab25",
-      "title": "18강 - CDN & Vue + axios 연동",
-      "track": "backend",
-      "group": "Flask",
-      "lastEdited": "2026-10-04T04:04:16.284Z",
-      "sections": [
-        "CDN",
-        "폴더 구성",
-        "Vue 코드 추가 순서",
-        "버튼으로 Flask API 호출하기"
       ]
     },
     {
