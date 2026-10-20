@@ -54,7 +54,7 @@ export function FeedbackPanel({ correct, answer, explanation, source, onSource, 
         <h2 className={`text-18 font-semibold ${correct ? 'text-correct-text' : 'text-wrong-text'}`}>{correct ? '정답이에요!' : '아쉬워요'}</h2>
       </div>
       {answer && <p className="text-15 font-semibold">정답: {answer}</p>}
-      <p className="text-15 text-ink-sub">{explanation}</p>
+      <p className="whitespace-pre-line text-15 text-ink-sub">{explanation}</p>
       {extra}
       {source && onSource && (
         <button type="button" onClick={onSource} className="flex items-start gap-1 self-start text-left text-14 font-medium text-brand-text">
@@ -79,7 +79,7 @@ export function ChoiceNotes({ notes, answer, picked }: { notes: string[]; answer
             >
               {kind === 'correct' ? <Icon name="check" size={12} /> : kind === 'wrong' ? <Icon name="close" size={12} /> : i + 1}
             </span>
-            <span className="text-14 text-ink-sub">{t}</span>
+            <span className="whitespace-pre-line text-14 text-ink-sub">{t}</span>
           </div>
         )
       })}
