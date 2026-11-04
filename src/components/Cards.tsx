@@ -4,13 +4,14 @@ import type { TopicStats } from '../lib/stats'
 import { relativeDay } from '../lib/date'
 import { LinkButton } from './Button'
 import { Icon } from './Icon'
+import { SlideBody } from './Slide'
 import { Badge, CodeBlock, ProgressBar, type BadgeType } from './ui'
 
 export const TRACK_STYLE: Record<Track, { bg: string; ink: string; label: string; title: string }> = {
   frontend: { bg: 'bg-cat-sky', ink: 'text-cat-sky-ink', label: '프론트엔드', title: 'HTML · CSS · 웹 기초' },
   backend: { bg: 'bg-cat-mint', ink: 'text-cat-mint-ink', label: '백엔드', title: 'FastAPI · SQL · DB 설계 · MongoDB' },
-  design: { bg: 'bg-cat-pink', ink: 'text-cat-pink-ink', label: '디자인', title: '디자인 기초 · 포토샵 · 피그마' },
-  project: { bg: 'bg-cat-lavender', ink: 'text-cat-lavender-ink', label: '프로젝트', title: '포트폴리오 · Accio · Maestro' },
+  fullstack: { bg: 'bg-cat-pink', ink: 'text-cat-pink-ink', label: '풀스택 코스', title: '미니 인프런 · FastAPI · Next.js' },
+  react: { bg: 'bg-cat-lavender', ink: 'text-cat-lavender-ink', label: 'React', title: 'React · Next.js · 시니어 실무' },
 }
 
 export function TrackCard({ track, topics, done, progress, accuracy }: { track: Track; topics: number; done: number; progress: number; accuracy: number | null }) {
@@ -55,14 +56,22 @@ export function ConceptCard({ section, count, updated, to }: { section: Section;
         <h3 className="min-w-0 flex-1 text-18 font-semibold [overflow-wrap:anywhere]">{section.title}</h3>
         {updated && <Badge type="UPDATED" />}
       </div>
-      <ul className="flex flex-col gap-1.5">
-        {section.points.map((p) => (
-          <li key={p} className="flex gap-2 text-15 text-ink-sub">
-            <span className="text-ink-weak">•</span>
-            <span className="min-w-0 [overflow-wrap:anywhere]">{p}</span>
-          </li>
-        ))}
-      </ul>
+      {section.points && (
+        <ul className="flex flex-col gap-1.5">
+          {section.points.map((p) => (
+            <li key={p} className="flex gap-2 text-15 text-ink-sub">
+              <span className="text-ink-weak">•</span>
+              <span className="min-w-0 [overflow-wrap:anywhere]">{p}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+      {section.slides?.map((sl, i) => (
+        <div key={i} className={`flex flex-col gap-3 ${i ? 'border-t border-line-light pt-4' : ''}`}>
+          {sl.title && <h4 className="text-16 font-semibold">{sl.title}</h4>}
+          <SlideBody slide={sl} />
+        </div>
+      ))}
       {section.code && <CodeBlock code={section.code} />}
       {to && (
         <div className="mt-1 flex items-center">

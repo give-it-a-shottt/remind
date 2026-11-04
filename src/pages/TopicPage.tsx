@@ -1,6 +1,8 @@
+import { useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { topicById } from '../data'
+import { isLessonTrack, topicById } from '../data'
 import { notionUrl } from '../data/meta'
+import type { Topic } from '../data/types'
 import { buttonClass, LinkButton } from '../components/Button'
 import { ConceptCard, TRACK_STYLE } from '../components/Cards'
 import { Icon } from '../components/Icon'
@@ -24,8 +26,25 @@ export default function TopicPage() {
   const all = quizUrl({ mode: 'topic', topicId: topic.id })
   const wrongUrl = quizUrl({ mode: 'wrong', topicId: topic.id })
   const changed = new Set(topic.changedSections ?? [])
+  const lesson = isLessonTrack(topic.track)
+  const ls = p.lessons?.[topic.id]
+  const resumable = lesson && !!ls && ls.step > 0
+  const lessonUrl = `/lesson/${topic.id}${resumable ? '?resume=1' : ''}`
+  const lessonLabel = resumable ? '이어서 하기' : ls?.doneAt ? '수업 다시 듣기' : '수업 시작'
+  const slideCount = topic.sections.reduce((n, sec) => n + (sec.slides?.length ?? 0), 0)
 
-  const actions = (
+  const actions = lesson ? (
+    <div className="flex gap-2 md:flex-col">
+      {st.wrongCount > 0 && (
+        <LinkButton to={wrongUrl} variant="secondary" className="flex-1 md:order-2">
+          틀린 것만 {st.wrongCount}
+        </LinkButton>
+      )}
+      <LinkButton to={lessonUrl} className="flex-[2] md:order-1 md:flex-none">
+        {lessonLabel}
+      </LinkButton>
+    </div>
+  ) : (
     <div className="flex gap-2 md:flex-col">
       {st.wrongCount > 0 && (
         <LinkButton to={wrongUrl} variant="secondary" className="flex-1 md:order-2">
@@ -49,7 +68,7 @@ export default function TopicPage() {
             <h1 className="mt-1 text-24 font-semibold md:text-32">{topic.title}</h1>
             <div className="mt-3 flex items-center gap-3">
               <span className="flex-1 text-15 text-ink-sub">
-                개념 {topic.sections.length} · 문제 {topic.questions.length}
+                개념 {topic.sections.length}{lesson ? ` · 수업 카드 ${slideCount}` : ''} · 문제 {topic.questions.length}
                 {st.accuracy !== null ? ` · 정답률 ${st.accuracy}%` : ''}
               </span>
               {topic.notionId && (
@@ -63,7 +82,7 @@ export default function TopicPage() {
           <div className="flex border-b border-line md:gap-8" role="tablist">
             {(
               [
-                ['concept', `개념 ${topic.sections.length}`],
+                ['concept', lesson ? `수업 내용 ${topic.sections.length}` : `개념 ${topic.sections.length}`],
                 ['list', `문제 목록 ${topic.questions.length}`],
               ] as const
             ).map(([k, l]) => (
@@ -79,7 +98,9 @@ export default function TopicPage() {
             ))}
           </div>
 
-          {tab === 'concept' ? (
+          {tab === 'concept' && lesson ? (
+            <LessonOutline topic={topic} />
+          ) : tab === 'concept' ? (
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
               {topic.sections.map((sec) => (
                 <ConceptCard
@@ -142,9 +163,20 @@ export default function TopicPage() {
                 푼 문제 {st.seen} / {st.total}
               </div>
             </div>
-            <Link to={all} className={buttonClass('primary', 'md', true)}>
-              전체 풀기
-            </Link>
+            {lesson ? (
+              <>
+                <Link to={lessonUrl} className={buttonClass('primary', 'md', true)}>
+                  {lessonLabel}
+                </Link>
+                <Link to={all} className={buttonClass('neutral', 'md', true)}>
+                  문제만 풀기
+                </Link>
+              </>
+            ) : (
+              <Link to={all} className={buttonClass('primary', 'md', true)}>
+                전체 풀기
+              </Link>
+            )}
             {st.wrongCount > 0 && (
               <Link to={wrongUrl} className={buttonClass('secondary', 'md', true)}>
                 틀린 것만 {st.wrongCount}
@@ -159,5 +191,51 @@ export default function TopicPage() {
         </aside>
       </div>
     </AppShell>
+  )
+}
+
+/** 레슨형 토픽: 어떤 순서로 배우는지 목차 + 개념별 다시 읽기 */
+function LessonOutline({ topic }: { topic: Topic }) {
+  // 여러 개를 따로 펼친다. 하나만 열리게 하면 위쪽이 접히면서 화면이 아래로 튀어 버린다
+  const [open, setOpen] = useState<Set<string>>(() => new Set())
+  const toggle = (t: string) =>
+    setOpen((prev) => {
+      const next = new Set(prev)
+      if (next.has(t)) next.delete(t)
+      else next.add(t)
+      return next
+    })
+  return (
+    <div className="flex flex-col gap-4">
+      <section className="rounded-card bg-surface p-5 md:p-6">
+        <h2 className="text-16 font-semibold">이렇게 배워요</h2>
+        <p className="mt-1 text-14 text-ink-sub">수업 카드를 넘기며 개념을 배우고, 개념이 끝날 때마다 확인 문제를 바로 풀어요.</p>
+        <ol className="mt-4 flex flex-col">
+          {topic.sections.map((sec, i) => {
+            const n = topic.questions.filter((q) => q.source === sec.title).length
+            const isOpen = open.has(sec.title)
+            return (
+              <li key={sec.title} className={i ? 'border-t border-line-light' : ''}>
+                <button type="button" onClick={() => toggle(sec.title)} aria-expanded={isOpen} className="flex w-full items-center gap-3 py-3.5 text-left">
+                  <span className="flex size-7 shrink-0 items-center justify-center rounded-full bg-fill text-13 font-semibold">{i + 1}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-15 font-semibold">{sec.title}</span>
+                    <span className="mt-0.5 block text-12 text-ink-weak">
+                      수업 카드 {sec.slides?.length ?? 0} · 확인 문제 {n}
+                    </span>
+                  </span>
+                  <Icon name="chevron-down" size={20} className={`text-icon-weak transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                </button>
+                {isOpen && (
+                  <div className="pb-4">
+                    <ConceptCard section={sec} count={n} to={quizUrl({ mode: 'section', topicId: topic.id, section: sec.title })} />
+                  </div>
+                )}
+              </li>
+            )
+          })}
+        </ol>
+      </section>
+    </div>
   )
 }

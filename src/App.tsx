@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
+import LessonPage from './pages/LessonPage'
 import QuizPage from './pages/QuizPage'
 import ResultPage from './pages/ResultPage'
 import SettingsPage from './pages/SettingsPage'
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/track/:trackId" element={<TrackPage />} />
         <Route path="/topic/:topicId" element={<TopicPage />} />
+        <Route path="/lesson/:topicId" element={<LessonPage />} />
         <Route path="/quiz" element={<QuizPage />} />
         <Route path="/quiz/result" element={<ResultPage />} />
         <Route path="/wrong" element={<WrongPage />} />

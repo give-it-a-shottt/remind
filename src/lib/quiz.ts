@@ -3,6 +3,8 @@ import type { Track } from '../data/types'
 import { reviewQueue, shuffle } from './srs'
 import type { Progress, QuizMode, Session } from './storage'
 
+export const TYPE_LABEL = { mcq: '객관식', ox: 'OX', short: '단답형', essay: '서술형' } as const
+
 export interface QuizRequest {
   mode: QuizMode
   topicId?: string
