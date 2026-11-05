@@ -42,7 +42,7 @@ function LessonRunner({ topic }: { topic: Topic }) {
     setState({ step, results: res })
     setProgress((pp) => ({
       ...pp,
-      lessons: { ...pp.lessons, [topic.id]: finished ? { step: 0, results: [], doneAt: today() } : { ...pp.lessons?.[topic.id], step, results: res } },
+      lessons: { ...pp.lessons, [topic.id]: finished ? { step: 0, results: [], doneAt: today(), at: Date.now() } : { ...pp.lessons?.[topic.id], step, results: res, at: Date.now() } },
     }))
     window.scrollTo({ top: 0 })
   }

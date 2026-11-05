@@ -11,6 +11,7 @@
     "check": "node --experimental-strip-types scripts/check-content.ts"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.4"
