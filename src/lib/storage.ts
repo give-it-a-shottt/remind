@@ -36,6 +36,15 @@ export interface Session {
   startedAt: number
 }
 
+/** 레슨형 토픽 진행 상태 — 중간에 나가면 이어서 볼 수 있게 */
+export interface LessonState {
+  /** 다음에 볼 단계 (0 = 처음) */
+  step: number
+  results: SessionResult[]
+  /** 마지막으로 끝까지 본 날 */
+  doneAt?: string
+}
+
 export interface Progress {
   version: 1
   questions: Record<string, QuestionRecord>
@@ -44,6 +53,8 @@ export interface Progress {
   activity: string[]
   session?: Session
   lastResult?: Session & { finishedAt: number }
+  /** 토픽 ID → 레슨 진행 상태 */
+  lessons?: Record<string, LessonState>
   settings: { shuffle: boolean; dailyLimit: number }
 }
 

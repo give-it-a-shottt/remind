@@ -26,8 +26,24 @@ for (const t of topics) {
   if (t.sections.length === 0) err(at, '섹션(개념 설명) 없음')
 
   const titles = new Set(t.sections.map((s) => s.title))
+  const lesson = t.track === 'fullstack' || t.track === 'react'
   for (const s of t.sections) {
-    if (s.points.length === 0 || s.points.some((p) => !p.trim())) err(at, `섹션 "${s.title}" 설명 비어 있음`)
+    if (lesson) {
+      // 레슨형: 넘겨 보는 수업 카드가 있어야 하고, 카드마다 내용이 있어야 한다
+      if (!s.slides?.length) err(at, `섹션 "${s.title}" 수업 카드(slides) 없음`)
+      s.slides?.forEach((sl, i) => {
+        if (!sl.blocks.length) err(at, `섹션 "${s.title}" 카드 ${i + 1} 비어 있음`)
+        for (const b of sl.blocks) {
+          const empty =
+            (b.type === 'say' || b.type === 'note') ? !b.text.trim()
+            : b.type === 'ask' ? !b.q.trim() || !b.a.trim()
+            : b.type === 'list' ? !b.items.length
+            : b.type === 'code' ? !b.code.trim()
+            : b.rows.some((r) => r.length !== b.head.length)
+          if (empty) err(at, `섹션 "${s.title}" 카드 ${i + 1} 의 ${b.type} 블록이 비었거나 표 칸 수가 안 맞음`)
+        }
+      })
+    } else if (!s.points?.length || s.points.some((p) => !p.trim())) err(at, `섹션 "${s.title}" 설명 비어 있음`)
     if (!t.questions.some((q) => q.source === s.title)) err(at, `섹션 "${s.title}" 에 문제 없음`)
   }
   for (const q of t.questions) {
