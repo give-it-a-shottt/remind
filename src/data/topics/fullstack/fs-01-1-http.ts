@@ -81,11 +81,17 @@ POST /enrollments     ← 수강 신청할게요` },
           blocks: [
             {
               type: 'code',
-              code: `HTTP/1.1 200 OK                   ← ① 상태 줄 (결과 도장)
-Content-Type: application/json    ← ② 헤더 (설명서)
+              code: `① 상태 줄
+HTTP/1.1 200 OK
+
+② 헤더
+Content-Type: application/json
 Content-Length: 292
-                                  ← 빈 줄
-{"id": 1, "title": "파이썬 입문"}  ← ③ 본문 (실제 데이터)`,
+
+(빈 줄)
+
+③ 본문
+{"id": 1, "title": "파이썬 입문"}`,
             },
             { type: 'list', ordered: true, items: ['**상태 줄**: 성공했는지 실패했는지 숫자로', '**헤더**: 본문이 어떤 형식인지(JSON), 얼마나 긴지', '**본문**: 실제 데이터. API는 보통 JSON'] },
           ],
