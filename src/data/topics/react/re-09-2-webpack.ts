@@ -140,6 +140,15 @@ module.exports = {
   ],
   questions: [
     {
+      id: 're09-2-q0',
+      source: '왜 아직 webpack을 배워요?',
+      type: 'mcq',
+      question: '2026년에도 webpack을 알아야 하는 이유로 가장 알맞은 것은?',
+      choices: ['새 프로젝트는 무조건 webpack으로 시작해야 해서', '오래된 회사 프로젝트와 Module Federation이 webpack 기반이고, 설정을 보면 번들러가 하는 일이 가장 잘 보여서', 'Vite가 없어져서', 'React가 webpack에서만 동작해서'],
+      answer: 1,
+      explanation: '새 SPA는 보통 Vite로 시작하지만, 레거시 코드·Module Federation·Next.js --webpack 때문에 읽고 고칠 줄 알아야 해요.',
+    },
+    {
       id: 're09-2-q1',
       source: 'entry·output·loader·plugin',
       type: 'mcq',
