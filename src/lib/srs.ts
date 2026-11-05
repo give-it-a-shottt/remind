@@ -14,7 +14,7 @@ export function applyGrade(p: Progress, id: string, grade: Grade, answer?: strin
   const prev: QuestionRecord = p.questions[id] ?? { box: 0, nextDue: now, correct: 0, wrong: 0, streak: 0, lastSeen: now }
   let box: Box = prev.box
   let wrongNote = p.wrongNote
-  const rec: QuestionRecord = { ...prev, lastSeen: now, lastAnswer: answer ?? prev.lastAnswer }
+  const rec: QuestionRecord = { ...prev, lastSeen: now, at: Date.now(), lastAnswer: answer ?? prev.lastAnswer }
 
   if (grade === 'correct') {
     box = Math.min(5, prev.box + 1) as Box

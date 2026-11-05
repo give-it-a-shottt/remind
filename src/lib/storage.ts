@@ -12,6 +12,8 @@ export interface QuestionRecord {
   streak: number
   lastAnswer?: string
   lastSeen: string
+  /** 마지막으로 푼 시각(ms) — 기기 간 합칠 때 같은 날 기록끼리 누가 최신인지 가린다 */
+  at?: number
 }
 
 export type QuizMode = 'review' | 'topic' | 'section' | 'wrong' | 'single'
@@ -43,6 +45,8 @@ export interface LessonState {
   results: SessionResult[]
   /** 마지막으로 끝까지 본 날 */
   doneAt?: string
+  /** 마지막으로 바뀐 시각(ms) — 기기 간 합치기용 */
+  at?: number
 }
 
 export interface Progress {
@@ -55,7 +59,13 @@ export interface Progress {
   lastResult?: Session & { finishedAt: number }
   /** 토픽 ID → 레슨 진행 상태 */
   lessons?: Record<string, LessonState>
-  settings: { shuffle: boolean; dailyLimit: number }
+  /** at: 마지막으로 바꾼 시각(ms) — 기기 간 합치기용 */
+  settings: { shuffle: boolean; dailyLimit: number; at?: number }
+  /**
+   * 기록 "판" 번호(ms). 초기화·가져오기를 하면 새로 매긴다.
+   * 기기 간 합칠 때 번호가 더 큰 쪽이 통째로 이긴다 (옛 기록이 다시 합쳐지지 않게)
+   */
+  epoch?: number
 }
 
 const KEY = 'remind:v1:progress'
@@ -91,7 +101,15 @@ export function getProgress(): Progress {
   return state
 }
 
-export function setProgress(next: Progress | ((p: Progress) => Progress)) {
+const changeListeners = new Set<() => void>()
+
+/** 이 기기에서 기록이 바뀔 때마다 (다른 탭 변경은 제외) — 동기화가 구독한다 */
+export function onProgressChange(l: () => void): () => void {
+  changeListeners.add(l)
+  return () => changeListeners.delete(l)
+}
+
+export function setProgress(next: Progress | ((p: Progress) => Progress), opts?: { silent?: boolean }) {
   state = typeof next === 'function' ? next(state) : next
   try {
     localStorage.setItem(KEY, JSON.stringify(state))
@@ -99,6 +117,7 @@ export function setProgress(next: Progress | ((p: Progress) => Progress)) {
     /* 저장 공간 부족 등 — 메모리 상태는 유지 */
   }
   emit()
+  if (!opts?.silent) for (const l of changeListeners) l()
 }
 
 function subscribe(l: () => void) {
@@ -127,7 +146,7 @@ export function importProgress(json: string): { ok: true; count: number } | { ok
     if (data.version !== 1 || typeof data.questions !== 'object' || !Array.isArray(data.wrongNote)) {
       return { ok: false, error: 'remind 백업 파일이 아니에요.' }
     }
-    setProgress({ ...emptyProgress(), ...data, session: undefined })
+    setProgress({ ...emptyProgress(), ...data, session: undefined, epoch: Date.now() })
     return { ok: true, count: Object.keys(data.questions).length }
   } catch {
     return { ok: false, error: '파일을 읽을 수 없어요.' }
