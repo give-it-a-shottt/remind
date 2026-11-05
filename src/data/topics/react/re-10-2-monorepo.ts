@@ -26,13 +26,13 @@ const topic: Topic = {
               type: 'code',
               code: `my-company/
 ├─ apps/
-│  ├─ web/          ← 사용자 웹 (Next.js)
-│  ├─ admin/        ← 관리자 웹 (Vite)
+│  ├─ web/        ← 사용자 (Next.js)
+│  ├─ admin/      ← 관리자 (Vite)
 │  └─ instructor/
 ├─ packages/
-│  ├─ ui/           ← 공용 Button, Card ... (디자인 시스템)
-│  ├─ api-types/    ← 백엔드와 맞춘 타입, zod 스키마 (8-5)
-│  └─ config/       ← 공용 tsconfig, ESLint 설정
+│  ├─ ui/         ← 공용 컴포넌트
+│  ├─ api-types/  ← 타입·zod
+│  └─ config/     ← tsconfig·ESLint
 ├─ package.json
 └─ pnpm-workspace.yaml`,
             },

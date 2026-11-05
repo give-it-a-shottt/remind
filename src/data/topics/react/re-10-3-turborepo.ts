@@ -57,11 +57,13 @@ const topic: Topic = {
           blocks: [
             { type: 'code', code: `turbo run build
 
-  packages/config  ─┐
-  packages/api-types ┼─→ packages/ui ─→ apps/web
-                     │                 apps/admin
-                     └───────────────→ apps/instructor
-  (서로 상관없는 건 동시에, 의존하는 건 순서대로)` },
+1단계 (동시에)
+  config, api-types
+2단계 (동시에)
+  ui          ← config·api-types 다음
+  instructor  ← api-types만 끝나면
+3단계 (동시에)
+  web, admin  ← ui 다음`, caption: '서로 상관없는 건 동시에, 의존하는 건 순서대로' },
             { type: 'say', text: 'Turborepo는 각 package.json의 의존 관계를 읽어서 **작업 그래프**를 만들어요. 1-2의 의존성 그래프를 패키지 단위로 그린 거예요. 그리고 **순서가 필요한 것만 기다리고, 나머지는 동시에** 돌려요. 2-2의 Promise.all과 같은 아이디어예요.' },
           ],
         },

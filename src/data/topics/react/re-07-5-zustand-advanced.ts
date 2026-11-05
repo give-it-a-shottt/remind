@@ -113,9 +113,9 @@ export const useEditorStore = create<EditorState>()(
             {
               type: 'code',
               code: `src/stores/
-├─ auth.ts       ← useAuthStore   (토큰, 로그인 사용자 id, logout)
-├─ cart.ts       ← useCartStore   (비로그인 장바구니)
-└─ ui.ts         ← useUiStore     (사이드바 접힘, 모달 열림)`,
+├─ auth.ts  ← 토큰, logout
+├─ cart.ts  ← 비로그인 장바구니
+└─ ui.ts    ← 사이드바, 모달`,
             },
             {
               type: 'list',

@@ -18,9 +18,9 @@ const topic: Topic = {
             {
               type: 'code',
               code: `src/
-├─ components/   ← CourseCard, ReviewForm, CartBadge, LoginForm ... 80개
-├─ hooks/        ← useCourses, useCart, useAuth ... 30개
-├─ api/          ← courses.ts, cart.ts, auth.ts
+├─ components/  ← 80개
+├─ hooks/       ← 30개
+├─ api/
 ├─ stores/
 └─ utils/`,
             },
@@ -39,16 +39,16 @@ const topic: Topic = {
             {
               type: 'code',
               code: `src/
-├─ app/                  ← 라우터, Provider, 전역 설정 (앱을 조립하는 곳)
+├─ app/         ← 앱 조립 (라우터·Provider)
 ├─ features/
-│  ├─ course/            ← 강의 기능에 필요한 것 전부
+│  ├─ course/   ← 강의 기능 전부
 │  │  ├─ CourseCard.tsx
 │  │  ├─ useCourses.ts
 │  │  ├─ api.ts
 │  │  └─ types.ts
 │  ├─ review/
 │  └─ cart/
-└─ shared/               ← 어느 기능에도 속하지 않는 공용 (Button, api client, 날짜 포맷)
+└─ shared/      ← 기능과 상관없는 공용
    ├─ ui/
    └─ lib/`,
             },
@@ -70,8 +70,11 @@ const topic: Topic = {
  ✅        ✅
 (위층은 아래층을 import 할 수 있음)
 
-shared → features   ❌  (공용 Button이 강의 기능을 알면 안 됨)
-features/cart → features/course   ⚠️ 기능끼리 직접 import 는 최소화`,
+shared → features  ❌
+(공용 Button이 강의 기능을 알면 안 됨)
+
+cart → course  ⚠️
+(기능끼리 직접 import는 최소화)`,
             },
             { type: 'ask', q: '장바구니(cart) 기능이 강의 카드(course)를 보여 줘야 해요. cart에서 course를 바로 import 하면 무슨 문제가 생길까요?', a: '기능끼리 서로 import 하다 보면 course → cart → course처럼 **순환 의존**(1-2)이 생기기 쉽고, course를 고쳤는데 cart가 깨지는 일이 생겨요.\n보통은 ① 두 기능을 **조립하는 위층**(app이나 페이지)에서 합치거나, ② 정말 공용이면 **shared로** 내리거나, ③ 그 기능이 공개한 것(다음 슬라이드)만 쓰게 해요.' },
           ],

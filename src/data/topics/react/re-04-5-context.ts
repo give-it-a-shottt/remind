@@ -19,12 +19,13 @@ const topic: Topic = {
             {
               type: 'code',
               code: `App
-└─ ThemeProvider (value = { mode, toggle })   ← 여기서 방송
+└─ ThemeProvider  ← 방송
    ├─ Header
-   │  └─ ThemeButton  ← 바로 받음 (Header는 아무것도 전달 안 함)
+   │  └─ ThemeButton  ← 받음
    └─ Main
       └─ Article
-         └─ ThemeLabel ← 바로 받음`,
+         └─ ThemeLabel  ← 받음`,
+              caption: 'Header·Main·Article은 아무것도 전달하지 않아요',
             },
           ],
         },

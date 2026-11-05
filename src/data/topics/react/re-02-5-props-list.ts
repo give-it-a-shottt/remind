@@ -70,9 +70,9 @@ const topic: Topic = {
           blocks: [
             {
               type: 'code',
-              code: `App                 ← todos 상태를 가짐 (데이터의 주인)
-└─ TodoList        ← todos를 받아서 map으로 반복
-   ├─ TodoItem     ← todo 하나만 받아서 그림
+              code: `App           ← todos 주인
+└─ TodoList   ← map으로 반복
+   ├─ TodoItem ← todo 하나
    ├─ TodoItem
    └─ TodoItem`,
             },
