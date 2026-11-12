@@ -10,117 +10,185 @@ const topic: Topic = {
   sections: [
     {
       title: '스택 (LIFO)',
-      points: [
-        '나중에 넣은 걸 먼저 꺼내는 자료구조. 파이썬은 리스트의 append()로 넣고 pop()으로 꺼낸다',
-        '"가장 최근 것부터 처리"해야 하면 스택',
-        '프론트: JSX·HTML 태그 짝 검증, Undo 히스토리',
-        '백엔드: 작업을 멈춰두고 급한 일 먼저, 가장 최근에 멈춘 것부터 재개 (선점형 스케줄러)',
+      slides: [
+        {
+          title: '나중에 넣은 걸 먼저',
+          blocks: [
+            { type: 'say', text: '두 번째 자료구조는 **스택**이에요. **나중에 넣은 걸 먼저 꺼내요**(LIFO, Last In First Out). 파이썬은 리스트의 `append()`로 넣고 `pop()`으로 꺼내요.\n\n"**가장 최근 것부터** 처리해야 한다"는 신호가 보이면 스택이에요.' },
+            { type: 'note', tone: 'analogy', text: '**접시 쌓기**예요. 씻은 접시를 위에 쌓고, 꺼낼 때도 맨 위부터 꺼내죠. 맨 아래 접시를 먼저 꺼내려면 위를 다 들어내야 해요.' },
+            { type: 'list', items: ['**프론트**: JSX·HTML 태그 짝 검증, **Undo 히스토리** (Ctrl+Z는 가장 최근 동작부터 되돌림)', '**백엔드**: 작업을 멈춰 두고 급한 일 먼저, **가장 최근에 멈춘 것부터** 재개 (선점형 스케줄러)'] },
+          ],
+        },
       ],
     },
     {
       title: '스택 vs 큐',
-      points: [
-        '스택: LIFO, list의 append() / pop() — 괄호 짝, 멈춘 과제 재개',
-        '큐: FIFO, collections.deque의 append() / popleft() — 시작 시각 순으로 들어오는 과제',
-        '맨 위 원소는 stack[-1] (stack[len(stack) - 1]보다 짧고 안전)',
-        'pop은 괄호까지 써야 실행된다: stack.pop()',
+      slides: [
+        {
+          title: '꺼내는 쪽이 달라요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '스택', '큐'],
+              rows: [
+                ['순서', '**LIFO** (나중에 넣은 것 먼저)', '**FIFO** (먼저 넣은 것 먼저)'],
+                ['파이썬', '`list`의 `append()` / `pop()`', '`collections.deque`의 `append()` / `popleft()`'],
+                ['예', '괄호 짝, 멈춘 과제 재개', '시작 시각 순으로 들어오는 과제'],
+              ],
+            },
+            { type: 'list', items: ['맨 위 원소는 **`stack[-1]`** (`stack[len(stack) - 1]`보다 짧고 안전)', 'pop은 **괄호까지** 써야 실행돼요: `stack.pop()`'] },
+          ],
+        },
       ],
     },
     {
       title: '문법 정리',
-      points: [
-        'False, True는 대문자, 비교는 ==, 줄 끝에 :',
-        'len(stack) (stack.len() 아님)',
-        'h, m = map(int, "12:40".split(":"))',
-        'sorted(tasks, key=lambda x: x[1]) — 1번 칸 기준 정렬',
-        'stack.pop()[0] — 꺼내면서 이름만',
+      slides: [
+        {
+          title: '이번 문제에 쓰는 문법',
+          blocks: [
+            { type: 'code', code: `h, m = map(int, "12:40".split(":"))         # 12, 40
+tasks = sorted(tasks, key=lambda x: x[1])   # 1번 칸 기준 정렬
+name = stack.pop()[0]                       # 꺼내면서 이름만
+len(stack)                                  # stack.len() 아님!` },
+            { type: 'say', text: '`False`, `True`는 **대문자**, 비교는 `==`, 줄 끝에 `:`. 다른 언어에서 넘어오면 자주 틀리는 부분이에요.' },
+          ],
+        },
       ],
     },
     {
       title: '[프론트] 올바른 괄호',
-      points: [
-        '맨 위가 "("이고 지금 글자가 ")"일 때만 pop, 나머지는 push. 끝나고 비어 있으면 True',
-        '괄호가 한 종류면 카운터 하나로 충분 — count < 0이 되면 바로 실패 (")(" 차단)',
-        '시간 O(N), 공간 O(N) (카운터는 O(1))',
-        '괄호 종류가 여러 개면 카운터로는 안 되고 스택 필요 (린터의 태그 짝 검사 원리)',
-      ],
-      code: `def solution(s):
+      slides: [
+        {
+          title: '스택 풀이와 카운터 풀이',
+          blocks: [
+            { type: 'say', text: '`"(())()"`처럼 괄호 짝이 맞는지 판별해요.\n\n**스택 풀이**: 맨 위가 `(`이고 지금 글자가 `)`일 **때만** pop, 나머지는 push. 끝나고 스택이 비어 있으면 True.\n\n그런데 괄호가 **한 종류**면 카운터 하나로 충분해요.' },
+            { type: 'code', code: `def solution(s):
     count = 0
     for char in s:
         count += 1 if char == '(' else -1
-        if count < 0:
+        if count < 0:          # 닫는 게 더 많아지는 순간 실패
             return False
-    return count == 0`,
+    return count == 0` },
+            { type: 'say', text: '`count < 0` 검사가 없으면 `")("`도 마지막엔 0이라 True가 돼요. **닫는 괄호가 여는 괄호보다 먼저** 나오는 순간 바로 실패시켜요. 시간 O(N), 공간 O(1).' },
+            { type: 'note', tone: 'warn', text: '괄호가 `()`, `{}`, `[]` **여러 종류**면 카운터로는 `"([)]"`를 못 잡아요. **스택 + 짝 dict**가 필요해요. 코드 에디터의 태그 짝 검사가 이 원리예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '[백엔드] 과제 진행하기',
-      points: [
-        '새로 시작할 과제 = 시작 시각 순 정렬(큐), 멈춘 과제 = [이름, 남은시간] 스택',
-        '지금 과제의 끝 ≤ 다음 시작이면 끝남 → 빈 시간 동안 멈춘 과제를 반복해서 이어서 함',
-        '아니면 [이름, 끝 − 다음 시작]을 스택에 넣기',
-        '마지막 과제는 끝까지 하고, 스택에 남은 걸 위에서부터 전부 꺼내기',
-        '시간 O(N log N)(정렬). 스택은 과제마다 최대 한 번 들어가고 나와서 while은 전체 O(N)',
-      ],
-      code: `for i in range(len(tasks) - 1):
+      slides: [
+        {
+          title: '새 과제는 큐, 멈춘 과제는 스택',
+          blocks: [
+            { type: 'say', text: '과제마다 시작 시각과 걸리는 시간이 있어요. 새 과제 시작 시각이 되면 하던 걸 **멈추고** 새 걸 해요. 과제를 끝내고 시간이 남으면 **가장 최근에 멈춘** 과제부터 이어서 해요.\n• 새로 시작할 과제 = **시작 시각 순 정렬**(큐처럼)\n• 멈춘 과제 = **`[이름, 남은 시간]` 스택**' },
+            { type: 'code', code: `for i in range(len(tasks) - 1):
     name, start, play = tasks[i]
     next_start = tasks[i + 1][1]
     end = start + play
-    if end <= next_start:
+    if end <= next_start:                    # 다음 과제 전에 끝남
         result.append(name)
         gap = next_start - end
-        while gap > 0 and stack:
+        while gap > 0 and stack:             # 빈 시간에 멈춘 과제 이어 하기
             if stack[-1][1] <= gap:
                 gap -= stack[-1][1]
                 result.append(stack.pop()[0])
             else:
-                stack[-1][1] -= gap
+                stack[-1][1] -= gap          # 남은 시간만 줄이고 다시 멈춤
                 gap = 0
     else:
-        stack.append([name, end - next_start])`,
+        stack.append([name, end - next_start])` },
+            { type: 'say', text: '마지막 과제는 끝까지 하고, 스택에 남은 걸 **위에서부터** 전부 꺼내요. 시간 O(N log N)(정렬). 각 과제는 스택에 **최대 한 번** 들어가고 나와서 while은 전체 합쳐 O(N)이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '과제 진행하기 코드 Q&A (sorted/key/lambda/[-1])',
-      points: [
-        '한 줄에 변환(문자열 → 분)과 정렬(시작 시각 기준)이 겹쳐 있다',
-        'sorted(tasks)만 하면 0번 칸(이름) 알파벳순 → 틀림',
-        'key에는 값이 아니라 함수를 넘긴다. key=x[1]은 NameError, key=get_start()도 실행 결과라 에러',
-        'sorted()는 새 리스트 반환·원본 유지, .sort()는 원본 변경·None 반환·리스트만',
-        '[-1]은 리스트의 마지막 원소 = append로 쌓은 스택의 최상단. 파이썬 리스트는 크기가 늘어나는 배열',
-        'range(len(tasks) - 1)인 이유: 안에서 tasks[i + 1]을 보기 때문 (마지막까지 돌면 IndexError)',
+      slides: [
+        {
+          title: 'sorted와 key',
+          blocks: [
+            { type: 'list', items: ['`sorted(tasks)`만 하면 **0번 칸(이름) 알파벳순** → 틀림', '`key`에는 값이 아니라 **함수**를 넘겨요. `key=x[1]`은 x가 없어서 **NameError**, `key=get_start()`는 실행 **결과**를 넘겨서 에러', '`sorted()`는 **새 리스트** 반환·원본 유지. `.sort()`는 **원본 변경**·**None** 반환·리스트만'] },
+            { type: 'note', tone: 'warn', text: '`tasks = tasks.sort(key=...)`라고 쓰면 `.sort()`의 반환값 **None**이 tasks에 들어가요. 정렬된 리스트가 사라져요.' },
+          ],
+        },
+        {
+          title: '[-1]과 range(len - 1)',
+          blocks: [
+            { type: 'say', text: '`[-1]`은 리스트의 **마지막 원소**, 즉 append로 쌓은 스택의 **최상단**이에요. 파이썬 리스트는 C의 포인터 스택이 아니라 **크기가 늘어나는 배열**이고, `-1`은 "뒤에서 첫 번째"라는 인덱스일 뿐이에요.\n\n`range(len(tasks) - 1)`인 이유: 반복문 안에서 **`tasks[i + 1]`** 을 보기 때문이에요. 마지막까지 돌면 다음 과제가 없어서 IndexError가 나요.' },
+          ],
+        },
       ],
     },
     {
       title: '올바른 괄호 사고 과정',
-      points: [
-        '신호: "닫는 괄호는 가장 최근에 열린 것과 짝" → 스택, "괄호가 한 종류" → 카운터',
-        '갈라진 지점: "다르면 pop"이 아니라 맨 위 "(" 그리고 지금 ")"일 때만 pop',
-        '같은 글자일 때도 push 해야 한다',
+      slides: [
+        {
+          title: '갈라진 지점',
+          blocks: [
+            {
+              type: 'table',
+              head: ['문제의 신호', '도구'],
+              rows: [
+                ['"닫는 괄호는 **가장 최근에 열린 것**과 짝"', '**스택**'],
+                ['"괄호가 **한 종류**"', '**카운터**로 충분'],
+              ],
+            },
+            { type: 'say', text: '처음에 "**다르면 pop**"으로 짰더니 `")("`가 True가 나왔어요. 스택이 비었을 때 `)`는 push, 다음 `(`는 맨 위 `)`와 **다르니까** pop해서 비어 버렸거든요.\n\n올바른 조건은 "맨 위가 `(` **그리고** 지금이 `)`일 때만 pop"이에요. 같은 글자일 때도, 순서가 거꾸로일 때도 **push** 해야 해요.' },
+          ],
+        },
       ],
     },
     {
       title: '과제 진행하기 사고 과정',
-      points: [
-        '신호: 정해진 시각에 새 과제 시작 → 시작 시각 순 정렬, 멈춘 건 최근 것부터 → 스택',
-        '정렬 기준은 작업시간이 아니라 시작 시각',
-        '스택에는 이름까지 [이름, 남은 시간]',
-        '최적화 버전: 시작을 0번 칸에 두어 key 없이 정렬, 끝이 무한대인 가짜 과제(보초값), zip(tasks, tasks[1:])로 (지금, 다음) 쌍 순회',
+      slides: [
+        {
+          title: '정렬 기준과 보초값',
+          blocks: [
+            {
+              type: 'table',
+              head: ['문제의 신호', '도구'],
+              rows: [
+                ['"정해진 시각에 새 과제 시작"', '**시작 시각** 순 정렬 (작업 시간 아님!)'],
+                ['"멈춘 건 **최근 것부터**"', '**스택**, 이름까지 `[이름, 남은 시간]`'],
+              ],
+            },
+            { type: 'say', text: '최적화 버전의 아이디어 세 가지\n• 시작 시각을 **0번 칸**에 두면 key 없이 `sorted()`만으로 정렬\n• 끝이 **무한대**인 가짜 과제(**보초값**)를 맨 뒤에 넣으면, "마지막 과제" 특별 처리가 필요 없어요\n• `zip(tasks, tasks[1:])`로 **(지금, 다음)** 쌍을 바로 순회' },
+          ],
+        },
       ],
     },
     {
       title: '트러블슈팅',
-      points: [
-        'if 두 개 연달아 → 두 번째는 elif',
-        '빈 시간에 멈춘 과제를 한 번만 꺼냄 → while gap > 0 and stack',
-        'tasks = tasks.sort(...) → None',
-        '빈 리스트에서 stack[-1] → IndexError → 비어 있는지 먼저 확인',
+      slides: [
+        {
+          title: '자주 한 실수들',
+          blocks: [
+            {
+              type: 'table',
+              head: ['실수', '해결'],
+              rows: [
+                ['`if` 두 개 연달아 → 둘 다 실행됨', '두 번째는 **`elif`**'],
+                ['빈 시간에 멈춘 과제를 **한 번만** 꺼냄 → 결과 순서가 틀림', '**`while gap > 0 and stack`**'],
+                ['`tasks = tasks.sort(...)`', 'tasks가 **None**'],
+                ['빈 리스트에서 `stack[-1]` → IndexError', '비어 있는지 **먼저** 확인'],
+              ],
+            },
+          ],
+        },
       ],
     },
     {
       title: '면접 숙제',
-      points: [
-        '괄호 세 종류면 카운터는 "([)]"를 못 잡음 → 스택 + 짝 dict',
-        '리스트 pop(0)은 O(N) → N번이면 O(N²). 큐는 deque.popleft() O(1)',
-        '스케줄러 중단 시 작업 ID와 진행 상태를 DB/Redis 같은 외부 저장소에 기록해야 재시작 후 이어감',
+      slides: [
+        {
+          title: '면접에서 이렇게 답해요',
+          blocks: [
+            { type: 'list', items: ['괄호 세 종류면 카운터는 `"([)]"`를 못 잡아요 → **스택 + 짝 dict** (`{")": "(", "]": "[", "}": "{"}`)', '리스트 **`pop(0)`은 O(N)** — 앞을 지우면 뒤 원소가 전부 한 칸씩 당겨져요. N번이면 O(N²). 큐는 **`deque.popleft()` O(1)**', '스케줄러가 중단된 작업을 재시작 후 이어가려면, 작업 ID와 진행 상태를 메모리가 아니라 **DB/Redis** 같은 외부 저장소에 기록해야 해요'] },
+          ],
+        },
       ],
     },
   ],

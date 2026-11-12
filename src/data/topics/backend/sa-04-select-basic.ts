@@ -9,65 +9,112 @@ const topic: Topic = {
   sections: [
     {
       title: '기본 키로 하나 찾기: session.get',
-      points: [
-        'session.get(Post, 3) 은 기본 키가 3인 Post를 돌려준다. 없으면 None. 이미 세션에 있으면 DB에 묻지 않는다(Identity Map).',
-        '없을 때 None이 오므로 항상 None 검사 후 404를 낸다. "get_or_404" 헬퍼로 만들어 두면 편하다.',
-        '예전 문법 session.query(Post).get(3) 은 2.0에서 사용 중단 예정이다. 오래된 강의 코드에서 보이면 session.get(Post, 3) 으로 읽는다.',
-      ],
-      code: `post = db.get(Post, post_id)
+      slides: [
+        {
+          title: '가장 간단한 조회',
+          blocks: [
+            { type: 'code', code: `post = db.get(Post, post_id)
 if post is None:
-    raise HTTPException(404, "글이 없습니다")`,
+    raise HTTPException(404, "글이 없습니다")` },
+            { type: 'say', text: '`session.get(Post, 3)`은 **기본 키가 3인** Post를 돌려줘요. 없으면 **None**. 이미 세션에 있으면 DB에 묻지 않아요(Identity Map).\n\n없을 때 None이 오니 **항상 None 검사 후 404**. 자주 쓰니 `get_or_404` 헬퍼로 만들어 두면 편해요.' },
+            { type: 'note', tone: 'tip', text: '오래된 강의에서 `db.query(Post).get(3)`이나 `db.query(User).filter(User.id == 1).first()`를 보면, 2.0 스타일로는 `db.get(Post, 3)`, `db.scalars(select(User).where(User.id == 1)).first()`로 읽으면 돼요. `query()`는 옛 문법이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'select()와 실행 결과 꺼내기',
-      points: [
-        '2.0 스타일 조회: stmt = select(Post) 로 SQL 문장 객체를 만들고 db.execute(stmt) 또는 db.scalars(stmt) 로 실행한다.',
-        'db.execute(select(Post)) 는 Row 객체들을 돌려준다. 각 Row는 (Post,) 처럼 튜플 모양이다. 모델 객체만 원하면 .scalars() 로 첫 번째 열만 꺼낸다.',
-        '자주 쓰는 형태: db.scalars(stmt).all() → 리스트, db.scalars(stmt).first() → 첫 번째 또는 None, db.scalar(stmt) → 첫 행의 첫 값 또는 None, db.scalars(stmt).one() → 정확히 1개(0개·2개 이상이면 에러), .one_or_none() → 0개면 None, 2개 이상이면 에러.',
-        '특정 컬럼만 고르면 select(Post.id, Post.title) → db.execute(stmt).all() 은 (id, title) 튜플(Row) 리스트다. row.title 처럼 이름으로도 접근할 수 있다.',
-      ],
-      code: `from sqlalchemy import select
+      slides: [
+        {
+          title: '문장을 만들고, 실행하고, 꺼내기',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import select
 
-posts = db.scalars(select(Post)).all()              # list[Post]
-first = db.scalars(select(Post)).first()            # Post | None
+stmt = select(Post)                                 # 1) SQL 문장 객체 만들기
+posts = db.scalars(stmt).all()                      # 2) 실행 + 모델 객체 리스트로
+first = db.scalars(stmt).first()                    #    첫 번째 또는 None
 
 rows = db.execute(select(Post.id, Post.title)).all()
 for row in rows:
-    print(row.id, row.title)                        # Row (튜플처럼)`,
+    print(row.id, row.title)                        # Row (튜플처럼, 이름으로도 접근)` },
+            { type: 'say', text: '2.0 스타일 조회는 **`select()`로 문장을 만들고 → 세션으로 실행**해요.\n\n`db.execute(select(Post))`는 **Row** 객체들을 돌려줘요. 각 Row는 `(Post,)`처럼 **튜플 모양**이에요. 모델 객체만 원하면 **`.scalars()`** 로 첫 번째 열만 꺼내요. 그래서 실무에선 `db.scalars(...)`를 가장 많이 써요.' },
+          ],
+        },
+        {
+          title: '꺼내는 방법 고르기',
+          blocks: [
+            {
+              type: 'table',
+              head: ['메서드', '결과'],
+              rows: [
+                ['`.all()`', '리스트'],
+                ['`.first()`', '첫 번째 또는 None'],
+                ['`.one()`', '**정확히 1개**. 0개나 2개 이상이면 **에러**'],
+                ['`.one_or_none()`', '0개면 None, 2개 이상이면 에러'],
+                ['`db.scalar(stmt)`', '첫 행의 첫 값 또는 None'],
+              ],
+            },
+            { type: 'code', code: `from sqlalchemy import func
+total = db.scalar(select(func.count()).select_from(Post))   # ✅ DB가 셈
+total = len(db.scalars(select(Post)).all())                 # ❌ 전부 꺼내서 셈` },
+            { type: 'say', text: '전체 개수는 DB에게 **세어 달라고** 해요. 전부 꺼내서 `len()` 하면 10만 개를 메모리에 올리는 셈이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'where로 조건 걸기',
-      points: [
-        'select(Post).where(Post.author_id == 3). 파이썬 비교 연산자를 쓰지만 결과는 True/False가 아니라 SQL 조건식 객체다. 그래서 SQL로 변환된다.',
-        '조건 여러 개: .where(A, B) 또는 .where(A).where(B) 는 AND. OR는 or_(A, B).',
-        'NULL 비교는 == None 대신 .is_(None) / .is_not(None) 을 쓴다(== None도 동작하지만 린터 경고가 나고 의도가 덜 명확하다).',
-        '파이썬 and / or / not 키워드는 SQL 조건식에 쓸 수 없다. and_(), or_(), not_() 또는 &, |, ~ 연산자를 쓴다.',
-        '고유 값으로 하나 찾기: db.scalar(select(User).where(User.email == email)) → User | None.',
-      ],
-      code: `from sqlalchemy import select, or_
+      slides: [
+        {
+          title: '파이썬 연산자가 SQL이 돼요',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import select, or_
 
 stmt = (
     select(Post)
-    .where(Post.author_id == user_id)
-    .where(Post.deleted_at.is_(None))
+    .where(Post.author_id == user_id)        # AND
+    .where(Post.deleted_at.is_(None))         # IS NULL
 )
 mine = db.scalars(stmt).all()
 
 user = db.scalar(select(User).where(User.email == email))    # 없으면 None
 
-hot = db.scalars(select(Post).where(or_(Post.views > 1000, Post.likes > 100))).all()`,
+hot = db.scalars(select(Post).where(or_(Post.views > 1000, Post.likes > 100))).all()` },
+            { type: 'say', text: '신기한 점: `Post.author_id == 3`은 파이썬에서 True/False가 아니라 **SQL 조건식 객체**를 만들어요. SQLAlchemy가 `==` 연산자를 바꿔 놨거든요. 그래서 `WHERE posts.author_id = :param`으로 변환돼요.' },
+          ],
+        },
+        {
+          title: 'AND, OR, NULL 쓰는 법',
+          blocks: [
+            {
+              type: 'table',
+              head: ['하고 싶은 것', '쓰는 법'],
+              rows: [
+                ['AND', '`.where(A, B)` 또는 `.where(A).where(B)`'],
+                ['OR', '`or_(A, B)` 또는 `A | B`'],
+                ['NOT', '`not_(A)` 또는 `~A`'],
+                ['IS NULL', '`.is_(None)` / `.is_not(None)`'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '파이썬 키워드 `and`, `or`, `not`은 **쓸 수 없어요.** 파이썬이 조건식 객체를 그냥 True/False로 판단해 버려서, 조건 하나가 **조용히 사라져요.** 에러도 안 나서 더 위험해요. 꼭 `or_()`, `and_()`를 써요.' },
+          ],
+        },
+      ],
     },
     {
       title: '어떤 SQL이 나가는지 확인하기',
-      points: [
-        'print(stmt) 를 하면 실행 전에 SQL 문장을 볼 수 있다. 값은 :param_1 같은 자리 표시자로 나온다.',
-        'echo=True 로그로 실제 실행된 SQL과 값을 함께 확인한다.',
-        'scalars().all() 은 결과를 모두 메모리에 올린다. 결과가 매우 많을 수 있다면 페이지네이션(limit)을 먼저 건다.',
-        '조회만 하는 요청에서는 commit할 필요가 없다. 그래도 세션은 닫아야 커넥션이 반납된다(의존성이 처리).',
-      ],
-      code: `stmt = select(Post).where(Post.id == 3)
+      slides: [
+        {
+          title: 'print(stmt)와 echo',
+          blocks: [
+            { type: 'code', code: `stmt = select(Post).where(Post.id == 3)
 print(stmt)
-# SELECT posts.id, posts.title, posts.content FROM posts WHERE posts.id = :id_1`,
+# SELECT posts.id, posts.title, posts.content FROM posts WHERE posts.id = :id_1` },
+            { type: 'say', text: '`print(stmt)`를 하면 **실행 전에** SQL 문장을 볼 수 있어요. 값은 `:id_1` 같은 **자리 표시자**로 나와요(바인딩되니까). 실제 실행된 SQL과 값은 `echo=True` 로그로 확인해요.' },
+            { type: 'list', items: ['`scalars().all()`은 결과를 **전부 메모리**에 올려요. 결과가 많을 수 있으면 **limit(페이지네이션)** 을 먼저 걸어요', '조회만 하는 요청에서는 **commit할 필요가 없어요.** 그래도 세션은 닫아야 커넥션이 반납돼요 (의존성이 처리)'] },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -10,12 +10,17 @@ const topic: Topic = {
     {
       title: '기본 응답은 JSONResponse',
       notionIds: ['3efdf951bf808199b333e12b0e63ba46'],
-      points: [
-        '라우트가 dict나 모델을 리턴하면 FastAPI는 jsonable_encoder로 JSON 호환 값으로 바꾼 뒤 JSONResponse로 감싼다. Content-Type은 application/json.',
-        'Response 객체(또는 그 하위 클래스)를 직접 리턴하면 FastAPI는 변환·응답 모델 검증을 건너뛰고 그대로 보낸다. 상태 코드·헤더·본문을 완전히 제어하고 싶을 때 쓴다.',
-        'JSONResponse(content={...}, status_code=202, headers={"X-Job-Id": "1"}) 처럼 직접 만들 수 있다. 이때 content는 이미 JSON으로 바꿀 수 있는 값이어야 한다(datetime 등은 jsonable_encoder로 먼저 변환).',
-      ],
-      code: `from fastapi.responses import JSONResponse
+      slides: [
+        {
+          title: 'dict를 리턴하면 일어나는 일',
+          blocks: [
+            { type: 'say', text: '지금까지 dict나 모델을 return 하면 알아서 JSON이 됐죠. 그 뒤에서는 이런 일이 일어나요.\n① `jsonable_encoder`가 datetime, 모델 같은 값을 **JSON으로 보낼 수 있는 값**(문자열, dict)으로 바꾸고\n② `JSONResponse`로 감싸서 `Content-Type: application/json`으로 보내요.\n\n이번 수업에서는 JSON **말고** 다른 것(HTML, 파일, 스트리밍)을 보내는 법을 배워요.' },
+          ],
+        },
+        {
+          title: 'Response를 직접 리턴하면',
+          blocks: [
+            { type: 'code', code: `from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 
 @app.post("/jobs")
@@ -25,43 +30,64 @@ def start_job():
         content=jsonable_encoder(job),   # datetime → ISO 문자열
         status_code=202,
         headers={"Location": "/jobs/1"},
-    )`,
+    )` },
+            { type: 'say', text: 'Response 객체(또는 그 하위 클래스)를 **직접** return 하면 FastAPI는 변환과 응답 모델 검증을 **건너뛰고 그대로** 보내요. 상태 코드·헤더·본문을 완전히 내 손으로 정할 때 써요.' },
+            { type: 'note', tone: 'warn', text: '변환을 건너뛰니까 `content`는 **이미 JSON으로 바꿀 수 있는 값**이어야 해요. datetime을 그대로 넣으면 에러가 나서, `jsonable_encoder`로 먼저 바꿔 줬어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'HTML, 텍스트, 리다이렉트',
-      points: [
-        'HTMLResponse: Content-Type text/html. 문자열 HTML을 그대로 보낸다. 라우트에 response_class=HTMLResponse 를 주면 리턴한 문자열이 HTML로 나가고 /docs에도 HTML 응답으로 표시된다.',
-        'PlainTextResponse: 일반 텍스트(text/plain). 헬스 체크나 robots.txt 같은 곳에 쓴다.',
-        'RedirectResponse(url="/login"): 다른 주소로 이동시킨다. 기본 상태 코드는 307(메서드 유지). 폼 POST 처리 후 목록 페이지로 보낼 때는 status_code=303(See Other)을 써서 브라우저가 GET으로 이동하게 한다(PRG 패턴).',
-      ],
-      code: `from fastapi.responses import HTMLResponse, RedirectResponse, PlainTextResponse
+      slides: [
+        {
+          title: 'HTML과 텍스트',
+          blocks: [
+            { type: 'code', code: `from fastapi.responses import HTMLResponse, PlainTextResponse
 
 @app.get("/hello", response_class=HTMLResponse)
 def hello():
     return "<h1>안녕하세요</h1>"
 
+@app.get("/robots.txt", response_class=PlainTextResponse)
+def robots():
+    return "User-agent: *\\nDisallow: /admin"` },
+            { type: 'say', text: '문자열을 그냥 return 하면 FastAPI는 그걸 **JSON 문자열**(`"<h1>...</h1>"`)로 보내요. 브라우저엔 태그가 **글자 그대로** 보이죠. `response_class=HTMLResponse`를 주면 `text/html`로 보내서 브라우저가 HTML로 그려요.\n\n`PlainTextResponse`는 순수 텍스트(`text/plain`)예요. 모니터링 도구가 "ok" 한 단어만 원하는 헬스 체크에 써요.' },
+          ],
+        },
+        {
+          title: '리다이렉트와 PRG 패턴',
+          blocks: [
+            { type: 'code', code: `from fastapi.responses import RedirectResponse
+
 @app.post("/posts/form")
 def create_from_form(title: Annotated[str, Form()]):
     save_post(title)
-    return RedirectResponse(url="/posts", status_code=303)
-
-@app.get("/robots.txt", response_class=PlainTextResponse)
-def robots():
-    return "User-agent: *\\nDisallow: /admin"`,
+    return RedirectResponse(url="/posts", status_code=303)` },
+            { type: 'say', text: '`RedirectResponse`는 다른 주소로 이동시켜요. 기본 상태 코드는 **307**(메서드를 유지하고 이동)이에요.\n\n폼으로 글을 저장(POST)한 뒤 목록으로 보낼 땐 **303**(See Other)을 써요. 303은 브라우저에게 "**GET으로** 저 주소에 가"라고 해요. 그러면 목록 페이지에서 새로고침해도 GET만 다시 가니 **글이 중복 저장되지 않아요.** 이걸 **PRG 패턴**(Post → Redirect → Get)이라고 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '파일과 스트리밍',
-      points: [
-        'FileResponse(path): 디스크의 파일을 보낸다. 파일 크기·종류(Content-Type)를 알아서 설정하고, filename="report.pdf"를 주면 브라우저가 다운로드한다(Content-Disposition).',
-        'StreamingResponse(generator): 데이터를 조금씩 흘려보낸다. 큰 CSV 내보내기, 실시간 로그, AI 답변을 글자 단위로 보내는 것(Server-Sent Events, text/event-stream)에 쓴다.',
-        '스트리밍을 쓰면 전체 데이터를 메모리에 다 올리지 않아도 된다. 10GB 파일도 조금씩 읽어 보낼 수 있다.',
-        '사용자가 지정한 경로로 FileResponse를 만들면 "../" 를 이용한 경로 조작 공격이 가능하므로 허용 폴더 안인지 반드시 검사한다.',
-      ],
-      code: `from fastapi.responses import FileResponse, StreamingResponse
+      slides: [
+        {
+          title: '파일 보내기',
+          blocks: [
+            { type: 'code', code: `from fastapi.responses import FileResponse
 
 @app.get("/download")
 def download():
-    return FileResponse("files/report.pdf", filename="report.pdf")
+    return FileResponse("files/report.pdf", filename="report.pdf")` },
+            { type: 'say', text: '`FileResponse`는 디스크의 파일을 보내요. 크기와 종류(Content-Type)를 알아서 정하고, `filename`을 주면 브라우저가 **다운로드**해요.' },
+            { type: 'note', tone: 'warn', text: '사용자가 준 이름으로 경로를 만들면 `?name=../../etc/passwd` 같은 **경로 조작 공격**이 가능해요. 최종 경로가 **허용한 폴더 안**인지 반드시 검사해요.' },
+          ],
+        },
+        {
+          title: '조금씩 흘려보내기',
+          blocks: [
+            { type: 'code', code: `from fastapi.responses import StreamingResponse
 
 def csv_rows():
     yield "id,title\\n"
@@ -70,23 +96,47 @@ def csv_rows():
 
 @app.get("/export.csv")
 def export():
-    return StreamingResponse(csv_rows(), media_type="text/csv")`,
+    return StreamingResponse(csv_rows(), media_type="text/csv")` },
+            { type: 'say', text: '`StreamingResponse`는 데이터를 **한 번에 다 만들지 않고 조금씩** 흘려보내요. `yield`로 한 줄씩 만들어 보내니, 100만 행 CSV도 **메모리에 다 올리지 않고** 내려보낼 수 있어요.\n\nChatGPT처럼 AI 답변이 **글자가 생기는 대로** 보이는 것도 스트리밍이에요(Server-Sent Events, `text/event-stream`).' },
+            { type: 'note', tone: 'analogy', text: '일반 응답은 **택배**예요. 상자를 다 채워야 출발하죠. 스트리밍은 **수도꼭지**예요. 물이 나오는 대로 바로 흘려보내요.' },
+          ],
+        },
+      ],
     },
     {
       title: '헤더와 쿠키 다루기',
-      points: [
-        '응답 헤더를 추가하는 두 방법: ① 파라미터 response: Response 를 받아 response.headers["X-Total-Count"] = "120" ② Response 객체를 직접 만들어 headers= 로 지정.',
-        '쿠키 설정: response.set_cookie(key="theme", value="dark", max_age=3600, httponly=True, secure=True, samesite="lax"). 삭제는 response.delete_cookie("theme").',
-        'httponly=True면 자바스크립트(document.cookie)에서 읽을 수 없어 XSS 공격으로 쿠키를 훔치기 어려워진다. 세션·인증 쿠키는 항상 httponly로 둔다.',
-        '주의: response 파라미터에 설정한 쿠키·헤더는 "FastAPI가 만드는 응답"에 합쳐진다. 직접 만든 Response 객체를 return 하면 그 객체에 직접 설정해야 한다.',
-      ],
-      code: `@app.post("/login")
+      slides: [
+        {
+          title: '응답에 헤더·쿠키 붙이기',
+          blocks: [
+            { type: 'code', code: `@app.post("/login")
 def login(response: Response):
     response.set_cookie(
         key="session_id", value="abc123",
         httponly=True, secure=True, samesite="lax", max_age=60 * 60 * 24,
     )
-    return {"ok": True}`,
+    response.headers["X-Total-Count"] = "120"
+    return {"ok": True}` },
+            { type: 'say', text: '파라미터로 `response: Response`를 받아서 헤더와 쿠키를 설정하면, FastAPI가 만드는 응답에 **합쳐져요.** 쿠키 삭제는 `response.delete_cookie("theme")`.' },
+            {
+              type: 'table',
+              head: ['쿠키 옵션', '뜻'],
+              rows: [
+                ['**`httponly=True`**', '자바스크립트(`document.cookie`)로 **못 읽음** → XSS로 쿠키 훔치기 어려움. **세션 쿠키는 항상!**'],
+                ['`secure=True`', 'HTTPS에서만 전송'],
+                ['`samesite="lax"`', '다른 사이트에서 오는 요청엔 대부분 안 보냄 (CSRF 완화)'],
+                ['`max_age`', '몇 초 동안 유지'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '헷갈리는 두 가지',
+          blocks: [
+            { type: 'say', text: '**① httponly 쿠키도 서버로는 가요.** httponly는 "자바스크립트가 못 읽는다"일 뿐, 브라우저는 요청마다 **서버로 자동으로 보내요.** 그래서 로그인 유지가 돼요.\n\n**② 직접 만든 Response를 return 하면** `response` 파라미터에 설정한 쿠키는 **무시돼요.** FastAPI가 만드는 응답에 합치는 건데, 직접 만든 응답을 내보내면 합칠 대상이 없거든요. 이때는 그 객체에 직접 `set_cookie`를 해야 해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -10,12 +10,11 @@ const topic: Topic = {
     {
       title: '객체 하나 저장하기',
       notionIds: ['3efdf951bf8081c88fdcc74323cc24b7'],
-      points: [
-        '순서: 모델 객체 생성 → session.add(obj) → session.commit(). add만 하면 아직 DB에 없다. commit 시점에 INSERT가 실행되고 확정된다.',
-        'id는 보통 지정하지 않는다. 자동 증가 기본 키라 INSERT 후 DB가 정한 값이 obj.id에 채워진다.',
-        '노션의 pymysql 방식(execute("INSERT ... VALUES (%s, %s)", (값,)) → commit())과 비교하면, ORM은 SQL 문자열과 파라미터 바인딩을 대신 만들어 준다.',
-      ],
-      code: `with SessionLocal() as db:
+      slides: [
+        {
+          title: '만들고, 담고, 확정하기',
+          blocks: [
+            { type: 'code', code: `with SessionLocal() as db:
     post = Post(title="첫 글", content="안녕하세요")
     db.add(post)
     db.commit()
@@ -23,46 +22,94 @@ const topic: Topic = {
 
 # echo=True 로그
 # INSERT INTO posts (title, content) VALUES (?, ?)  ('첫 글', '안녕하세요')
-# COMMIT`,
+# COMMIT` },
+            { type: 'say', text: '순서는 **객체 생성 → `add` → `commit`** 이에요. `add`만 하면 아직 장바구니에 담긴 상태라, **commit을 빼먹으면** 세션이 닫힐 때 그냥 사라지고 다른 요청에서는 그 글이 안 보여요.\n\nid는 보통 지정하지 않아요. 자동 증가라 INSERT 후 DB가 정한 값이 `post.id`에 채워져요.' },
+            { type: 'say', text: 'pymysql로 `execute("INSERT ... VALUES (%s, %s)", (값,))` 하던 걸 떠올려 보세요. ORM은 SQL 문자열과 **파라미터 바인딩을 대신** 만들어 줘요. 그래서 상품명에 작은따옴표(`\'`)가 있어도 문법 에러가 안 나고, SQL 인젝션도 막혀요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI 생성 API의 정석',
-      points: [
-        '① Pydantic 입력 모델로 검증된 값을 받는다 ② model_dump()로 dict를 만들어 ORM 객체를 만든다 ③ add → commit → refresh ④ 응답 모델로 돌려준다.',
-        '로그인 사용자처럼 서버가 정하는 값(author_id)은 요청 본문이 아니라 의존성에서 가져와 넣는다.',
-        '비밀번호처럼 그대로 저장하면 안 되는 값은 변환(해시)해서 다른 필드로 넣고, 원래 필드는 model_dump(exclude=...)로 뺀다.',
-      ],
-      code: `@router.post("/", response_model=PostRead, status_code=201)
+      slides: [
+        {
+          title: '네 단계 공식',
+          blocks: [
+            { type: 'code', code: `@router.post("/", response_model=PostRead, status_code=201)
 def create_post(post_in: PostCreate, db: SessionDep, user: CurrentUser):
-    post = Post(**post_in.model_dump(), author_id=user.id)
-    db.add(post)
-    db.commit()
-    db.refresh(post)
-    return post`,
+    post = Post(**post_in.model_dump(), author_id=user.id)   # ② dict → ORM 객체
+    db.add(post)                                              # ③ add
+    db.commit()                                               #   commit
+    db.refresh(post)                                          #   refresh
+    return post                                               # ④ 응답 모델로` },
+            { type: 'list', ordered: true, items: ['Pydantic 입력 모델로 **검증된 값**을 받고', '`model_dump()`로 dict를 만들어 **ORM 객체**를 만들고', '**add → commit → refresh**', '**응답 모델**로 돌려줘요'] },
+            { type: 'note', tone: 'warn', text: '작성자(author_id)처럼 **서버가 정하는 값**은 요청 본문에서 받지 않아요. 본문으로 받으면 남의 이름으로 글을 쓸 수 있어요. **로그인 의존성**(`CurrentUser`)에서 가져와 넣어요.' },
+          ],
+        },
+        {
+          title: '그대로 저장하면 안 되는 값',
+          blocks: [
+            { type: 'code', code: `# ❌ TypeError: 'password' is an invalid keyword argument for User
+user = User(**user_in.model_dump())
+
+# ✅ 비밀번호는 해시로 바꿔 다른 필드에, 원래 필드는 빼기
+data = user_in.model_dump(exclude={"password"})
+user = User(**data, hashed_password=hash_pw(user_in.password))` },
+            { type: 'say', text: '입력 모델에는 `password`가 있지만 DB 모델에는 `hashed_password`만 있어요. 그래서 그대로 풀어 넣으면 "그런 인자 없어요" 에러가 나요. **변환이 필요한 값은 빼고**(`exclude`), 변환한 값을 다른 이름으로 넣어요. 비밀번호를 평문으로 저장하지 않는 건 인증 수업에서 자세히 봐요.' },
+          ],
+        },
+      ],
     },
     {
       title: '여러 개 한 번에 넣기',
-      points: [
-        'session.add_all([obj1, obj2, ...]) 후 commit 한 번. commit을 반복문 안에서 하면 행마다 트랜잭션이 생겨 매우 느리다.',
-        '수천~수만 행처럼 대량이면 ORM 객체를 만들지 않고 session.execute(insert(Post), [dict1, dict2, ...])로 넣는 것이 훨씬 빠르다(executemany).',
-        '노션의 크롤링 → MySQL 저장 실습처럼 수집 데이터를 넣을 때, 한 건씩 commit하던 코드를 묶음 commit으로 바꾸기만 해도 속도가 크게 좋아진다.',
-        '대량 입력 중 한 건이 실패하면 같은 트랜잭션 전체가 롤백된다. "전부 아니면 전무"가 싫다면 일정 개수씩 나눠 commit한다.',
-      ],
-      code: `from sqlalchemy import insert
+      slides: [
+        {
+          title: 'commit은 반복문 밖에서',
+          blocks: [
+            { type: 'code', code: `# 😣 5,000번 commit → 5,000번 트랜잭션
+for item in items:
+    db.add(Product(**item))
+    db.commit()
+
+# 😊 한 번에
+db.add_all([Product(**item) for item in items])
+db.commit()` },
+            { type: 'say', text: '`commit`을 반복문 **안에서** 하면 행마다 트랜잭션이 생겨서 **엄청 느려요.** 크롤링 데이터를 저장하던 코드를 묶음 commit으로 바꾸기만 해도 속도가 확 좋아져요.' },
+          ],
+        },
+        {
+          title: '대량은 bulk insert',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import insert
 
 rows = [{"title": f"글 {i}", "content": "..."} for i in range(10_000)]
 
 db.execute(insert(Post), rows)   # ORM bulk insert (executemany)
-db.commit()`,
+db.commit()` },
+            { type: 'say', text: '수천~수만 행이면 ORM **객체를 만드는 것 자체**가 부담이에요. dict 리스트를 `execute(insert(모델), rows)`로 넘기면 훨씬 빨라요.' },
+            { type: 'note', tone: 'warn', text: '하나의 commit으로 1,000개를 넣다가 500번째에서 UNIQUE 위반이 나면, 트랜잭션은 "전부 아니면 전무"라 **앞의 499개도 함께 롤백**돼요. 그게 싫다면 일정 개수씩 나눠 commit해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '관계를 통한 저장과 중복 처리',
-      points: [
-        'relationship이 있으면 부모 객체에 자식을 붙여 add만 해도 함께 저장된다(cascade). order.items.append(OrderItem(...)) → db.add(order) → commit 하면 주문과 항목이 순서대로 INSERT된다. FK 값은 SQLAlchemy가 채운다.',
-        'UNIQUE 제약 위반은 commit(또는 flush) 시점에 IntegrityError로 나타난다. 잡아서 rollback 후 409로 바꾼다.',
-        '"있으면 수정, 없으면 생성"(upsert)은 조회 후 분기로 할 수도 있지만 동시성에 약하다. PostgreSQL은 insert(...).on_conflict_do_update(), MySQL은 on_duplicate_key_update()로 DB가 한 번에 처리하게 할 수 있다.',
-      ],
-      code: `from sqlalchemy.exc import IntegrityError
+      slides: [
+        {
+          title: '부모만 add 해도 자식까지',
+          blocks: [
+            { type: 'code', code: `order = Order(user_id=user.id)
+order.items.append(OrderItem(product_id=1, quantity=2))
+order.items.append(OrderItem(product_id=5, quantity=1))
+db.add(order)        # 주문만 add
+db.commit()          # → 주문 INSERT, 항목 INSERT 2번 (order_id 는 자동으로 채워짐)` },
+            { type: 'say', text: '`relationship`이 설정돼 있으면(다음 수업들에서 자세히), 부모 객체에 자식을 붙이고 **부모만 add** 해도 함께 저장돼요. 순서도 알아서 맞춰서 주문을 먼저 INSERT하고, 그 id를 항목의 FK에 채워 넣어요.' },
+          ],
+        },
+        {
+          title: '중복은 IntegrityError로',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy.exc import IntegrityError
 
 user = User(email=data.email, hashed_password=hash_pw(data.password))
 db.add(user)
@@ -70,7 +117,12 @@ try:
     db.commit()
 except IntegrityError:
     db.rollback()
-    raise HTTPException(409, "이미 가입된 이메일입니다")`,
+    raise HTTPException(409, "이미 가입된 이메일입니다")` },
+            { type: 'say', text: 'UNIQUE 제약 위반은 commit(또는 flush) 순간 **`IntegrityError`** 로 나타나요. 잡아서 **rollback 후 409**로 바꿔요. FastAPI 수업에서 말한 "예상 가능한 실패는 500이 아니라 알맞은 4xx로"를 실제로 하는 장면이에요.\n\n"먼저 조회해서 있으면 409"만 하면 동시 가입 두 건이 **둘 다 조회를 통과**할 수 있어요. 조회는 친절한 안내용, **DB 제약 + IntegrityError 처리**가 진짜 방어예요.' },
+            { type: 'note', tone: 'tip', text: '"있으면 수정, 없으면 생성"(**upsert**)도 조회 후 분기는 동시성에 약해요. PostgreSQL `insert(...).on_conflict_do_update()`, MySQL `on_duplicate_key_update()`로 **DB가 한 번에** 처리하게 하는 게 안전해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

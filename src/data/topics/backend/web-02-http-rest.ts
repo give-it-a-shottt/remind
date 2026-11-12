@@ -10,73 +10,212 @@ const topic: Topic = {
     {
       title: 'HTTP 요청과 응답의 구조',
       notionIds: ['3efdf951bf8081bb922cd8bbf0ed803b'],
-      points: [
-        'HTTP 요청은 "메서드 + 경로(URL) + 헤더 + 본문(body)"으로 이뤄진다. 예: POST /users, 헤더 Content-Type: application/json, 본문 {"name": "kim"}.',
-        'HTTP 응답은 "상태 코드 + 헤더 + 본문"이다. 예: 201 Created, 헤더 Content-Type: application/json, 본문 {"id": 1, "name": "kim"}.',
-        'URL 뒤의 ?page=2&size=10 부분은 쿼리 스트링이다. 조회 조건처럼 짧은 값에 쓴다. 긴 데이터나 비밀번호처럼 숨겨야 하는 값은 본문(body)에 넣는다.',
-        'HTTP는 상태가 없다(Stateless). 서버는 이전 요청을 기억하지 않는다. 그래서 로그인 상태를 유지하려면 쿠키·세션·토큰 같은 장치가 필요하다(인증 토픽).',
-      ],
-      code: `POST /users?notify=true HTTP/1.1
-Host: api.example.com
+      slides: [
+        {
+          title: '요청과 응답을 뜯어 보면',
+          blocks: [
+            { type: 'say', text: '지난 수업에서 웹은 요청과 응답이라고 했죠. 이번엔 그 **편지 봉투를 직접 열어** 볼 거예요. 형식이 정해져 있어서, 한 번 보면 어떤 API든 읽을 수 있어요.' },
+            { type: 'code', code: `POST /users?notify=true HTTP/1.1          ← 메서드 + 경로(+쿼리)
+Host: api.example.com                      ← 헤더
 Content-Type: application/json
 
-{"name": "kim", "email": "kim@example.com"}
+{"name": "kim", "email": "kim@example.com"}   ← 본문(body)
 
 ---- 응답 ----
-HTTP/1.1 201 Created
-Content-Type: application/json
+HTTP/1.1 201 Created                       ← 상태 코드
+Content-Type: application/json             ← 헤더
 
-{"id": 1, "name": "kim", "email": "kim@example.com"}`,
+{"id": 1, "name": "kim", "email": "kim@example.com"}   ← 본문` },
+            { type: 'list', items: ['**요청** = 메서드 + 경로(URL) + 헤더 + 본문', '**응답** = 상태 코드 + 헤더 + 본문', '**헤더**는 "본문이 JSON이에요" 같은 **봉투 겉면 정보**'] },
+          ],
+        },
+        {
+          title: '쿼리 스트링 vs 본문',
+          blocks: [
+            { type: 'say', text: '주소 뒤 `?page=2&size=10` 부분을 **쿼리 스트링**이라고 해요. 값을 보낼 곳이 두 군데인 셈인데, 기준이 있어요.' },
+            {
+              type: 'table',
+              head: ['어디에', '무엇을'],
+              rows: [
+                ['쿼리 스트링 `?page=2`', '**조회 조건**처럼 짧은 값 (검색어, 페이지 번호, 정렬)'],
+                ['본문(body)', '**긴 데이터**, 그리고 **비밀번호처럼 숨겨야 하는 값**'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '주소(URL)는 브라우저 방문 기록, 서버 로그, 공유한 링크 어디에나 **그대로 남아요.** 비밀번호를 쿼리 스트링에 넣으면 로그에 평문으로 찍혀요. 회원가입·로그인 값은 반드시 본문에!' },
+          ],
+        },
+        {
+          title: 'HTTP는 기억하지 못해요',
+          blocks: [
+            { type: 'say', text: 'HTTP의 중요한 성질 하나 더. HTTP는 **상태가 없어요(Stateless).** 서버는 이전 요청을 **기억하지 않아요.** 방금 로그인한 사람이 다음 요청을 보내도, 서버 입장에선 "처음 보는 사람"이에요.' },
+            { type: 'note', tone: 'analogy', text: '매번 처음 보는 직원이 받는 **콜센터**예요. 전화할 때마다 "회원번호가 어떻게 되세요?"를 다시 물어요. 그래서 로그인을 유지하려면 요청마다 **"저 아까 그 사람이에요"라는 증표**(쿠키·세션·토큰)를 함께 보내야 해요. 인증 수업에서 자세히 배워요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'REST: 자원은 URL, 행위는 메서드',
       notionIds: ['3efdf951bf808199b333e12b0e63ba46'],
-      points: [
-        'REST의 핵심: URL은 "무엇(자원)"을 가리키는 명사로, 메서드는 "어떻게(행위)"를 나타내는 동사로 쓴다.',
-        'GET /posts(목록), GET /posts/3(하나 조회), POST /posts(생성), PUT /posts/3(전체 수정), PATCH /posts/3(부분 수정), DELETE /posts/3(삭제).',
-        '나쁜 예: GET /getPost?id=3, POST /deletePost. URL에 동사를 넣으면 메서드와 의미가 겹치고 규칙이 무너진다.',
-        '하위 자원은 경로로 표현한다: GET /posts/3/comments = 3번 글의 댓글 목록.',
+      slides: [
+        {
+          title: 'URL은 명사, 메서드는 동사',
+          blocks: [
+            { type: 'say', text: 'API 주소를 아무렇게나 지으면 사람마다 규칙이 달라 금방 엉망이 돼요. **REST**는 주소 짓는 약속이에요. 핵심은 한 줄이에요.\n\n**URL은 "무엇(자원)"을 가리키는 명사, 메서드는 "어떻게(행위)"를 나타내는 동사.**' },
+            {
+              type: 'table',
+              head: ['요청', '뜻'],
+              rows: [
+                ['`GET /posts`', '글 **목록** 조회'],
+                ['`GET /posts/3`', '3번 글 **하나** 조회'],
+                ['`POST /posts`', '글 **생성**'],
+                ['`PUT /posts/3`', '3번 글 **전체** 수정 (통째로 교체)'],
+                ['`PATCH /posts/3`', '3번 글 **일부** 수정 (제목만 등)'],
+                ['`DELETE /posts/3`', '3번 글 **삭제**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '나쁜 예와 하위 자원',
+          blocks: [
+            { type: 'code', code: `❌ GET  /getPost?id=3
+❌ POST /deletePost
+✅ GET    /posts/3
+✅ DELETE /posts/3
+
+✅ GET /posts/3/comments      ← 3번 글의 댓글 목록 (하위 자원)` },
+            { type: 'say', text: 'URL에 `get`, `delete` 같은 **동사를 넣으면** 메서드와 뜻이 겹치고, `POST /deletePost`처럼 메서드와 URL이 서로 다른 말을 하게 돼요. 동사는 메서드에게 맡기고 URL은 **자원 이름**만 써요.\n\n자원 안의 자원은 **경로를 이어서** 표현해요. "3번 글의 댓글"은 `/posts/3/comments`예요.' },
+          ],
+        },
       ],
     },
     {
       title: '메서드의 성질: 안전함과 멱등성',
-      points: [
-        '안전(safe): 서버 데이터를 바꾸지 않는 메서드. GET, HEAD, OPTIONS.',
-        '멱등(idempotent): 같은 요청을 여러 번 보내도 결과(서버 상태)가 한 번 보낸 것과 같은 메서드. GET, PUT, DELETE는 멱등이고, POST는 멱등이 아니다(보낼 때마다 새 글이 생김).',
-        'PUT은 "이 자원을 통째로 이 값으로 바꿔라"라서 몇 번을 보내도 결과가 같다. PATCH는 일부만 바꾸며, 보통 멱등하게 설계하지만 "조회수 +1" 같은 PATCH는 멱등이 아니다.',
-        '멱등성이 중요한 이유: 네트워크 오류로 응답을 못 받았을 때 클라이언트가 안전하게 재시도할 수 있는지가 여기서 갈린다.',
+      slides: [
+        {
+          title: '안전한 메서드',
+          blocks: [
+            { type: 'say', text: '메서드에는 두 가지 중요한 성질이 있어요. 이름이 어려워 보이지만 뜻은 단순해요.\n\n**안전(safe)** — 서버 데이터를 **바꾸지 않는** 메서드. `GET`, `HEAD`, `OPTIONS`.\n그래서 브라우저나 검색엔진이 GET은 마음대로 미리 보내 보기도 해요. 수정·삭제를 GET으로 만들면 안 되는 이유예요.' },
+          ],
+        },
+        {
+          title: '멱등성: 여러 번 보내도 결과가 같은가',
+          blocks: [
+            { type: 'say', text: '**멱등(idempotent)** — 같은 요청을 **여러 번 보내도 서버 상태가 한 번 보낸 것과 같은** 성질이에요.' },
+            {
+              type: 'table',
+              head: ['메서드', '멱등?', '이유'],
+              rows: [
+                ['`GET`', 'O', '읽기만 하니까'],
+                ['`PUT`', 'O', '"통째로 이 값으로" — 10번 보내도 결과는 같은 값'],
+                ['`DELETE`', 'O', '두 번째엔 404가 와도 **서버 상태**는 "삭제됨" 그대로'],
+                ['`POST`', '**X**', '보낼 때마다 **새 글이 하나씩** 생김'],
+                ['`PATCH`', '설계에 따라', '"제목을 A로"는 멱등, "조회수 +1"은 멱등 아님'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: 'DELETE를 두 번 보내 두 번째에 404가 났다고 멱등이 아닌 건 아니에요. 멱등은 **응답**이 아니라 **서버 상태**가 같은지를 봐요. 두 번 보내도 "그 글은 없다"는 상태는 똑같죠.' },
+          ],
+        },
+        {
+          title: '왜 중요할까: 재시도',
+          blocks: [
+            { type: 'say', text: '요청을 보냈는데 네트워크가 끊겨 응답을 못 받았어요. 서버가 처리했는지 안 했는지 모르는 상황이에요. 다시 보내도 될까요?\n• **멱등**한 요청(PUT, DELETE) → 다시 보내도 안전해요\n• **POST** → 다시 보내면 **주문이 두 번** 들어갈 수 있어요' },
+            { type: 'ask', q: '결제 버튼(POST)을 사용자가 빠르게 두 번 눌렀어요. 어떤 일이 생길 수 있을까요?', a: 'POST는 멱등이 아니라 **결제가 두 번** 될 수 있어요. 그래서 실무에선 버튼을 한 번 누르면 비활성화하거나, 요청마다 고유 키(멱등 키)를 붙여 서버가 중복을 걸러내게 해요.' },
+          ],
+        },
       ],
     },
     {
       title: '상태 코드',
-      points: [
-        '2xx 성공: 200 OK(일반 성공), 201 Created(생성 성공, POST), 204 No Content(성공했지만 본문 없음, DELETE에 자주 사용).',
-        '3xx 리다이렉트: 301(영구 이동), 302/303/307(임시 이동). 로그인 후 다른 페이지로 보낼 때 쓴다.',
-        '4xx 클라이언트 잘못: 400 Bad Request(요청이 이상함), 401 Unauthorized(로그인 안 됨, 인증 필요), 403 Forbidden(로그인했지만 권한 없음), 404 Not Found(없는 자원), 405 Method Not Allowed(그 경로에 그 메서드 없음), 409 Conflict(중복 등 충돌), 422 Unprocessable Entity(형식은 맞지만 값 검증 실패, FastAPI 기본).',
-        '5xx 서버 잘못: 500 Internal Server Error(코드에서 예외), 502/503/504(게이트웨이·서버 과부하·시간 초과).',
-        '판단 기준: 클라이언트가 요청을 고치면 해결되는가? 그렇다면 4xx, 아니면 5xx.',
+      slides: [
+        {
+          title: '숫자 하나로 결과를 알려요',
+          blocks: [
+            { type: 'say', text: '응답 첫 줄의 **상태 코드**는 "어떻게 됐는지"를 숫자로 알려 줘요. 받는 쪽이 프로그램이라 글보다 숫자가 판단하기 쉬워요. 백 단위 무리로 나뉘어요.' },
+            {
+              type: 'table',
+              head: ['무리', '뜻', '대표 코드'],
+              rows: [
+                ['2xx', '**성공**', '200 OK, **201 Created**(POST로 생성), **204 No Content**(성공했지만 본문 없음, DELETE)'],
+                ['3xx', '**다른 곳으로**', '301 영구 이동, 302/303/307 임시 이동 (로그인 후 이동 등)'],
+                ['4xx', '**클라이언트** 잘못', '아래 슬라이드에서'],
+                ['5xx', '**서버** 잘못', '500 코드 예외, 502/503/504 게이트웨이·과부하·시간 초과'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '자주 헷갈리는 4xx',
+          blocks: [
+            {
+              type: 'table',
+              head: ['코드', '언제'],
+              rows: [
+                ['400 Bad Request', '요청 자체가 이상함'],
+                ['**401** Unauthorized', '**로그인 안 함** — 너 누구야?'],
+                ['**403** Forbidden', '**로그인은 했지만 권한 없음** — 너인 건 알아, 근데 안 돼'],
+                ['404 Not Found', '없는 자원'],
+                ['405 Method Not Allowed', '그 경로에 그 메서드가 없음'],
+                ['**409** Conflict', '**중복** 등 현재 상태와 충돌 (이미 가입된 이메일)'],
+                ['**422** Unprocessable Entity', '형식은 맞지만 **값 검증 실패** — FastAPI 기본'],
+              ],
+            },
+            { type: 'note', tone: 'analogy', text: '건물 출입으로 생각해요. **401**은 출입증이 **없는** 사람, **403**은 출입증은 있는데 **그 층 권한이 없는** 사람이에요.' },
+          ],
+        },
+        {
+          title: '4xx냐 5xx냐 판단법',
+          blocks: [
+            { type: 'say', text: '헷갈리면 이 질문 하나만 던지세요.\n\n**"클라이언트가 요청을 고치면 해결되나?"**\n• 그렇다 → **4xx** (잘못된 값, 로그인 필요, 없는 주소)\n• 아니다, 서버 코드나 서버 상태 문제다 → **5xx**' },
+            { type: 'ask', q: '내 코드에서 `None.title`로 접근하다 예외가 터졌어요. 몇 번대 코드가 나가야 할까요?', a: '**500**이에요. 클라이언트가 요청을 아무리 고쳐도 서버 코드 버그는 안 고쳐지니까요. 반대로 "없는 글 번호를 요청해서" 생긴 일이라면 예외가 나기 전에 **404**로 막아 주는 게 맞아요.' },
+          ],
+        },
       ],
     },
     {
       title: 'CORS와 Same-Origin Policy',
       notionIds: ['3efdf951bf8081598e39c4da0c36cf64'],
-      points: [
-        '출처(Origin) = 프로토콜 + 호스트 + 포트. http://localhost:5173 과 http://localhost:8000 은 포트가 달라서 다른 출처다.',
-        '브라우저는 보안상 자바스크립트(fetch, axios)가 다른 출처로 보낸 요청의 응답을 읽지 못하게 막는다. 이것이 Same-Origin Policy다.',
-        'CORS(Cross-Origin Resource Sharing): 서버가 응답 헤더 Access-Control-Allow-Origin 으로 "이 출처는 허용"이라고 알려 주면 브라우저가 응답을 읽게 해 준다. 즉 CORS 에러는 서버 설정으로 고친다.',
-        '중요: CORS는 브라우저가 거는 제한이다. curl이나 Postman, 서버끼리의 호출에는 CORS가 없다. 그래서 "curl은 되는데 브라우저만 안 된다"면 CORS를 의심한다.',
-        'JSON을 보내는 POST, 커스텀 헤더, PUT/DELETE 등은 브라우저가 먼저 OPTIONS 메서드로 "보내도 되나요?"를 묻는다. 이를 프리플라이트(preflight) 요청이라 한다.',
-        'FastAPI에서는 CORSMiddleware를 추가해서 허용할 출처를 적는다. allow_origins=["*"]와 allow_credentials=True(쿠키 전송)는 함께 쓸 수 없으니 실제 출처를 적는다.',
-      ],
-      code: `from fastapi.middleware.cors import CORSMiddleware
+      slides: [
+        {
+          title: '출처(Origin)란?',
+          blocks: [
+            { type: 'say', text: '프론트엔드와 백엔드를 연결하다 보면 **반드시** 한 번은 만나는 에러가 있어요. **CORS 에러**예요. 이해하려면 먼저 **출처**를 알아야 해요.\n\n**출처(Origin) = 프로토콜 + 호스트 + 포트**. 셋 중 하나라도 다르면 다른 출처예요.' },
+            {
+              type: 'table',
+              head: ['주소', '`http://localhost:5173`과 같은 출처?'],
+              rows: [
+                ['`http://localhost:5173/about`', '**O** (경로는 상관없음)'],
+                ['`http://localhost:8000`', 'X — 포트가 다름'],
+                ['`https://localhost:5173`', 'X — 프로토콜이 다름'],
+                ['`http://127.0.0.1:5173`', 'X — 호스트 글자가 다름'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '브라우저가 막는 거예요',
+          blocks: [
+            { type: 'say', text: '브라우저는 보안을 위해, 자바스크립트(`fetch`, axios)가 **다른 출처로 보낸 요청의 응답을 읽지 못하게** 막아요. 이게 **Same-Origin Policy**(동일 출처 정책)예요. 아무 사이트나 내 은행 사이트 데이터를 몰래 읽어 가면 안 되니까요.\n\n**CORS**(Cross-Origin Resource Sharing)는 그 예외를 여는 방법이에요. **서버가** 응답 헤더 `Access-Control-Allow-Origin`으로 "이 출처는 괜찮아요"라고 알려 주면, 브라우저가 응답을 읽게 해 줘요.' },
+            { type: 'note', tone: 'warn', text: 'CORS는 **브라우저가 거는** 제한이에요. curl, Postman, 서버끼리의 호출에는 CORS가 없어요. 그래서 **"curl은 되는데 브라우저만 안 된다"** 면 CORS예요. 그리고 고치는 곳은 프론트가 아니라 **서버 설정**이에요.' },
+          ],
+        },
+        {
+          title: '프리플라이트와 FastAPI 설정',
+          blocks: [
+            { type: 'say', text: 'JSON을 보내는 POST, 커스텀 헤더, PUT·DELETE 같은 요청은 브라우저가 진짜 요청 전에 **`OPTIONS` 메서드로 "보내도 되나요?"** 를 먼저 물어봐요. 이걸 **프리플라이트(preflight)** 요청이라고 해요. 개발자 도구 Network 탭에 OPTIONS가 하나 더 보이는 이유예요.' },
+            { type: 'code', code: `from fastapi.middleware.cors import CORSMiddleware
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "https://my-app.vercel.app"],
-    allow_credentials=True,
+    allow_credentials=True,   # 쿠키 같이 보내기 허용
     allow_methods=["*"],
     allow_headers=["*"],
-)`,
+)` },
+            { type: 'note', tone: 'warn', text: '`allow_origins=["*"]`(모두 허용)와 `allow_credentials=True`(쿠키 전송)는 **함께 쓸 수 없어요.** 쿠키가 오가는데 아무 사이트나 허용하면 위험하니까요. 쿠키를 쓴다면 실제 프론트 주소를 적어요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -9,38 +9,64 @@ const topic: Topic = {
   sections: [
     {
       title: '인증과 인가',
-      points: [
-        '인증(Authentication): "너 누구야?" 사용자가 주장하는 신원이 맞는지 확인한다. 아이디·비밀번호, 소셜 로그인, 인증서 등.',
-        '인가(Authorization): "그걸 해도 돼?" 확인된 사용자가 특정 자원·행동에 권한이 있는지 판단한다. 관리자 전용, 본인 글만 수정 등.',
-        '실패 응답: 인증 실패 → 401 Unauthorized(이름과 달리 인증 문제), 인가 실패 → 403 Forbidden.',
-        'HTTP는 무상태라서 로그인 후에도 요청마다 "나는 누구"라는 증거(자격 증명, 세션 ID, 토큰)를 함께 보내야 한다. 이 증거를 어디에 어떻게 담느냐가 인증 방식의 차이다.',
+      slides: [
+        {
+          title: '"누구야?"와 "해도 돼?"',
+          blocks: [
+            { type: 'say', text: '이제 **로그인**을 배울 차례예요. 그 전에 두 단어를 정확히 구분해야 해요. 영어로는 둘 다 auth로 시작해서 헷갈리거든요.' },
+            {
+              type: 'table',
+              head: ['', '인증 (Authentication)', '인가 (Authorization)'],
+              rows: [
+                ['질문', '**"너 누구야?"**', '**"그걸 해도 돼?"**'],
+                ['하는 일', '주장하는 신원이 맞는지 확인', '확인된 사용자가 그 자원·행동에 권한이 있는지'],
+                ['예', '아이디·비밀번호, 소셜 로그인', '관리자 전용, 본인 글만 수정'],
+                ['실패 응답', '**401** Unauthorized (이름과 달리 인증 문제)', '**403** Forbidden'],
+              ],
+            },
+            { type: 'note', tone: 'analogy', text: '공항으로 보면 **인증**은 신분증 검사(이 사람이 김철수가 맞나), **인가**는 탑승권 검사(김철수가 이 비행기, 이 좌석에 탈 수 있나)예요.' },
+          ],
+        },
+        {
+          title: '요청마다 증거를 보내야 해요',
+          blocks: [
+            { type: 'say', text: 'web-02에서 HTTP는 **무상태**라고 했죠. 서버는 방금 로그인한 사람도 기억하지 못해요. 그래서 로그인 후에도 **요청마다** "나는 누구"라는 **증거**(자격 증명, 세션 ID, 토큰)를 함께 보내야 해요.\n\n이 증거를 **어디에, 어떻게** 담느냐가 인증 방식의 차이예요. 이번 수업은 가장 단순한 방식, **HTTP Basic**이에요.' },
+          ],
+        },
       ],
     },
     {
       title: 'HTTP Basic 인증의 원리',
-      points: [
-        '클라이언트가 Authorization: Basic <base64(아이디:비밀번호)> 헤더를 요청마다 보낸다.',
-        '서버가 인증이 필요하다고 401과 WWW-Authenticate: Basic 헤더를 보내면, 브라우저는 아이디·비밀번호 입력 창을 띄운다.',
-        'Base64는 암호화가 아니라 단순 인코딩이다. 누구나 디코딩할 수 있다. 그래서 Basic 인증은 반드시 HTTPS에서만 써야 한다.',
-        '요청마다 비밀번호가 오가고, 로그아웃 개념이 약하고, 화면을 꾸밀 수 없다. 그래서 일반 사용자 로그인보다는 내부 관리 도구, 간단한 API 보호, 개발 서버 잠금에 쓴다.',
-      ],
-      code: `import base64
+      slides: [
+        {
+          title: '요청마다 아이디·비밀번호를',
+          blocks: [
+            { type: 'code', code: `import base64
 token = base64.b64encode(b"admin:secret").decode()
 print(token)                          # YWRtaW46c2VjcmV0
 print(base64.b64decode(token))        # b'admin:secret'  ← 누구나 복원 가능
 
 # 요청 헤더
-# Authorization: Basic YWRtaW46c2VjcmV0`,
+# Authorization: Basic YWRtaW46c2VjcmV0` },
+            { type: 'say', text: 'Basic 인증은 정말 단순해요. 클라이언트가 **요청마다** `Authorization: Basic <base64(아이디:비밀번호)>` 헤더를 보내요.\n\n서버가 401과 함께 **`WWW-Authenticate: Basic`** 헤더를 보내면, 브라우저가 알아서 아이디·비밀번호 **입력 창**을 띄워요.' },
+            { type: 'note', tone: 'warn', text: '**Base64는 암호화가 아니에요.** 그냥 글자를 다른 모양으로 바꾼 **인코딩**이라 누구나 한 줄로 되돌릴 수 있어요. 헤더를 가로채면 비밀번호가 그대로 보여요. 그래서 Basic 인증은 **반드시 HTTPS**에서만 써요.' },
+          ],
+        },
+        {
+          title: '어디에 어울릴까',
+          blocks: [
+            { type: 'say', text: 'Basic 인증의 한계\n• **요청마다** 비밀번호가 오가요\n• **로그아웃** 개념이 약해요 (브라우저가 기억해 버림)\n• 로그인 **화면을 꾸밀 수 없어요** (브라우저 기본 창)\n\n그래서 일반 사용자 로그인보다는 **내부 관리 도구, 간단한 API 보호, 개발·스테이징 서버 잠금**에 써요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI의 HTTPBasic',
-      points: [
-        'security = HTTPBasic() 을 만들고 credentials: HTTPBasicCredentials = Depends(security) 로 받으면 FastAPI가 헤더를 파싱해 credentials.username, credentials.password 를 준다.',
-        '헤더가 없으면 FastAPI가 자동으로 401 + WWW-Authenticate를 응답한다. /docs에 자물쇠 아이콘과 Authorize 버튼이 생긴다.',
-        '값을 비교할 때는 == 대신 secrets.compare_digest()를 쓴다. ==는 다른 글자를 발견하는 순간 멈춰서, 응답 시간 차이로 비밀번호를 한 글자씩 추측하는 타이밍 공격이 가능하다.',
-        '검증 로직은 의존성 함수로 만들어 재사용한다: def get_admin(credentials = Depends(security)) -> str.',
-      ],
-      code: `import secrets
+      slides: [
+        {
+          title: '의존성으로 만들기',
+          blocks: [
+            { type: 'code', code: `import secrets
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 security = HTTPBasic()
@@ -58,17 +84,26 @@ def get_admin(credentials: Annotated[HTTPBasicCredentials, Depends(security)]) -
 
 @app.get("/admin/stats")
 def stats(admin: Annotated[str, Depends(get_admin)]):
-    return {"hello": admin}`,
+    return {"hello": admin}` },
+            { type: 'say', text: '`HTTPBasic()`을 의존성으로 쓰면 FastAPI가 헤더를 파싱해서 **`HTTPBasicCredentials`**(username, password)를 줘요. 헤더가 **없으면** FastAPI가 자동으로 **401 + WWW-Authenticate**를 보내요. `/docs`에는 자물쇠 아이콘과 Authorize 버튼이 생겨요.\n\n검증 로직은 fa-16에서 배운 대로 **의존성 함수**로 만들어 재사용해요.' },
+          ],
+        },
+        {
+          title: '왜 compare_digest일까',
+          blocks: [
+            { type: 'say', text: '`password == expected`는 **앞에서부터 한 글자씩** 비교하다가 **다른 글자를 발견하는 순간** 멈춰요. 그래서 첫 글자가 맞으면 아주 조금 더 오래 걸려요.\n\n공격자는 이 **응답 시간 차이**를 수천 번 재서 비밀번호를 **한 글자씩** 맞혀 나갈 수 있어요. 이걸 **타이밍 공격**이라고 해요. `secrets.compare_digest()`는 맞든 틀리든 **항상 같은 시간**이 걸리게 비교해요.' },
+            { type: 'note', tone: 'analogy', text: '자물쇠 다이얼을 돌릴 때 **맞는 숫자에서만 딸깍** 소리가 나면, 소리를 듣고 하나씩 맞힐 수 있겠죠. compare_digest는 **어떤 숫자든 똑같은 소리**가 나는 자물쇠예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '비밀 값과 설정 관리',
-      points: [
-        '비밀번호·API 키·DB URL 같은 비밀 값은 코드에 쓰지 않는다. git에 한 번 올라가면 기록에 영원히 남는다.',
-        '환경 변수나 .env 파일(git에 올리지 않음, .gitignore에 추가)로 주입하고, pydantic-settings의 BaseSettings로 읽어 타입 검증까지 한다.',
-        '팀원을 위해 값이 빠진 .env.example 을 함께 커밋해 어떤 설정이 필요한지 알려 준다.',
-        '배포 서버(Render, Vercel 등)는 대시보드의 환경 변수 설정으로 값을 넣는다.',
-      ],
-      code: `from pydantic_settings import BaseSettings, SettingsConfigDict
+      slides: [
+        {
+          title: 'pydantic-settings로 읽기',
+          blocks: [
+            { type: 'code', code: `from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env")
@@ -76,7 +111,17 @@ class Settings(BaseSettings):
     admin_password: str
     secret_key: str
 
-settings = Settings()   # 값이 없으면 시작할 때 ValidationError → 빨리 실패`,
+settings = Settings()   # 값이 없으면 시작할 때 ValidationError → 빨리 실패` },
+            { type: 'say', text: '비밀번호·API 키·DB URL은 **코드에 쓰지 않아요.** git에 한 번 올라가면 기록에 **영원히** 남아요.\n\n환경 변수나 `.env` 파일로 넣고, **pydantic-settings**의 `BaseSettings`로 읽어요. Pydantic이라 **타입 검증**도 되고, 필요한 값이 없으면 앱이 **시작할 때 바로** 에러를 내요. 운영 중에 갑자기 터지는 것보다 훨씬 나아요.' },
+          ],
+        },
+        {
+          title: '.env를 다루는 습관',
+          blocks: [
+            { type: 'list', items: ['`.env`는 **`.gitignore`에 추가**해서 git에 올리지 않아요', '값을 비운 **`.env.example`** 을 커밋해서 팀원에게 "이런 설정이 필요해요"를 알려요', '배포 서버(Render, Vercel 등)는 **대시보드의 환경 변수** 설정으로 값을 넣어요'] },
+          ],
+        },
+      ],
     },
   ],
   questions: [

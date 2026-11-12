@@ -9,52 +9,132 @@ const topic: Topic = {
   sections: [
     {
       title: '트랜잭션과 ACID',
-      points: [
-        '트랜잭션은 "한 덩어리로 성공하거나 한 덩어리로 실패해야 하는" 작업 묶음이다. START TRANSACTION(BEGIN) → 여러 SQL → COMMIT(확정) 또는 ROLLBACK(취소).',
-        'A 원자성(Atomicity): 전부 반영되거나 전혀 반영되지 않는다. 이체 중간에 실패하면 출금도 취소된다.',
-        'C 일관성(Consistency): 트랜잭션 전후로 제약 조건(FK, UNIQUE, CHECK)과 규칙이 지켜진다.',
-        'I 격리성(Isolation): 동시에 실행되는 트랜잭션이 서로의 중간 상태를 보지 않는(것처럼 보이는) 정도. 격리 수준으로 조절한다.',
-        'D 지속성(Durability): COMMIT된 결과는 서버가 바로 꺼져도 사라지지 않는다. DB는 변경을 먼저 로그(WAL, redo log)에 기록해 이를 보장한다.',
-      ],
-      code: `START TRANSACTION;
+      slides: [
+        {
+          title: '한 덩어리로 성공하거나 실패하거나',
+          blocks: [
+            { type: 'say', text: '계좌 이체를 생각해 봐요. 1번 계좌에서 만 원을 빼고, 2번 계좌에 만 원을 넣어요. 빼는 데는 성공했는데 넣기 직전에 서버가 죽으면? **만 원이 증발**해요.\n\n**트랜잭션**은 "**한 덩어리로 성공하거나, 한 덩어리로 실패해야 하는**" 작업 묶음이에요.' },
+            { type: 'code', code: `START TRANSACTION;
 UPDATE accounts SET balance = balance - 10000 WHERE id = 1;
 UPDATE accounts SET balance = balance + 10000 WHERE id = 2;
-COMMIT;      -- 문제가 있으면 ROLLBACK;`,
+COMMIT;      -- 문제가 있으면 ROLLBACK;` },
+            { type: 'say', text: '`COMMIT`은 "확정", `ROLLBACK`은 "**없던 일로**"예요. COMMIT 전에 무슨 일이 생기면 두 UPDATE 모두 취소돼요.' },
+          ],
+        },
+        {
+          title: 'ACID 네 가지 약속',
+          blocks: [
+            {
+              type: 'table',
+              head: ['성질', '약속'],
+              rows: [
+                ['**A** 원자성 (Atomicity)', '**전부** 반영되거나 **전혀** 반영되지 않음. 이체 중간에 실패하면 출금도 취소'],
+                ['**C** 일관성 (Consistency)', '트랜잭션 전후로 제약 조건(FK, UNIQUE, CHECK)과 규칙이 지켜짐'],
+                ['**I** 격리성 (Isolation)', '동시에 도는 트랜잭션이 서로의 **중간 상태를 보지 않는** 정도 (격리 수준으로 조절)'],
+                ['**D** 지속성 (Durability)', '**COMMIT된 결과는** 서버가 바로 꺼져도 **사라지지 않음**'],
+              ],
+            },
+            { type: 'say', text: '지속성은 어떻게 지킬까요? DB는 데이터를 바꾸기 전에 **변경 내용을 먼저 로그**(WAL, redo log)에 적어요. 서버가 죽었다 살아나면 이 로그를 보고 COMMIT된 건 다시 반영하고, COMMIT 안 된 건 되돌려요.' },
+          ],
+        },
+      ],
     },
     {
       title: '동시성 문제',
-      points: [
-        'Dirty Read: 다른 트랜잭션이 아직 COMMIT하지 않은 값을 읽음. 그 트랜잭션이 롤백하면 존재하지 않았던 값을 본 셈이다.',
-        'Non-repeatable Read: 같은 트랜잭션 안에서 같은 행을 두 번 읽었는데 그사이 다른 트랜잭션의 COMMIT으로 값이 바뀜.',
-        'Phantom Read: 같은 조건으로 두 번 조회했는데 그사이 다른 트랜잭션이 행을 추가·삭제해 결과 행 수가 달라짐.',
-        'Lost Update(갱신 손실): 두 트랜잭션이 같은 값을 읽고 각자 계산해 쓰면 하나의 변경이 덮여 사라짐. 재고·조회수·잔액에서 흔하다.',
+      slides: [
+        {
+          title: '동시에 하면 생기는 네 가지 문제',
+          blocks: [
+            { type: 'say', text: '한 명만 쓰면 아무 문제가 없어요. 문제는 **여러 트랜잭션이 동시에** 같은 데이터를 만질 때예요.' },
+            {
+              type: 'table',
+              head: ['문제', '무슨 일'],
+              rows: [
+                ['**Dirty Read**', '다른 트랜잭션이 **아직 COMMIT 안 한** 값을 읽음. 그쪽이 롤백하면 존재하지 않았던 값을 본 셈'],
+                ['**Non-repeatable Read**', '같은 행을 두 번 읽었는데 그사이 남의 COMMIT으로 **값이 바뀜** (100 → 50)'],
+                ['**Phantom Read**', '같은 조건으로 두 번 조회했는데 그사이 행이 추가·삭제돼 **행 수가 달라짐**'],
+                ['**Lost Update**', '둘이 같은 값을 읽고 각자 계산해 쓰면 **하나의 변경이 덮여 사라짐**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '갱신 손실을 그려 보면',
+          blocks: [
+            { type: 'code', code: `재고 10
+
+관리자 A: 읽기 10 → 3개 출고 → 7 저장
+관리자 B: 읽기 10 → 2개 출고 → 8 저장   (A 저장 뒤)
+
+최종 재고 8  (원래 5여야 함, A의 출고가 사라짐)` },
+            { type: 'say', text: '**Lost Update**는 재고, 조회수, 잔액에서 정말 흔해요. 둘 다 "10"이라는 **옛 값**을 기준으로 계산했기 때문이에요. sql-02에서 본 `SET stock = stock - 3`처럼 DB가 **현재 값으로 한 번에** 계산하게 하거나, 다음 개념들의 잠금으로 막아요.' },
+          ],
+        },
       ],
     },
     {
       title: '격리 수준',
-      points: [
-        'READ UNCOMMITTED: Dirty Read까지 허용. 거의 쓰지 않는다.',
-        'READ COMMITTED: COMMIT된 값만 읽는다. 매 SELECT마다 최신 커밋 기준. PostgreSQL·Oracle의 기본값.',
-        'REPEATABLE READ: 트랜잭션 시작 시점(첫 읽기)의 스냅숏을 계속 본다. 같은 행을 다시 읽어도 같은 값. MySQL InnoDB의 기본값(InnoDB는 일반 SELECT의 팬텀도 스냅숏으로 막는다).',
-        'SERIALIZABLE: 트랜잭션들이 하나씩 차례로 실행된 것과 같은 결과를 보장. 가장 안전하지만 대기·충돌로 처리량이 줄고 재시도가 필요할 수 있다.',
-        '중요: 격리 수준이 높아도 "읽고-계산-쓰기" 갱신 손실이 자동으로 막히는 것은 아니다(DB·수준마다 다름). 원자적 UPDATE(SET x = x - 1)나 명시적 잠금을 쓴다.',
-        'MVCC(다중 버전 동시성 제어): 행의 여러 버전을 유지해 "읽기는 쓰기를 막지 않고, 쓰기는 읽기를 막지 않게" 한다. MySQL InnoDB와 PostgreSQL이 사용한다.',
+      slides: [
+        {
+          title: '얼마나 서로를 못 보게 할까',
+          blocks: [
+            {
+              type: 'table',
+              head: ['격리 수준', '보는 것', '기본값인 DB'],
+              rows: [
+                ['READ UNCOMMITTED', 'COMMIT 안 된 값까지 (Dirty Read 허용)', '거의 안 씀'],
+                ['READ COMMITTED', '**COMMIT된 값만**. 매 SELECT마다 최신 커밋 기준', '**PostgreSQL**, Oracle'],
+                ['REPEATABLE READ', '트랜잭션 **첫 읽기 시점의 스냅숏**을 계속 봄', '**MySQL InnoDB**'],
+                ['SERIALIZABLE', '하나씩 **차례로 실행한 것과 같은** 결과 보장', '가장 안전, 가장 느림'],
+              ],
+            },
+            { type: 'say', text: '위로 갈수록 동시 처리가 빠르고, 아래로 갈수록 안전해요. SERIALIZABLE은 대기와 충돌로 처리량이 줄고, 충돌한 트랜잭션은 **재시도**가 필요할 수 있어요.' },
+          ],
+        },
+        {
+          title: 'MVCC와 주의할 점',
+          blocks: [
+            { type: 'say', text: '**MVCC**(다중 버전 동시성 제어)는 행의 **여러 버전**을 유지하는 기술이에요. 누가 행을 고치는 중이어도, 읽는 쪽은 **기다리지 않고** 스냅숏의 이전 버전을 읽어요. "읽기는 쓰기를 막지 않고, 쓰기는 읽기를 막지 않게." InnoDB와 PostgreSQL이 이렇게 해요.' },
+            { type: 'note', tone: 'warn', text: '격리 수준이 높다고 "읽고 → 계산하고 → 쓰기" 갱신 손실이 **자동으로 막히는 건 아니에요** (DB와 수준마다 달라요). 원자적 UPDATE(`SET x = x - 1`)나 **명시적 잠금**을 써요.' },
+          ],
+        },
       ],
     },
     {
       title: '락(잠금)과 데드락',
-      points: [
-        'SELECT ... FOR UPDATE: 읽은 행에 쓰기 잠금을 건다. 다른 트랜잭션은 그 행을 수정하거나 FOR UPDATE로 읽으려 하면 COMMIT/ROLLBACK까지 기다린다. "확인 후 수정"을 안전하게 만든다.',
-        '비관적 잠금(pessimistic): 충돌이 날 것이라 보고 먼저 잠근다(FOR UPDATE). 낙관적 잠금(optimistic): 잠그지 않고 version 컬럼으로 "내가 읽은 뒤 바뀌었는지" 확인해 바뀌었으면 실패시키고 재시도한다(UPDATE ... SET version = version + 1 WHERE id = ? AND version = ?).',
-        '데드락: 트랜잭션 A는 1번 행을 잠그고 2번을 기다리고, B는 2번을 잠그고 1번을 기다리면 영원히 기다린다. DB가 감지해 한쪽을 강제로 롤백시킨다(에러). 대책: 잠그는 순서를 항상 같게(id 오름차순), 트랜잭션을 짧게, 재시도 로직.',
-        '트랜잭션은 짧게 유지한다. 트랜잭션 안에서 외부 API 호출이나 사용자 입력 대기를 하면 잠금이 오래 잡혀 다른 요청이 줄줄이 막힌다.',
-      ],
-      code: `START TRANSACTION;
+      slides: [
+        {
+          title: 'FOR UPDATE: 내가 끝날 때까지 기다려',
+          blocks: [
+            { type: 'code', code: `START TRANSACTION;
 SELECT stock FROM products WHERE id = 3 FOR UPDATE;   -- 잠금
 -- (앱) stock >= 1 인지 확인
 UPDATE products SET stock = stock - 1 WHERE id = 3;
 INSERT INTO orders (...) VALUES (...);
-COMMIT;                                               -- 잠금 해제`,
+COMMIT;                                               -- 잠금 해제` },
+            { type: 'say', text: '`SELECT ... FOR UPDATE`는 읽은 행에 **쓰기 잠금**을 걸어요. 다른 트랜잭션은 그 행을 수정하거나 FOR UPDATE로 읽으려 하면 **내가 COMMIT/ROLLBACK 할 때까지 기다려요.** "확인 후 수정"이 안전해져요.' },
+            {
+              type: 'table',
+              head: ['방식', '생각', '방법'],
+              rows: [
+                ['**비관적 잠금**', '충돌이 날 거야 → **먼저 잠그자**', '`FOR UPDATE`'],
+                ['**낙관적 잠금**', '충돌은 드물어 → 잠그지 말고 **저장할 때 확인**', '`version` 컬럼: `UPDATE ... SET version = version + 1 WHERE id = ? AND version = ?` → 0건이면 누가 먼저 바꾼 것'],
+              ],
+            },
+            { type: 'say', text: '게시글 편집처럼 "편집하는 동안 다른 사람이 먼저 저장했으면 덮어쓰지 말고 알려 줘"는 **낙관적 잠금**이 딱이에요. 편집 화면을 여는 몇 분 동안 행을 잠가 둘 순 없으니까요.' },
+          ],
+        },
+        {
+          title: '데드락: 서로를 영원히 기다림',
+          blocks: [
+            { type: 'code', code: `A: 계좌1 잠금 → 계좌2 잠금 기다림 …
+B: 계좌2 잠금 → 계좌1 잠금 기다림 …
+→ 영원히 대기 (데드락)` },
+            { type: 'say', text: 'DB가 데드락을 감지하면 한쪽을 **강제로 롤백**시켜요(에러). 예방법은\n• **잠그는 순서를 항상 같게** (예: id 오름차순) — 가장 근본적\n• 트랜잭션을 **짧게**\n• 데드락 에러가 나면 **재시도**하는 로직' },
+            { type: 'note', tone: 'warn', text: '트랜잭션 안에서 **외부 결제 API 호출**이나 사용자 입력 대기를 하면, 그 몇 초 동안 잠금이 잡혀 있어서 다른 요청이 줄줄이 막혀요. 트랜잭션에는 **DB 작업만**, 짧게.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

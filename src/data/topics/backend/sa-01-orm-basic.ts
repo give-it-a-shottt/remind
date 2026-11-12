@@ -10,49 +10,78 @@ const topic: Topic = {
     {
       title: '드라이버 직접 사용 vs ORM',
       notionIds: ['3efdf951bf80819ab08cdba80c22bde2', '3efdf951bf8081d28650fb1b07a48c28'],
-      points: [
-        'pymysql 같은 DB 드라이버를 직접 쓰면 connect() → cursor() → execute(SQL 문자열) → fetchall()/commit() → close() 순서로 SQL을 그대로 보낸다. 결과는 튜플이다.',
-        'ORM(Object-Relational Mapping)은 테이블을 클래스로, 행을 객체로, 컬럼을 속성으로 다룬다. post.title 처럼 쓰고, SQL은 ORM이 만들어 준다.',
-        'ORM의 장점: 파이썬 타입·자동 완성, SQL 인젝션 기본 방지(값을 항상 파라미터로 바인딩), DB 종류(SQLite↔PostgreSQL↔MySQL)를 바꾸기 쉬움, 관계(글↔댓글)를 객체로 탐색.',
-        'ORM의 단점: 실제로 어떤 SQL이 나가는지 모르면 느린 쿼리(N+1 등)를 만들기 쉽다. 그래서 SQL을 먼저 이해하고 ORM을 쓰는 것이 좋다. echo=True로 생성된 SQL을 항상 확인하는 습관을 들인다.',
-        'SQLAlchemy는 두 층으로 되어 있다. Core(SQL 표현식, 테이블·select 객체)와 ORM(클래스 매핑, 세션). FastAPI 프로젝트에서는 대부분 ORM 층을 쓴다.',
-      ],
-      code: `# pymysql: SQL 직접
+      slides: [
+        {
+          title: 'SQL을 직접 보내는 방법',
+          blocks: [
+            { type: 'say', text: 'SQL을 배웠으니, 이제 **파이썬 코드에서** DB를 다룰 차례예요. 방법은 두 가지예요.\n\n첫째, **DB 드라이버**(pymysql 등)를 직접 써서 SQL 문자열을 그대로 보내는 방법. `connect()` → `cursor()` → `execute(SQL)` → `fetchall()`/`commit()` → `close()`. 결과는 **튜플**로 와요.' },
+            { type: 'code', code: `# pymysql: SQL 직접
 cur.execute("SELECT id, title FROM post WHERE id = %s", (3,))
-row = cur.fetchone()          # (3, '제목')
+row = cur.fetchone()          # (3, '제목')  ← 0번이 id, 1번이 title… 외워야 함
 
 # SQLAlchemy ORM
 post = session.get(Post, 3)   # Post 객체
-print(post.title)`,
+print(post.title)             # 이름으로 접근` },
+          ],
+        },
+        {
+          title: 'ORM: 테이블을 클래스로',
+          blocks: [
+            { type: 'say', text: '둘째, **ORM**(Object-Relational Mapping)이에요. **테이블은 클래스, 행은 객체, 컬럼은 속성**으로 다뤄요. `post.title`처럼 쓰면 SQL은 ORM이 만들어 줘요. 파이썬에서 가장 많이 쓰는 ORM이 **SQLAlchemy**예요.' },
+            {
+              type: 'table',
+              head: ['ORM 장점', 'ORM 단점'],
+              rows: [
+                ['파이썬 타입·**자동 완성**', '어떤 SQL이 나가는지 모르면 **느린 쿼리**(N+1)를 만들기 쉬움'],
+                ['값을 항상 바인딩 → **SQL 인젝션 기본 방지**', 'ORM 문법을 따로 배워야 함'],
+                ['DB 종류(SQLite ↔ PostgreSQL)를 **바꾸기 쉬움**', ''],
+                ['관계(글 ↔ 댓글)를 **객체로 탐색**', ''],
+              ],
+            },
+            { type: 'note', tone: 'tip', text: '그래서 **SQL을 먼저 이해하고** ORM을 쓰는 게 좋아요. 그리고 `echo=True`로 **생성된 SQL을 항상 확인**하는 습관을 들여요. 필요하면 ORM 안에서도 `text("SELECT ...")`로 원본 SQL을 실행할 수 있어요.' },
+            { type: 'say', text: 'SQLAlchemy는 두 층이에요. **Core**(SQL 표현식, select 객체)와 **ORM**(클래스 매핑, 세션). FastAPI 프로젝트에서는 대부분 ORM 층을 써요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'engine과 접속 URL',
-      points: [
-        'engine은 "DB에 연결하는 방법 + 커넥션 풀"을 가진 객체다. 앱 전체에서 하나만 만들어 재사용한다. create_engine(URL).',
-        'URL 형식: 방언+드라이버://사용자:비밀번호@호스트:포트/DB이름. 예: sqlite:///./app.db, postgresql+psycopg://user:pw@localhost:5432/app, mysql+pymysql://user:pw@localhost:3306/app?charset=utf8mb4.',
-        'echo=True 를 주면 실행되는 SQL이 로그로 출력된다. 학습·디버깅에 필수다.',
-        'SQLite는 파일 하나짜리 DB라 설치 없이 바로 연습할 수 있다. FastAPI에서 SQLite를 동기로 쓸 때는 connect_args={"check_same_thread": False}가 필요하다(여러 스레드에서 같은 연결을 쓸 수 있게).',
-        '비밀번호가 들어간 URL은 코드에 쓰지 않고 환경 변수(.env)에서 읽는다.',
-      ],
-      code: `from sqlalchemy import create_engine
+      slides: [
+        {
+          title: 'engine: DB로 가는 길',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import create_engine
 
 DATABASE_URL = "sqlite:///./app.db"
 engine = create_engine(
     DATABASE_URL,
     echo=True,                                   # SQL 로그
     connect_args={"check_same_thread": False},   # SQLite + FastAPI(동기)
-)`,
+)` },
+            { type: 'say', text: '**engine**은 "DB에 연결하는 방법 + **커넥션 풀**"을 가진 객체예요. 커넥션 풀은 DB 연결을 미리 몇 개 만들어 두고 **돌려 쓰는** 저장소예요. 그래서 engine은 **앱 전체에서 하나만** 만들어 재사용해요. 요청마다 만들면 풀이 의미가 없어져요.' },
+            { type: 'list', items: ['`echo=True` → 실행되는 SQL을 로그로 출력. 학습·디버깅 **필수**', 'SQLite는 파일 하나짜리 DB라 설치 없이 바로 연습 가능', 'SQLite를 FastAPI에서 동기로 쓸 땐 `check_same_thread: False` 필요 (여러 스레드가 연결을 쓰니까)'] },
+          ],
+        },
+        {
+          title: '접속 URL 읽는 법',
+          blocks: [
+            { type: 'code', code: `방언+드라이버://사용자:비밀번호@호스트:포트/DB이름
+
+sqlite:///./app.db
+postgresql+psycopg://user:pw@localhost:5432/app
+mysql+pymysql://user:pw@localhost:3306/app?charset=utf8mb4` },
+            { type: 'note', tone: 'warn', text: 'URL에 **비밀번호**가 들어 있어요. 코드에 직접 쓰지 말고 **환경 변수(.env)** 에서 읽어요. SQL DCL 수업의 "비밀은 코드 밖에"와 같은 이야기예요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'Base와 모델 클래스 (2.0 스타일)',
-      points: [
-        'class Base(DeclarativeBase): pass 로 모든 모델의 부모를 만든다. Base.metadata가 모든 테이블 정보를 모은다.',
-        '모델은 class Post(Base): 와 __tablename__ = "posts" 로 테이블 이름을 정한다.',
-        'SQLAlchemy 2.0 스타일 컬럼: title: Mapped[str] = mapped_column(String(200)). Mapped[...] 안의 파이썬 타입이 NOT NULL 여부까지 정한다. Mapped[str]은 NOT NULL, Mapped[str | None]은 NULL 허용.',
-        '기본 키: id: Mapped[int] = mapped_column(primary_key=True). 정수 기본 키는 자동 증가(AUTO_INCREMENT/SERIAL)로 만들어진다.',
-        '예전 스타일 title = Column(String(200), nullable=False) 도 동작하지만, 타입 힌트와 에디터 지원이 약해 새 코드는 2.0 스타일로 쓴다.',
-      ],
-      code: `from datetime import datetime
+      slides: [
+        {
+          title: '테이블을 클래스로 적기',
+          blocks: [
+            { type: 'code', code: `from datetime import datetime
 from sqlalchemy import String, Text, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -69,22 +98,49 @@ class Post(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
 
     def __repr__(self) -> str:
-        return f"Post(id={self.id!r}, title={self.title!r})"`,
+        return f"Post(id={self.id!r}, title={self.title!r})"` },
+            { type: 'list', items: ['`class Base(DeclarativeBase)` — 모든 모델의 부모. `Base.metadata`가 모든 테이블 정보를 모아요', '`__tablename__` — 실제 DB 테이블 이름', '`Mapped[int]` + `primary_key=True` — 정수 기본 키는 **자동 증가**', '`__repr__` — py-02에서 배운 그것! 디버깅할 때 읽기 좋게'] },
+          ],
+        },
+        {
+          title: 'Mapped가 NULL까지 정해요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['선언', 'DB 컬럼'],
+              rows: [
+                ['`Mapped[str]`', '**NOT NULL**'],
+                ['`Mapped[str | None]`', '**NULL 허용**'],
+                ['`server_default=func.now()`', 'INSERT 때 값을 안 주면 **DB가** 현재 시각을 채움'],
+              ],
+            },
+            { type: 'say', text: '타입 힌트 수업의 `str | None`이 여기서는 **DB의 NULL 허용**까지 정해요. 예전 스타일 `title = Column(String(200), nullable=False)`도 동작하지만 타입 힌트·자동 완성이 약해서, 새 코드는 2.0 스타일로 써요.' },
+            { type: 'note', tone: 'warn', text: '헷갈리기 쉬워요! `PostRead`(**Pydantic**)는 API로 **주고받는 모양**을 정하고, `Post`(**SQLAlchemy**)는 **DB 테이블**의 모양을 정해요. 비슷해 보여도 역할이 달라서 둘 다 필요해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '테이블 만들기와 마이그레이션',
-      points: [
-        'Base.metadata.create_all(engine) 은 아직 없는 테이블을 만든다. 이미 있는 테이블은 건드리지 않는다. 그래서 컬럼을 추가해도 기존 테이블에는 반영되지 않는다.',
-        '운영에서는 Alembic 같은 마이그레이션 도구로 스키마 변경 이력을 관리한다. alembic revision --autogenerate 가 모델과 DB의 차이를 비교해 변경 스크립트를 만들고, alembic upgrade head 로 적용한다.',
-        '마이그레이션 파일은 git에 함께 올려, 모든 개발자와 서버가 같은 순서로 스키마를 바꾸게 한다.',
-        '학습용 SQLite에서는 파일을 지우고 create_all을 다시 해도 되지만, 운영 DB에서 drop_all은 모든 데이터를 지운다.',
+      slides: [
+        {
+          title: 'create_all의 한계',
+          blocks: [
+            { type: 'code', code: `Base.metadata.create_all(engine)   # 없는 테이블만 생성` },
+            { type: 'say', text: '`create_all`은 **아직 없는 테이블만** 만들어요. **이미 있는 테이블은 건드리지 않아요.** 그래서 Post에 `summary` 컬럼을 새로 추가하고 서버를 재시작해도, 기존 posts 테이블에는 컬럼이 **생기지 않아요.**\n\n학습용 SQLite라면 파일을 지우고 다시 만들어도 되지만, 운영 DB에서 `drop_all`은 **모든 데이터를 지워요.**' },
+          ],
+        },
+        {
+          title: 'Alembic: 스키마 변경 이력',
+          blocks: [
+            { type: 'code', code: `alembic init migrations
+alembic revision --autogenerate -m "add summary to posts"   # 모델 vs DB 차이 → 변경 스크립트
+alembic upgrade head                                          # 적용` },
+            { type: 'say', text: '운영에서는 **Alembic** 같은 마이그레이션 도구로 스키마 변경을 **이력**으로 관리해요. `--autogenerate`가 모델과 DB의 차이를 비교해서 `ALTER TABLE` 스크립트를 만들어 주고, `upgrade head`로 적용해요.\n\n마이그레이션 파일은 **git에 함께** 올려요. 그래야 모든 개발자와 서버가 **같은 순서로** 스키마를 바꿔요.' },
+            { type: 'note', tone: 'analogy', text: '마이그레이션은 **집 리모델링 공사 일지**예요. "1번: 방 추가, 2번: 창문 넓힘" 순서가 적혀 있어서, 어느 집이든 이 일지대로 공사하면 똑같은 집이 돼요.' },
+          ],
+        },
       ],
-      code: `Base.metadata.create_all(engine)   # 없는 테이블만 생성
-
-# 운영: Alembic
-# alembic init migrations
-# alembic revision --autogenerate -m "add summary to posts"
-# alembic upgrade head`,
     },
   ],
   questions: [

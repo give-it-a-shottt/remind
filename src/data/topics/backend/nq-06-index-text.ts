@@ -10,56 +10,105 @@ const topic: Topic = {
     {
       title: '인덱스의 필요성과 종류',
       notionIds: ['3efdf951bf80814fac73d2b96a1671eb'],
-      points: [
-        '인덱스가 없으면 조건에 맞는 문서를 찾기 위해 컬렉션 전체를 훑는다(COLLSCAN). 인덱스가 있으면 정렬된 구조(B-tree)에서 바로 찾는다(IXSCAN).',
-        '_id에는 자동으로 고유 인덱스가 있다.',
-        '단일 필드 인덱스: createIndex({ email: 1 }). 1은 오름차순, -1은 내림차순(단일 필드에서는 방향이 크게 중요하지 않다).',
-        '복합 인덱스: createIndex({ city: 1, age: -1 }). 필드 순서가 중요하다. { city, age } 인덱스는 city 조건 검색에는 쓰이지만 age만 조건이면 쓰이지 않는다(왼쪽 접두어 규칙).',
-        '멀티키 인덱스: 배열 필드에 인덱스를 걸면 원소마다 인덱스 항목이 생긴다(tags 검색이 빨라짐). 고유 인덱스 { unique: true }, TTL 인덱스, 텍스트 인덱스도 있다.',
+      slides: [
+        {
+          title: 'COLLSCAN과 IXSCAN',
+          blocks: [
+            { type: 'say', text: 'MongoDB도 인덱스 원리는 dbd-10과 같아요. 인덱스가 없으면 조건에 맞는 문서를 찾으려고 컬렉션 **전체를 훑어요**(**COLLSCAN**). 인덱스가 있으면 정렬된 B-tree에서 **바로** 찾아요(**IXSCAN**). `_id`에는 자동으로 고유 인덱스가 있어요.' },
+            { type: 'code', code: `db.members.createIndex({ email: 1 }, { unique: true })   // 단일 + 고유
+db.members.createIndex({ city: 1, age: -1 })             // 복합
+db.members.getIndexes()                                  // 목록
+db.members.dropIndex("city_1_age_-1")` },
+          ],
+        },
+        {
+          title: '인덱스 종류',
+          blocks: [
+            {
+              type: 'table',
+              head: ['종류', '특징'],
+              rows: [
+                ['**단일 필드**', '`{ email: 1 }`. 1 오름차순, -1 내림차순 (단일 필드에선 방향이 크게 중요하지 않음)'],
+                ['**복합**', '`{ city: 1, age: -1 }`. **필드 순서가 중요** — city 조건엔 쓰이지만 **age만** 조건이면 안 쓰여요 (왼쪽 접두어 규칙, dbd-10)'],
+                ['**멀티키**', '**배열** 필드에 걸면 원소마다 항목 생성 → `{ tags: "python" }` 검색이 빨라짐'],
+                ['고유 / TTL / 텍스트', '`{ unique: true }`, 시간 지나면 삭제(nq-01), 다음 개념'],
+              ],
+            },
+          ],
+        },
       ],
-      code: `db.members.createIndex({ email: 1 }, { unique: true })
-db.members.createIndex({ city: 1, age: -1 })
-db.members.getIndexes()
-db.members.dropIndex("city_1_age_-1")`,
     },
     {
       title: 'explain으로 확인하기',
       notionIds: ['3efdf951bf80814fac73d2b96a1671eb'],
-      points: [
-        'db.members.find({ city: "서울" }).explain("executionStats") 로 실행 계획을 본다.',
-        'winningPlan의 stage가 COLLSCAN이면 전체 스캔, IXSCAN이면 인덱스 사용. totalDocsExamined(읽은 문서 수)와 nReturned(돌려준 수)가 비슷할수록 효율적이다.',
-        '인덱스에는 비용이 있다: 디스크·메모리를 쓰고, 문서를 넣고·바꾸고·지울 때마다 인덱스도 갱신해야 해서 쓰기가 느려진다. 실제로 자주 쓰는 조회에만 만든다.',
+      slides: [
+        {
+          title: '읽은 수 vs 돌려준 수',
+          blocks: [
+            { type: 'code', code: `db.members.find({ city: "서울" }).explain("executionStats")
+// winningPlan.stage: "COLLSCAN"
+// totalDocsExamined: 1000000     ← 읽은 문서 수
+// nReturned: 12                  ← 돌려준 수` },
+            { type: 'say', text: 'dbd-11의 EXPLAIN처럼 실행 계획을 봐요. stage가 **COLLSCAN**이면 전체 스캔, **IXSCAN**이면 인덱스 사용. 그리고 **`totalDocsExamined`와 `nReturned`가 비슷할수록** 효율적이에요.\n\n위 예시는 12개를 찾으려고 **100만 개를 읽었어요.** city 필드에 인덱스를 만들어야 한다는 신호예요.' },
+            { type: 'note', tone: 'warn', text: '인덱스엔 **비용**이 있어요. 디스크·메모리를 쓰고, 문서를 넣고 바꾸고 지울 때마다 인덱스도 갱신돼서 **쓰기가 느려져요.** "모든 필드에 인덱스"는 틀려요. 실제로 **자주 쓰는 조회**에만 만들어요.' },
+          ],
+        },
       ],
     },
     {
       title: '텍스트 인덱스와 $text',
       notionIds: ['3efdf951bf80814fac73d2b96a1671eb'],
-      points: [
-        'createIndex({ title: "text", content: "text" }) 로 텍스트 인덱스를 만든다. 컬렉션당 텍스트 인덱스는 하나지만 여러 필드를 포함할 수 있다.',
-        'find({ $text: { $search: "fastapi 비동기" } }) 는 단어 단위로 검색한다(공백으로 나눈 단어 중 하나라도 포함, "정확한 구문"은 큰따옴표로 감싼다, -단어는 제외).',
-        '적합도 점수: { score: { $meta: "textScore" } } 를 projection과 sort에 써서 관련도 높은 순으로 정렬한다.',
-        '가중치: createIndex({ title: "text", content: "text" }, { weights: { title: 10, content: 1 } }) 로 제목 일치를 더 중요하게 만든다.',
-        '한계: 기본 텍스트 인덱스는 영어 같은 언어의 형태소(어간) 처리를 하고, 한국어는 형태소 분석을 지원하지 않아 띄어쓰기 단위로만 잘린다. "검색엔진을"에서 "검색엔진"이 안 걸릴 수 있다. 본격적인 한국어 검색은 Atlas Search(루씬 기반)나 Elasticsearch(노리 분석기)를 쓴다.',
-      ],
-      code: `db.posts.createIndex({ title: "text", content: "text" }, { weights: { title: 10, content: 1 } })
+      slides: [
+        {
+          title: '단어 단위 검색과 관련도',
+          blocks: [
+            { type: 'code', code: `db.posts.createIndex({ title: "text", content: "text" }, { weights: { title: 10, content: 1 } })
 
 db.posts.find(
   { $text: { $search: "fastapi 비동기" } },
   { title: 1, score: { $meta: "textScore" } }
-).sort({ score: { $meta: "textScore" } })`,
+).sort({ score: { $meta: "textScore" } })` },
+            { type: 'list', items: ['텍스트 인덱스는 **컬렉션당 하나**, 대신 여러 필드를 포함할 수 있어요', '`$search`는 **단어 단위**: 공백으로 나눈 단어 중 **하나라도** 포함. 정확한 구문은 큰따옴표, `-단어`는 제외', '**`textScore`** 를 projection과 sort에 써서 **관련도 높은 순**으로', '**`weights`** 로 제목 일치를 본문보다 10배 중요하게'] },
+          ],
+        },
+        {
+          title: '한국어의 한계',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '기본 텍스트 인덱스는 영어 같은 언어의 형태소(어간) 처리를 하지만 **한국어 형태소 분석은 지원하지 않아요.** 띄어쓰기 단위로만 잘려서, "**검색엔진을**"로 저장된 글이 "**검색엔진**" 검색에 안 걸릴 수 있어요. 조사가 붙어 다른 단어로 보거든요.' },
+            { type: 'say', text: '본격적인 한국어 검색은 **Atlas Search**(루씬 기반)나 **Elasticsearch**(노리 분석기) 같은 검색 엔진을 써요. sa-05에서 "글 100만 개의 본격 검색은 검색 엔진"이라고 한 것과 같은 결론이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '$regex vs $text, 그리고 크롤링 데이터',
       notionIds: ['3efdf951bf80811ba911d0f8fdfee971'],
-      points: [
-        '$regex: 부분 문자열 어디든 찾을 수 있어 유연하지만, 앞부분 고정(^)이 아니면 인덱스를 제대로 쓰지 못해 데이터가 많으면 느리다.',
-        '$text: 텍스트 인덱스로 빠르고 관련도 점수가 있지만, 단어 단위라 부분 문자열(글자 일부) 검색은 안 된다.',
-        '크롤링 데이터를 MongoDB에 저장할 때 MySQL과 다른 점: 테이블을 미리 만들 필요가 없고(컬렉션 자동 생성), 페이지마다 필드가 달라도 그대로 넣을 수 있다. 대신 중복 저장을 막으려면 원본 URL 같은 필드에 unique 인덱스를 걸고 upsert로 저장한다.',
-        '수집 → 저장(insert/upsert) → 인덱스 → 분석(aggregate)이 문서 DB의 기본 데이터 파이프라인이다.',
-      ],
-      code: `# pymongo: URL 기준 중복 없이 저장
+      slides: [
+        {
+          title: '두 검색 비교',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '$regex', '$text'],
+              rows: [
+                ['찾는 것', '**부분 문자열 어디든** (글자 일부)', '**단어 단위**'],
+                ['속도', '앞부분 고정(`^`)이 아니면 인덱스를 못 써 **느림**', '텍스트 인덱스로 **빠름**'],
+                ['관련도 점수', '없음', '**있음**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '크롤링 데이터는 URL로 upsert',
+          blocks: [
+            { type: 'code', code: `# pymongo: URL 기준 중복 없이 저장
 col.create_index("url", unique=True)
-col.update_one({"url": item["url"]}, {"$set": item}, upsert=True)`,
+col.update_one({"url": item["url"]}, {"$set": item}, upsert=True)` },
+            { type: 'say', text: '크롤링 데이터를 MongoDB에 저장하면 MySQL과 달리 테이블을 **미리 만들 필요가 없고**(컬렉션 자동 생성), 페이지마다 필드가 달라도 그대로 넣을 수 있어요.\n\n대신 매일 같은 상품을 크롤링하면 **중복**이 쌓여요. 원본 **URL에 unique 인덱스**를 걸고 **upsert**로 저장하면, 없으면 새로 만들고 있으면 최신 정보로 갱신해요(nq-03).' },
+            { type: 'note', tone: 'tip', text: '**수집 → 저장(insert/upsert) → 인덱스 → 분석(aggregate)**. 이게 문서 DB의 기본 데이터 파이프라인이에요. 저장 전 **클렌징**(dbd-13)도 잊지 말고요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

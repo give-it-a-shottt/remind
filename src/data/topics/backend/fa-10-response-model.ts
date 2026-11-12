@@ -9,13 +9,12 @@ const topic: Topic = {
   sections: [
     {
       title: 'response_model이 하는 일',
-      points: [
-        '@app.get("/users/{id}", response_model=UserRead) 또는 def f(...) -> UserRead 로 응답 모델을 지정한다.',
-        'FastAPI는 함수의 리턴값을 응답 모델로 ① 검증하고 ② 모델에 없는 필드는 걸러내고 ③ JSON으로 바꾼다. /docs에도 응답 구조가 표시된다.',
-        '가장 중요한 용도는 필터링이다. DB의 User 객체에는 hashed_password가 있지만 UserRead에 그 필드가 없으면 응답에서 빠진다.',
-        '리턴값이 응답 모델 규칙에 맞지 않으면(필수 필드 누락 등) 클라이언트 잘못이 아니라 서버 버그이므로 500 에러가 난다(ResponseValidationError).',
-      ],
-      code: `class UserCreate(BaseModel):
+      slides: [
+        {
+          title: '나가는 문의 검색대',
+          blocks: [
+            { type: 'say', text: '지금까지는 **들어오는** 데이터를 검사했어요. 이번엔 **나가는** 데이터예요. 응답 모델은 "이 API는 **이런 모양만** 내보낸다"를 정해요.' },
+            { type: 'code', code: `class UserCreate(BaseModel):
     email: EmailStr
     password: str
 
@@ -26,28 +25,66 @@ class UserRead(BaseModel):
 @app.post("/users", response_model=UserRead, status_code=201)
 def create_user(user: UserCreate):
     saved = {"id": 1, "email": user.email, "password": user.password}
-    return saved             # password 는 응답에서 자동으로 빠짐`,
+    return saved             # password 는 응답에서 자동으로 빠짐` },
+            { type: 'say', text: '`response_model=UserRead` 또는 `def f(...) -> UserRead:`로 지정해요. FastAPI는 함수의 리턴값을\n① 응답 모델로 **검증**하고\n② 모델에 **없는 필드는 걸러 내고**\n③ JSON으로 바꿔요. `/docs`에도 응답 구조가 표시돼요.' },
+          ],
+        },
+        {
+          title: '가장 중요한 건 필터링',
+          blocks: [
+            { type: 'say', text: 'DB의 사용자 객체에는 `hashed_password`가 있어요. `UserRead`에 그 필드가 없으면 **응답에서 자동으로 빠져요.** 실수로 비밀번호를 내보내는 사고를 구조적으로 막아 줘요.' },
+            { type: 'note', tone: 'warn', text: '리턴값이 응답 모델 규칙에 안 맞으면(필수 필드 누락 등) **500**이 나요(ResponseValidationError). 클라이언트가 잘못한 게 아니라 **서버 코드가 약속을 어긴** 거니까요. 422가 아니에요.' },
+            { type: 'ask', q: '응답 모델 없이 SQLAlchemy 객체를 그대로 return 하면 어떻게 될까요?', a: 'FastAPI가 객체를 JSON으로 바꾸는 방법을 몰라 에러가 나거나, 운 좋게 바뀌더라도 **모든 컬럼**(비밀번호 해시 포함)이 그대로 나갈 위험이 있어요. 응답 모델은 필수라고 생각하세요.' },
+          ],
+        },
+      ],
     },
     {
       title: '입력 모델과 출력 모델을 나누는 이유',
-      points: [
-        '같은 "사용자"라도 입력(UserCreate: 비밀번호 있음, id 없음)과 출력(UserRead: id 있음, 비밀번호 없음)에 필요한 필드가 다르다.',
-        '하나의 모델로 둘 다 처리하면 비밀번호가 응답에 새거나, 클라이언트가 id·is_admin 같은 값을 보내 조작할 위험이 생긴다.',
-        '공통 필드는 Base 모델로 묶고 상속한다: UserBase → UserCreate(+password), UserRead(+id, created_at), UserUpdate(모두 선택).',
-        '응답 모델은 "API의 공개 계약"이다. DB 컬럼이 바뀌어도 응답 모델을 유지하면 프론트가 깨지지 않는다.',
+      slides: [
+        {
+          title: '같은 사용자, 다른 모양',
+          blocks: [
+            {
+              type: 'table',
+              head: ['모델', 'id', 'email', 'password', '용도'],
+              rows: [
+                ['`UserCreate`', 'X', 'O', '**O**', '가입 요청 (입력)'],
+                ['`UserRead`', '**O**', 'O', '**X**', '응답 (출력)'],
+                ['`UserUpdate`', 'X', '선택', '선택', '수정 요청 (모두 선택)'],
+              ],
+            },
+            { type: 'say', text: '하나의 모델 `User(id, email, password, is_admin)`로 입력과 출력을 다 처리하면 두 방향으로 구멍이 나요.\n• **출력**: 비밀번호가 응답에 새어 나가요\n• **입력**: 클라이언트가 `id`나 `is_admin: true`를 보내서 조작할 수 있어요' },
+          ],
+        },
+        {
+          title: '공통은 Base로, API는 계약',
+          blocks: [
+            { type: 'code', code: `class UserBase(BaseModel):
+    email: EmailStr
+
+class UserCreate(UserBase):
+    password: str
+
+class UserRead(UserBase):
+    id: int
+    created_at: datetime` },
+            { type: 'say', text: '파이썬 클래스 수업에서 본 상속 패턴 그대로예요. 공통 필드는 `UserBase`에 모아요.\n\n응답 모델은 **API의 공개 계약**이에요. DB 컬럼 이름을 바꾸거나 테이블을 나눠도, 응답 모델만 유지하면 **프론트는 아무것도 몰라도 돼요.** DB 모델과 응답 모델을 분리하는 진짜 이유예요.' },
+          ],
+        },
       ],
     },
     {
       title: 'ORM 객체를 응답 모델로: from_attributes',
-      points: [
-        'SQLAlchemy 객체는 dict가 아니라 속성(user.email)을 가진 객체다. Pydantic이 속성으로 값을 읽게 하려면 model_config = ConfigDict(from_attributes=True) 를 설정한다(v1의 orm_mode = True).',
-        '이 설정이 있으면 라우트에서 ORM 객체를 그대로 return 해도 FastAPI가 응답 모델로 변환한다. 직접 바꿀 때는 UserRead.model_validate(user_obj).',
-        '관계(relationship)로 연결된 객체도 중첩 응답 모델로 읽을 수 있다. 단, 이때 지연 로딩이 일어나면 추가 쿼리가 나가므로(비동기에서는 에러) 미리 함께 불러와야 한다.',
-      ],
-      code: `from pydantic import BaseModel, ConfigDict
+      slides: [
+        {
+          title: 'dict가 아니라 객체에서 읽기',
+          blocks: [
+            { type: 'say', text: 'SQLAlchemy 객체는 dict가 아니라 `post.title`처럼 **속성**을 가진 객체예요. Pydantic은 기본적으로 dict에서 값을 읽기 때문에, 속성으로 읽으라고 알려 줘야 해요.' },
+            { type: 'code', code: `from pydantic import BaseModel, ConfigDict
 
 class PostRead(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True)   # v1: orm_mode = True
     id: int
     title: str
 
@@ -56,24 +93,51 @@ def read_post(post_id: int, db: SessionDep):
     post = db.get(Post, post_id)          # SQLAlchemy 객체
     if post is None:
         raise HTTPException(404)
-    return post                            # 그대로 반환 OK`,
+    return post                            # 그대로 반환 OK` },
+            { type: 'say', text: '`from_attributes=True`가 있으면 ORM 객체를 그대로 return 해도 돼요. 직접 바꿀 땐 `PostRead.model_validate(post)` — py-02에서 본 그 **classmethod 대체 생성자**예요.' },
+          ],
+        },
+        {
+          title: '중첩 관계는 미리 불러오기',
+          blocks: [
+            { type: 'say', text: '`PostRead`에 `author: UserSummary`가 중첩돼 있으면, 변환하면서 `post.author`를 읽어요. 그 순간 작성자를 가져오는 **추가 쿼리**가 나갈 수 있어요(지연 로딩). 목록 20개면 쿼리가 20번 더 나가고, **비동기에서는 아예 에러**가 나요.\n\n그래서 관계를 응답에 넣을 땐 조회할 때 **미리 함께 불러와요.** SQLAlchemy 수업에서 `selectinload`로 다룰 거예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '응답 다듬기 옵션',
-      points: [
-        'response_model_exclude_unset=True: 기본값 그대로인(설정되지 않은) 필드를 응답에서 뺀다. 응답이 짧아진다.',
-        'response_model_exclude={"field"}, response_model_include={"field"}: 특정 필드를 빼거나 일부만 넣는다. 자주 쓰면 차라리 별도 모델을 만드는 것이 명확하다.',
-        '목록 응답은 response_model=list[PostRead]. 페이지 정보까지 주려면 class Page(BaseModel): items: list[PostRead]; total: int 같은 감싼 모델을 만든다.',
-        '-> 리턴 타입과 response_model을 함께 쓰면 response_model이 우선한다. 리턴 타입을 dict처럼 넓게 두고 response_model로 좁히는 방법도 있다.',
-      ],
-      code: `class Page(BaseModel):
+      slides: [
+        {
+          title: '목록과 페이지 정보 함께 주기',
+          blocks: [
+            { type: 'code', code: `class Page(BaseModel):
     items: list[PostRead]
     total: int
     page: int
     size: int
 
 @app.get("/posts", response_model=Page)
-def list_posts(page: int = 1, size: int = 10): ...`,
+def list_posts(page: int = 1, size: int = 10): ...` },
+            { type: 'say', text: '목록만 주려면 `response_model=list[PostRead]`면 돼요. 하지만 프론트는 보통 "전체 몇 개인지"도 알아야 페이지 번호를 그릴 수 있어요. 그래서 목록과 개수를 **감싼 모델**을 만들어요.' },
+          ],
+        },
+        {
+          title: '그 밖의 옵션',
+          blocks: [
+            {
+              type: 'table',
+              head: ['옵션', '효과'],
+              rows: [
+                ['`response_model_exclude_unset=True`', '**설정되지 않은**(기본값 그대로인) 필드를 응답에서 빼기 → 응답이 짧아짐'],
+                ['`response_model_exclude={"f"}`', '특정 필드 빼기'],
+                ['`response_model_include={"f"}`', '특정 필드만 넣기'],
+              ],
+            },
+            { type: 'say', text: 'exclude/include를 자주 쓰게 되면, 차라리 **별도 모델**을 만드는 게 읽기 쉬워요.\n\n`-> 리턴 타입`과 `response_model`을 **둘 다** 쓰면 `response_model`이 우선해요. 리턴 타입은 dict처럼 넓게 두고 response_model로 좁히는 방법도 있어요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

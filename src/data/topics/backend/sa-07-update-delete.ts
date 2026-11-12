@@ -9,51 +9,77 @@ const topic: Topic = {
   sections: [
     {
       title: '객체를 바꿔서 수정하기',
-      points: [
-        '가장 기본적인 수정: 객체를 조회 → 속성 변경 → commit. 세션이 변경을 추적(dirty)하고 있다가 commit(flush) 때 바뀐 컬럼만 UPDATE 한다.',
-        'PATCH API에서는 data = patch.model_dump(exclude_unset=True) 후 for key, value in data.items(): setattr(post, key, value) 로 보낸 필드만 반영한다.',
-        '수정 전 권한 검사: 조회한 객체의 author_id가 현재 사용자와 같은지 확인하고, 아니면 403(또는 존재를 숨기려면 404).',
-        '바뀐 값이 없으면 UPDATE가 아예 나가지 않는다. echo 로그로 확인할 수 있다.',
-      ],
-      code: `@router.patch("/{post_id}", response_model=PostRead)
+      slides: [
+        {
+          title: '속성만 바꾸면 UPDATE',
+          blocks: [
+            { type: 'code', code: `post = db.get(Post, 3)
+post.title = "새 제목"      # 세션이 "바뀜(dirty)"으로 기억
+db.commit()                 # ← 여기서 UPDATE posts SET title=... WHERE id=3` },
+            { type: 'say', text: 'SQLAlchemy로 수정하는 가장 기본 방법이에요. **조회 → 속성 변경 → commit**. 세션이 변경을 추적하고 있다가, commit(flush) 때 **바뀐 컬럼만** UPDATE 해요. 바뀐 게 없으면 UPDATE가 **아예 나가지 않아요.**\n\n속성을 바꾸는 순간이 아니라 **commit(flush) 시점**에 SQL이 나간다는 걸 기억하세요.' },
+          ],
+        },
+        {
+          title: 'PATCH API의 정석',
+          blocks: [
+            { type: 'code', code: `@router.patch("/{post_id}", response_model=PostRead)
 def update_post(post_id: int, patch: PostUpdate, db: SessionDep, user: CurrentUser):
     post = db.get(Post, post_id)
     if post is None:
         raise HTTPException(404)
-    if post.author_id != user.id:
+    if post.author_id != user.id:          # 본인 글인지!
         raise HTTPException(403)
     for key, value in patch.model_dump(exclude_unset=True).items():
         setattr(post, key, value)
     db.commit()
     db.refresh(post)
-    return post`,
+    return post` },
+            { type: 'say', text: 'fa-07의 `exclude_unset=True`가 여기서 진짜로 쓰여요. **보낸 필드만** dict로 뽑고, `setattr`로 하나씩 반영해요.' },
+            { type: 'note', tone: 'warn', text: '"로그인했는지"만 확인하면 **남의 글도 수정**할 수 있어요. 조회한 객체의 `author_id`가 **현재 사용자와 같은지** 꼭 확인해요(아니면 403, 존재 자체를 숨기려면 404).' },
+          ],
+        },
+      ],
     },
     {
       title: '여러 행을 한 번에: update() · delete() 문',
-      points: [
-        '조건에 맞는 여러 행을 객체로 가져오지 않고 한 번에 바꾸려면 db.execute(update(Post).where(...).values(...)). SQL UPDATE 한 문장이다.',
-        '삭제도 같다: db.execute(delete(Post).where(Post.created_at < 기준일)).',
-        '이 방식은 빠르지만 세션에 이미 올라온 객체에는 변경이 바로 반영되지 않을 수 있다(SQLAlchemy가 synchronize_session으로 맞추려 시도한다). 또 ORM의 cascade, 이벤트 훅은 실행되지 않는다. DB의 ON DELETE CASCADE는 동작한다.',
-        '조회수 증가처럼 동시에 여러 요청이 같은 값을 바꾸는 경우 values(views=Post.views + 1)로 DB가 계산하게 하면 "읽고-더하고-쓰기" 사이의 경쟁 조건(갱신 손실)을 피할 수 있다.',
-      ],
-      code: `from sqlalchemy import update, delete
+      slides: [
+        {
+          title: '객체 없이 한 문장으로',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import update, delete
 
 # 조회수 +1 (원자적)
 db.execute(update(Post).where(Post.id == post_id).values(views=Post.views + 1))
 
 # 30일 지난 임시 글 삭제
 db.execute(delete(Draft).where(Draft.created_at < cutoff))
-db.commit()`,
+db.commit()` },
+            { type: 'say', text: '조건에 맞는 여러 행을 **객체로 가져오지 않고** 한 번에 바꾸거나 지우려면 `update()`, `delete()` 문을 써요. SQL UPDATE/DELETE **한 문장**이라 빨라요.' },
+          ],
+        },
+        {
+          title: '조회수는 DB에게 계산시켜요',
+          blocks: [
+            { type: 'code', code: `# ❌ 동시에 100명이 보면 100이 안 오를 수 있음
+post = db.get(Post, post_id)
+post.views = post.views + 1        # 파이썬에서 "읽고-더하고"
+db.commit()                        # "쓰기"
+
+# ✅ DB가 계산
+db.execute(update(Post).where(Post.id == post_id).values(views=Post.views + 1))` },
+            { type: 'say', text: '첫 번째 코드는 두 요청이 동시에 views=10을 읽으면 둘 다 11을 써요. sql-06의 **갱신 손실**이에요. `values(views=Post.views + 1)`은 SQL `SET views = views + 1`이 돼서 **DB가 현재 값으로** 계산하니 안전해요.' },
+            { type: 'note', tone: 'warn', text: '`delete()` 문은 ORM의 **cascade와 이벤트 훅을 실행하지 않아요.** relationship에 `cascade="all, delete-orphan"`을 둬도 댓글은 안 지워지고, DB FK에 ON DELETE 설정이 없으면 **FK 위반 에러**가 나요. DB의 `ON DELETE CASCADE`는 동작해요. 세션에 이미 올라온 객체에도 바로 반영되지 않을 수 있어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '객체 삭제와 소프트 삭제',
-      points: [
-        'db.delete(obj) → commit. ORM 삭제는 relationship의 cascade 설정(delete, delete-orphan)에 따라 자식도 함께 삭제한다.',
-        'FK가 걸린 자식이 있는데 cascade도 ON DELETE도 없으면 IntegrityError가 나거나(FK 위반), ORM이 자식의 FK를 NULL로 바꾸려다 NOT NULL 위반이 난다.',
-        '소프트 삭제(soft delete): 실제로 지우지 않고 deleted_at 같은 컬럼에 시각을 기록한다. 복구·감사 기록에 유리하지만, 모든 조회에 "삭제되지 않은 것만" 조건을 빠짐없이 걸어야 하고 UNIQUE 제약과 충돌할 수 있다(탈퇴한 이메일로 재가입).',
-        '삭제 API는 보통 204(본문 없음)로 응답한다. 이미 없는 자원을 지우려 하면 404를 줄지, 멱등성을 강조해 204를 줄지 팀 규칙으로 정한다.',
-      ],
-      code: `@router.delete("/{post_id}", status_code=204)
+      slides: [
+        {
+          title: 'db.delete와 cascade',
+          blocks: [
+            { type: 'code', code: `@router.delete("/{post_id}", status_code=204)
 def delete_post(post_id: int, db: SessionDep, user: CurrentUser):
     post = db.get(Post, post_id)
     if post is None:
@@ -61,25 +87,52 @@ def delete_post(post_id: int, db: SessionDep, user: CurrentUser):
     if post.author_id != user.id:
         raise HTTPException(403)
     db.delete(post)          # comments 는 cascade="all, delete-orphan" 이면 함께 삭제
-    db.commit()`,
+    db.commit()` },
+            { type: 'say', text: '`db.delete(obj)` → commit. ORM 삭제는 relationship의 **cascade 설정**에 따라 자식도 함께 지워요.\n\n자식이 있는데 cascade도 ON DELETE도 없으면? FK 위반 IntegrityError가 나거나, ORM이 자식의 FK를 NULL로 바꾸려다 NOT NULL 위반이 나요.\n\n삭제 API는 보통 **204**. 이미 없는 자원을 지우려 할 때 404를 줄지, 멱등성을 강조해 204를 줄지는 팀 규칙으로 정해요.' },
+          ],
+        },
+        {
+          title: '소프트 삭제의 득과 실',
+          blocks: [
+            { type: 'say', text: '**소프트 삭제**는 실제로 지우지 않고 `deleted_at`에 시각을 기록해요.' },
+            {
+              type: 'table',
+              head: ['좋은 점', '대가'],
+              rows: [
+                ['실수로 지워도 **복구** 가능', '**모든 조회**에 "삭제 안 된 것만" 조건을 빠짐없이 걸어야 함'],
+                ['누가 언제 지웠는지 **감사 기록**', '**UNIQUE 제약과 충돌** — 탈퇴한 이메일로 재가입하면 중복 에러'],
+                ['', '지운 데이터도 계속 쌓여 테이블이 커짐'],
+              ],
+            },
+          ],
+        },
+      ],
     },
     {
       title: '트랜잭션: 함께 성공하거나 함께 실패하기',
-      points: [
-        '트랜잭션은 여러 SQL을 하나의 작업 단위로 묶는다. 계좌 이체(A에서 빼고 B에 더하기)는 둘 다 되거나 둘 다 안 돼야 한다.',
-        'SQLAlchemy 세션은 첫 SQL 실행 시 자동으로 트랜잭션을 시작하고, commit 또는 rollback 때 끝낸다(autobegin).',
-        'with db.begin(): 블록은 정상 종료 시 commit, 예외 시 rollback을 자동으로 해 준다.',
-        '중첩 일부 롤백이 필요하면 db.begin_nested()(SAVEPOINT)를 쓴다. 예: 여러 건 처리 중 실패한 건만 되돌리고 나머지는 계속.',
-        '동시에 같은 행을 수정할 위험이 있으면 select(...).with_for_update() 로 행 잠금을 걸어 "읽고 판단하고 쓰기"를 보호한다(재고 차감). 잠금은 트랜잭션이 끝날 때 풀린다. 자세한 원리는 SQL 트랜잭션 토픽에서 다룬다.',
-      ],
-      code: `def transfer(db: Session, from_id: int, to_id: int, amount: int):
+      slides: [
+        {
+          title: 'with db.begin()',
+          blocks: [
+            { type: 'code', code: `def transfer(db: Session, from_id: int, to_id: int, amount: int):
     with db.begin():                                    # 성공 commit / 실패 rollback
         src = db.scalar(select(Account).where(Account.id == from_id).with_for_update())
         dst = db.scalar(select(Account).where(Account.id == to_id).with_for_update())
         if src.balance < amount:
             raise ValueError("잔액 부족")                # → rollback
         src.balance -= amount
-        dst.balance += amount`,
+        dst.balance += amount` },
+            { type: 'say', text: 'SQLAlchemy 세션은 첫 SQL 실행 때 **자동으로 트랜잭션을 시작**하고(autobegin), commit 또는 rollback 때 끝내요.\n\n`with db.begin():` 블록은 정상 종료면 **commit**, 예외가 나면 **rollback**을 자동으로 해 줘요. 출금 후 입금 직전에 에러가 나도 **둘 다 취소**돼서 돈이 증발하지 않아요.' },
+          ],
+        },
+        {
+          title: '행 잠금과 SAVEPOINT',
+          blocks: [
+            { type: 'list', items: ['`.with_for_update()` — SQL `SELECT ... FOR UPDATE`. 읽은 행을 잠가서 "읽고 → 판단하고 → 쓰기"를 보호해요. 잠금은 트랜잭션이 끝날 때 풀려요 (원리는 sql-06)', '`db.begin_nested()` — **SAVEPOINT**. 큰 트랜잭션 안에서 **일부만 되돌리고** 나머지는 계속. 여러 건 처리 중 실패한 건만 롤백할 때'] },
+            { type: 'note', tone: 'tip', text: '위 이체 코드는 sql-06의 데드락 예방 원칙도 떠올려 보세요. A→B 이체와 B→A 이체가 동시에 오면? **id 순서대로 잠그도록** 바꾸면 더 안전해져요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

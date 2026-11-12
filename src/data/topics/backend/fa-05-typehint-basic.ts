@@ -9,65 +9,123 @@ const topic: Topic = {
   sections: [
     {
       title: '타입 힌트란',
-      points: [
-        '타입 힌트는 변수·파라미터·리턴값에 "이건 어떤 타입이어야 한다"고 적는 표시다. name: str, def add(a: int, b: int) -> int.',
-        '파이썬 자체는 타입 힌트를 실행 중에 검사하지 않는다. add("1", "2")도 그냥 실행돼 "12"가 나온다. 힌트는 사람과 도구(에디터, mypy, FastAPI, Pydantic)를 위한 정보다.',
-        '에디터는 힌트를 보고 자동 완성과 오류 표시를 해 준다. mypy·pyright 같은 정적 검사기는 실행 전에 타입 실수를 찾아 준다.',
-        'FastAPI는 이 힌트를 "실행 시 검증 규칙"으로 바꿔 쓰는 특별한 경우다. 그래서 FastAPI에서는 힌트가 곧 동작이다.',
-      ],
-      code: `def add(a: int, b: int) -> int:
+      slides: [
+        {
+          title: '"이건 이런 타입이에요"라는 표시',
+          blocks: [
+            { type: 'say', text: '지금까지 `item_id: int`처럼 계속 써 온 그것, **타입 힌트**를 제대로 배워요. FastAPI에서는 타입 힌트가 거의 모든 걸 정하거든요.\n\n타입 힌트는 변수·파라미터·리턴값에 "이건 어떤 타입이어야 해요"라고 적는 **표시**예요.' },
+            { type: 'code', code: `def add(a: int, b: int) -> int:
     return a + b
 
 print(add(1, 2))        # 3
-print(add("1", "2"))    # "12"  ← 파이썬은 막지 않음 (에디터는 경고)`,
+print(add("1", "2"))    # "12"  ← 파이썬은 막지 않음 (에디터는 경고)` },
+            { type: 'note', tone: 'warn', text: '놀랍게도 **파이썬 자체는 타입 힌트를 실행 중에 검사하지 않아요.** `add("1", "2")`도 에러 없이 `"12"`가 나와요. 힌트는 **사람과 도구**(에디터, mypy, FastAPI, Pydantic)를 위한 정보예요.' },
+          ],
+        },
+        {
+          title: 'FastAPI에서는 힌트가 곧 동작',
+          blocks: [
+            { type: 'say', text: '보통 파이썬에서 타입 힌트는 이렇게 쓰여요.\n• **에디터**: 자동 완성, 빨간 줄로 실수 표시\n• **mypy·pyright**: 실행 전에 타입 실수를 찾아 줌\n\nFastAPI는 특별해요. 힌트를 **실행 시 검증 규칙**으로 바꿔 써요. 그래서 FastAPI에서는 힌트를 잘못 쓰면 **동작 자체가 달라져요.**' },
+            { type: 'note', tone: 'analogy', text: '보통 파이썬의 타입 힌트는 **택배 상자의 "취급 주의" 스티커**예요. 붙어 있어도 배달원이 던지면 막을 수 없죠. FastAPI의 타입 힌트는 **공항 보안 검색대**예요. 규칙에 안 맞으면 진짜로 통과를 못 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '기본 타입과 컬렉션 타입',
-      points: [
-        '기본 타입: int, float, str, bool, bytes.',
-        '컬렉션은 안에 든 값의 타입까지 적는다. list[str](문자열 리스트), dict[str, int](키 문자열·값 정수), set[int], tuple[int, str](정확히 두 칸), tuple[int, ...](길이 자유).',
-        '파이썬 3.9부터 list[str]처럼 소문자 내장 타입을 바로 쓸 수 있다. 예전 코드에서는 from typing import List, Dict 후 List[str]로 썼다. 의미는 같다.',
-        '리턴 타입은 -> 로 적는다. 아무것도 리턴하지 않는 함수는 -> None.',
-      ],
-      code: `def count_words(words: list[str]) -> dict[str, int]:
+      slides: [
+        {
+          title: '안에 든 것까지 적어요',
+          blocks: [
+            { type: 'say', text: '기본 타입은 `int`, `float`, `str`, `bool`, `bytes`예요. 리스트·사전 같은 **컬렉션**은 안에 든 값의 타입까지 대괄호로 적어요.' },
+            {
+              type: 'table',
+              head: ['힌트', '뜻'],
+              rows: [
+                ['`list[str]`', '문자열 리스트'],
+                ['`dict[str, int]`', '키는 문자열, 값은 정수인 사전'],
+                ['`dict[str, list[int]]`', '키는 문자열, 값은 **정수 리스트**'],
+                ['`set[int]`', '정수 집합'],
+                ['`tuple[float, float]`', '**정확히 두 칸** (위도, 경도)'],
+                ['`tuple[int, ...]`', '길이 자유인 정수 튜플'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '리턴 타입과 옛날 문법',
+          blocks: [
+            { type: 'code', code: `def count_words(words: list[str]) -> dict[str, int]:
     result: dict[str, int] = {}
     for w in words:
         result[w] = result.get(w, 0) + 1
     return result
 
-point: tuple[float, float] = (37.5, 127.0)`,
+def log(msg: str) -> None:     # 아무것도 리턴하지 않음
+    print(msg)` },
+            { type: 'say', text: '리턴 타입은 `->` 뒤에 적어요. 아무것도 돌려주지 않는 함수는 `-> None`이에요.\n\n파이썬 3.9부터는 `list[str]`처럼 **소문자 내장 타입**을 바로 써요. 예전 코드에서 보이는 `from typing import List` 후 `List[str]`도 **뜻은 같아요.** 옛날 코드를 읽을 때 당황하지 마세요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'None이 될 수 있는 값',
-      points: [
-        '값이 없을 수도 있으면 str | None 으로 쓴다(파이썬 3.10+). 예전 문법 Optional[str] 과 같은 뜻이다.',
-        '주의: Optional은 "생략 가능"이 아니라 "None일 수 있음"이라는 뜻이다. FastAPI에서 생략 가능하게 하려면 기본값(= None)을 줘야 한다.',
-        'None일 수 있는 값을 쓸 때는 먼저 확인한다. if user is None: raise HTTPException(404). 확인 없이 user.name 하면 AttributeError가 나서 500이 된다.',
-        'DB에서 한 건을 찾는 함수(db.get(User, id))는 대부분 "찾으면 객체, 없으면 None"을 돌려준다. 그래서 리턴 타입이 User | None 이다.',
-      ],
-      code: `def find_user(user_id: int) -> User | None:
-    return db.get(User, user_id)
+      slides: [
+        {
+          title: 'str | None',
+          blocks: [
+            { type: 'say', text: '값이 **없을 수도** 있으면 `str | None`으로 써요(파이썬 3.10+). 예전 문법 `Optional[str]`과 같은 뜻이에요.' },
+            { type: 'note', tone: 'warn', text: '이름 때문에 정말 많이 헷갈려요. `Optional`은 "**생략 가능**"이 아니라 "**None일 수 있음**"이라는 뜻이에요. FastAPI에서 `q: str | None`처럼 **기본값 없이** 쓰면 여전히 **필수**예요. 생략 가능하게 하려면 `= None` 기본값을 줘야 해요.' },
+          ],
+        },
+        {
+          title: 'None은 먼저 확인하고 써요',
+          blocks: [
+            { type: 'code', code: `def find_user(user_id: int) -> User | None:
+    return db.get(User, user_id)     # 찾으면 User, 없으면 None
 
 user = find_user(3)
 if user is None:
     raise HTTPException(status_code=404, detail="사용자가 없습니다")
-print(user.name)   # 여기서는 user 가 User 라고 확신할 수 있음`,
+print(user.name)   # 여기서는 user 가 User 라고 확신할 수 있음` },
+            { type: 'say', text: 'DB에서 한 건을 찾는 함수는 대부분 "찾으면 객체, 없으면 None"을 돌려줘요. 그래서 리턴 타입이 `User | None`이에요.\n\n확인 없이 바로 `user.name`을 쓰면, 없는 id가 왔을 때 `None.name` → **AttributeError → 500**이 나요. 손님 잘못(없는 번호)을 서버 버그(500)로 만들어 버리는 거죠. **None 확인 → 404**가 올바른 흐름이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI는 힌트로 무엇을 정하나',
-      points: [
-        '파라미터의 타입 힌트와 기본값만으로 FastAPI는 ① 어디서 값을 읽을지(경로·쿼리·본문) ② 어떤 타입으로 바꿀지 ③ 필수인지 ④ 문서에 어떻게 보여줄지를 결정한다.',
-        'Pydantic 모델 타입(item: Item)이면 요청 본문(JSON)에서 읽는다. 단순 타입이면 쿼리, 경로에 같은 이름이 있으면 경로다.',
-        '리턴 타입 힌트(-> PostRead)를 적으면 FastAPI가 이를 응답 모델로 써서 출력 데이터를 검증·필터링하고 문서에 응답 구조를 표시한다.',
-        '타입 힌트가 틀리면 동작이 틀린다. 예를 들어 ID를 str로 적으면 숫자 검증이 사라지고, 본문으로 받으려던 dict를 단순 타입으로 적으면 쿼리로 해석된다.',
-      ],
-      code: `@app.post("/posts/{board}")
+      slides: [
+        {
+          title: '힌트 하나로 네 가지를 정해요',
+          blocks: [
+            { type: 'say', text: '파라미터의 타입 힌트와 기본값만 보고 FastAPI는\n① **어디서** 값을 읽을지 (경로·쿼리·본문)\n② **어떤 타입**으로 바꿀지\n③ **필수**인지\n④ 문서에 **어떻게** 보여 줄지\n를 전부 결정해요.' },
+            { type: 'code', code: `@app.post("/posts/{board}")
 def create_post(
     board: str,            # 경로 (경로에 {board} 있음)
     post: PostCreate,      # 본문 (Pydantic 모델)
     notify: bool = False,  # 쿼리 (단순 타입 + 기본값)
 ) -> PostRead:             # 응답 모델
-    ...`,
+    ...` },
+            {
+              type: 'table',
+              head: ['힌트 모양', '값을 읽는 곳'],
+              rows: [
+                ['경로에 같은 이름 `{board}`가 있음', '**경로**'],
+                ['Pydantic 모델 타입', '**본문(JSON)**'],
+                ['그 밖의 단순 타입', '**쿼리**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '리턴 힌트는 응답 모델',
+          blocks: [
+            { type: 'say', text: '`-> PostRead`처럼 리턴 타입을 적으면 FastAPI가 이걸 **응답 모델**로 써요. 나가는 데이터를 검증하고, 모델에 없는 필드(비밀번호 같은)는 **걸러 내고**, 문서에 응답 구조를 보여 줘요. 응답 모델 수업에서 자세히 봐요.' },
+            { type: 'ask', q: '게시글 ID를 실수로 `post_id: str`로 선언했어요. 어떤 일이 생길까요?', a: '`/posts/abc`가 와도 **숫자 검증 없이** 함수가 실행돼요. 그다음 DB에서 찾다가 이상하게 실패하거나, 문서에도 문자열로 표시돼요. 힌트가 틀리면 FastAPI의 동작도 그대로 틀려져요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

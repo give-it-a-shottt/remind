@@ -9,22 +9,30 @@ const topic: Topic = {
   sections: [
     {
       title: '동기와 비동기',
-      points: [
-        '동기(sync): 작업 하나가 끝날 때까지 기다린 뒤 다음 작업을 한다. DB 응답을 기다리는 0.1초 동안 그 작업자는 아무것도 못 한다.',
-        '비동기(async): 기다리는 동안 다른 작업을 진행한다. 커피숍 직원이 커피가 내려지는 동안 다음 손님 주문을 받는 것과 같다.',
-        '웹 서버 작업은 대부분 I/O 대기(DB, 외부 API, 파일)다. CPU는 놀고 기다리기만 하는 시간이 길어서, 비동기로 그 대기 시간에 다른 요청을 처리하면 같은 자원으로 훨씬 많은 요청을 감당한다.',
-        '비동기는 "계산을 빠르게" 만들지 않는다. 이미지 변환·대량 계산 같은 CPU 작업(CPU-bound)은 비동기로 빨라지지 않는다. 이런 작업은 멀티프로세스나 별도 작업 큐(Celery 등)로 보낸다.',
+      slides: [
+        {
+          title: '기다리는 동안 다른 일 하기',
+          blocks: [
+            { type: 'say', text: 'FastAPI 첫 수업에서 "ASGI는 비동기"라고 하고 넘어갔죠. 이제 그 **비동기**를 제대로 배워요.\n\n**동기(sync)**: 작업 하나가 끝날 때까지 기다린 뒤 다음 작업을 해요. DB 응답을 기다리는 0.1초 동안 그 작업자는 **아무것도 못 해요.**\n**비동기(async)**: 기다리는 동안 **다른 작업을 진행**해요.' },
+            { type: 'note', tone: 'analogy', text: '카페 직원을 떠올려 보세요. **동기 직원**은 커피 머신 앞에서 커피가 다 내려질 때까지 서서 기다려요. 그동안 줄이 길어지죠. **비동기 직원**은 머신을 켜 두고 **다음 손님 주문을 받아요.** 머신이 다 됐다고 알리면 그때 가서 커피를 건네요.' },
+          ],
+        },
+        {
+          title: '웹 서버가 비동기를 좋아하는 이유',
+          blocks: [
+            { type: 'say', text: '웹 서버가 하는 일은 대부분 **I/O 대기**예요. DB 응답 기다리기, 외부 API 기다리기, 파일 읽기. 이동안 CPU는 **놀고 있어요.** 비동기로 그 대기 시간에 다른 요청을 처리하면 **같은 자원으로 훨씬 많은 요청**을 감당해요.' },
+            { type: 'note', tone: 'warn', text: '비동기는 **계산을 빠르게** 만들지 않아요. 이미지 변환, 대량 계산 같은 **CPU 작업**(CPU-bound)은 `async def`로 바꿔도 안 빨라져요. 쉬는 시간이 없으니 양보할 틈도 없거든요. 이런 작업은 멀티프로세스나 별도 작업 큐(Celery 등)로 보내요.\n\n정확히 말하면 비동기 서버는 "빠른" 게 아니라 "**기다리는 동안 다른 요청을 받아서 같은 자원으로 더 많이 처리하는**" 거예요.' },
+          ],
+        },
       ],
     },
     {
       title: 'async / await와 이벤트 루프',
-      points: [
-        'async def 로 만든 함수는 코루틴 함수다. 호출하면 바로 실행되지 않고 코루틴 객체가 만들어진다. await 해야 실제로 실행된다.',
-        'await 는 "이 작업이 끝날 때까지 기다리되, 기다리는 동안 다른 작업에 양보한다"는 표시다. await는 async def 안에서만 쓸 수 있다.',
-        '이벤트 루프는 양보받은 작업들을 돌려 가며 실행하는 관리자다. 한 스레드에서 여러 코루틴을 번갈아 실행한다. asyncio.run(main())이 이벤트 루프를 시작한다.',
-        'asyncio.gather(a(), b(), c())로 여러 I/O 작업을 동시에 기다리면, 걸리는 시간이 합이 아니라 가장 긴 것 정도가 된다.',
-      ],
-      code: `import asyncio, time
+      slides: [
+        {
+          title: 'async def와 await',
+          blocks: [
+            { type: 'code', code: `import asyncio, time
 
 async def fetch(name: str, sec: float):
     await asyncio.sleep(sec)       # I/O 대기 흉내 (양보)
@@ -35,17 +43,43 @@ async def main():
     results = await asyncio.gather(fetch("A", 1), fetch("B", 1), fetch("C", 1))
     print(results, f"{time.perf_counter() - start:.1f}s")   # ['A','B','C'] 1.0s
 
-asyncio.run(main())`,
+asyncio.run(main())` },
+            { type: 'list', items: ['`async def`로 만든 함수는 **코루틴 함수**. 호출해도 바로 실행되지 않고 **코루틴 객체**가 만들어질 뿐이에요. **await 해야** 실제로 실행돼요', '`await`는 "이 작업이 끝날 때까지 기다리되, **기다리는 동안 다른 작업에 양보**한다"는 표시. `async def` **안에서만** 쓸 수 있어요 (일반 def에서 쓰면 문법 에러)'] },
+          ],
+        },
+        {
+          title: '이벤트 루프와 gather',
+          blocks: [
+            { type: 'say', text: '**이벤트 루프**는 양보받은 작업들을 **돌려 가며** 실행하는 관리자예요. 스레드 **하나**에서 여러 코루틴을 번갈아 실행해요. `asyncio.run(main())`이 루프를 시작해요.\n\n`asyncio.gather(a(), b(), c())`로 여러 I/O 작업을 **동시에** 기다리면, 걸리는 시간이 **합(3초)** 이 아니라 **가장 긴 것(1초)** 정도가 돼요. 세 작업이 모두 sleep 하며 동시에 쉬고 있으니까요.' },
+            { type: 'ask', q: '`await fetch("A", 1)`, `await fetch("B", 1)`, `await fetch("C", 1)`을 **한 줄씩 차례로** 쓰면 몇 초 걸릴까요?', a: '약 **3초**예요. 각 await가 끝나야 다음 줄로 넘어가니까 차례로 기다려요. 동시에 기다리려면 `gather`로 **한 번에** 맡겨야 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '이벤트 루프를 막는 코드',
-      points: [
-        'async def 안에서 time.sleep(), requests.get(), 동기 DB 드라이버(pymysql, psycopg2) 같은 블로킹 함수를 부르면 그동안 이벤트 루프 전체가 멈춘다. 같은 프로세스의 다른 요청도 모두 기다린다.',
-        '비동기 함수 안에서는 비동기 라이브러리를 써야 한다: asyncio.sleep, httpx.AsyncClient, asyncpg / aiomysql / aiosqlite, 비동기 SQLAlchemy.',
-        '어쩔 수 없이 동기 함수를 써야 하면 await asyncio.to_thread(func, args) 나 run_in_threadpool 로 스레드에 넘겨 루프를 막지 않게 한다.',
-        '증상: 동시 요청 몇 개만 와도 응답이 차례로 하나씩 처리되듯 느려진다.',
-      ],
-      code: `import httpx
+      slides: [
+        {
+          title: '루프 전체가 멈춰요',
+          blocks: [
+            { type: 'say', text: '비동기의 가장 큰 함정이에요. `async def` 안에서 **양보하지 않는 대기**(블로킹)를 하면, 그동안 **이벤트 루프 전체가 멈춰요.** 루프는 스레드 하나라서, 같은 프로세스의 **다른 요청도 모두** 기다려요.' },
+            {
+              type: 'table',
+              head: ['블로킹 (루프를 막음)', '비동기 대안 (양보함)'],
+              rows: [
+                ['`time.sleep()`', '`await asyncio.sleep()`'],
+                ['`requests.get()`', '`httpx.AsyncClient`'],
+                ['pymysql, psycopg2', 'asyncpg, aiomysql, aiosqlite'],
+                ['동기 SQLAlchemy 세션', '비동기 SQLAlchemy (다음 수업)'],
+              ],
+            },
+            { type: 'say', text: '증상: 동시 요청 몇 개만 와도 응답이 **차례로 하나씩** 처리되듯 느려져요. async def 안에서 `time.sleep(5)`을 부르면, 5초 동안 서버 전체가 다른 요청을 못 받아요.' },
+          ],
+        },
+        {
+          title: '비동기 클라이언트와 to_thread',
+          blocks: [
+            { type: 'code', code: `import httpx
 
 # 나쁨: 루프를 막음
 @app.get("/bad")
@@ -58,18 +92,35 @@ async def bad():
 async def good():
     async with httpx.AsyncClient() as client:
         r = await client.get("https://example.com")
-    return r.status_code`,
+    return r.status_code
+
+# 어쩔 수 없이 동기 함수를 써야 하면: 스레드로 넘기기
+result = await asyncio.to_thread(heavy_sync_func, arg)` },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI에서 def와 async def',
-      points: [
-        'async def 엔드포인트: 이벤트 루프에서 직접 실행된다. 안에서 await 가능한 비동기 라이브러리를 쓸 때 고른다.',
-        'def 엔드포인트: FastAPI가 자동으로 스레드 풀(기본 40개 정도)에서 실행한다. 동기 라이브러리(동기 SQLAlchemy, requests)를 써도 이벤트 루프를 막지 않는다.',
-        '규칙: 안에서 await를 쓴다 → async def. 동기 블로킹 라이브러리를 쓴다 → def. 잘 모르겠으면 def가 안전하다.',
-        '가장 나쁜 조합은 async def 안에서 동기 블로킹 호출을 하는 것이다. 스레드 풀로도 안 가고 루프에서 직접 막혀 버린다.',
-        '의존성 함수에도 같은 규칙이 적용된다. def 의존성은 스레드 풀에서, async def 의존성은 루프에서 실행된다.',
-      ],
-      code: `# 동기 SQLAlchemy 세션 → def
+      slides: [
+        {
+          title: '둘 다 쓸 수 있어요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['선언', '실행 위치', '고르는 기준'],
+              rows: [
+                ['`async def`', '**이벤트 루프**에서 직접', '안에서 **await**를 쓴다 (비동기 라이브러리)'],
+                ['`def`', 'FastAPI가 **스레드 풀**(기본 40개 정도)에서', '**동기 블로킹** 라이브러리를 쓴다 (동기 SQLAlchemy, requests)'],
+              ],
+            },
+            { type: 'say', text: '`def`로 선언하면 FastAPI가 알아서 **스레드 풀**로 보내서, 안에서 동기 DB를 써도 이벤트 루프를 막지 않아요. 그래서 **잘 모르겠으면 `def`가 안전**해요. 의존성 함수도 같은 규칙이에요.' },
+          ],
+        },
+        {
+          title: '최악의 조합',
+          blocks: [
+            { type: 'code', code: `# 동기 SQLAlchemy 세션 → def
 @app.get("/posts")
 def list_posts(db: SessionDep):
     return db.scalars(select(Post)).all()
@@ -78,7 +129,16 @@ def list_posts(db: SessionDep):
 @app.get("/a/posts")
 async def list_posts_async(db: AsyncSessionDep):
     result = await db.scalars(select(Post))
-    return result.all()`,
+    return result.all()
+
+# 💥 최악: async def 안에서 동기 세션
+@app.get("/worst")
+async def worst(db: SessionDep):
+    return db.scalars(select(Post)).all()     # 루프를 직접 막음` },
+            { type: 'note', tone: 'warn', text: '가장 나쁜 건 **`async def` 안에서 동기 블로킹 호출**이에요. async def라서 스레드 풀로도 안 가고, 루프에서 직접 막혀 버려요. "async가 더 빠르다니까 다 async로 바꾸자"가 이 사고를 만들어요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

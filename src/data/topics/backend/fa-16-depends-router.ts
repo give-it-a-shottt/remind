@@ -9,50 +9,68 @@ const topic: Topic = {
   sections: [
     {
       title: 'Depends: 필요한 것을 선언하면 FastAPI가 만들어 준다',
-      points: [
-        '의존성(dependency)은 라우트가 실행되기 전에 FastAPI가 먼저 호출해 주는 함수다. 라우트는 db: Session = Depends(get_db) 처럼 "이게 필요하다"고 선언만 하고, 만드는 방법은 의존성 함수가 책임진다.',
-        '의존성 함수도 라우트처럼 경로·쿼리·헤더·본문 파라미터를 선언할 수 있고, 다른 의존성을 또 Depends 할 수 있다(의존성 체인). FastAPI가 순서대로 풀어서 호출한다.',
-        '대표 용도: DB 세션 제공, 현재 로그인 사용자 확인, 권한 검사, 공통 페이지네이션 파라미터, 설정 값 제공.',
-        '같은 요청 안에서 같은 의존성이 여러 번 쓰이면 기본적으로 한 번만 호출하고 결과를 재사용한다(use_cache=True).',
-      ],
-      code: `def pagination(page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
+      slides: [
+        {
+          title: '"이게 필요해요"라고만 말하기',
+          blocks: [
+            { type: 'say', text: 'FastAPI 수업의 마지막이자 가장 강력한 도구, **의존성 주입**이에요.\n\n**의존성**은 라우트가 실행되기 **전에** FastAPI가 먼저 호출해 주는 함수예요. 라우트는 `db: Session = Depends(get_db)`처럼 "**이게 필요해요**"라고 선언만 하고, **만드는 방법은 의존성 함수가** 책임져요.' },
+            { type: 'note', tone: 'analogy', text: '식당 주방장(라우트)은 "양파 손질된 거 주세요"라고만 해요. 양파를 사 오고 껍질 벗기는 건 **보조 요리사(의존성)** 의 일이에요. 주방장은 요리에만 집중하고, 양파 손질법이 바뀌어도 주방장 레시피는 그대로예요.' },
+            { type: 'list', items: ['DB 세션 제공', '현재 로그인 사용자 확인, 권한 검사', '공통 페이지네이션 파라미터', '설정 값 제공'] },
+          ],
+        },
+        {
+          title: '의존성도 파라미터를 받아요',
+          blocks: [
+            { type: 'code', code: `def pagination(page: int = Query(1, ge=1), size: int = Query(10, ge=1, le=100)):
     return {"offset": (page - 1) * size, "limit": size}
 
 Pagination = Annotated[dict, Depends(pagination)]
 
 @app.get("/posts")
 def list_posts(p: Pagination):
-    return p   # /posts?page=3 → {"offset": 20, "limit": 10}`,
+    return p   # /posts?page=3 → {"offset": 20, "limit": 10}` },
+            { type: 'say', text: '의존성 함수도 라우트처럼 **경로·쿼리·헤더·본문**을 선언할 수 있어요. 그리고 다른 의존성을 또 `Depends` 할 수 있어요(**의존성 체인**). FastAPI가 순서대로 풀어서 호출해요.\n\n같은 요청 안에서 같은 의존성이 여러 번 필요하면? **한 번만** 호출하고 결과를 재사용해요. `get_current_user`와 `require_admin`이 둘 다 `get_db`를 써도 DB 세션은 **하나**예요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'yield 의존성: 준비와 정리',
-      points: [
-        '의존성 함수에서 return 대신 yield를 쓰면, yield 앞은 "요청 전 준비", yield 뒤는 "응답 후 정리"가 된다.',
-        'DB 세션이 대표적이다. 세션을 만들어 yield로 넘기고, 요청 처리가 끝나면(에러가 나도) finally에서 세션을 닫는다. 연결이 새지 않는다.',
-        'yield 의존성 안에서 try/except로 라우트에서 난 예외를 잡아 rollback 할 수 있다. 잡은 뒤에는 다시 raise 해야 FastAPI가 에러 응답을 만든다.',
-      ],
-      code: `def get_db():
+      slides: [
+        {
+          title: 'yield 앞은 준비, 뒤는 정리',
+          blocks: [
+            { type: 'code', code: `def get_db():
     db = SessionLocal()
     try:
-        yield db            # 라우트 실행
+        yield db            # ← 여기서 라우트 실행
         db.commit()         # 정상 종료 시 커밋 (팀 규칙에 따라 라우트에서 커밋하기도)
     except Exception:
         db.rollback()
-        raise
+        raise               # 다시 던져야 FastAPI 가 에러 응답을 만듦
     finally:
         db.close()          # 항상 닫기
 
-SessionDep = Annotated[Session, Depends(get_db)]`,
+SessionDep = Annotated[Session, Depends(get_db)]` },
+            { type: 'say', text: '의존성에서 `return` 대신 **`yield`** 를 쓰면\n• yield **앞** = 요청 전 **준비** (세션 만들기)\n• yield **뒤** = 응답 후 **정리** (세션 닫기)\n가 돼요. 라우트는 그 사이에서 실행돼요.' },
+          ],
+        },
+        {
+          title: 'finally가 없으면',
+          blocks: [
+            { type: 'say', text: '`finally`가 없으면 라우트에서 예외가 났을 때 `db.close()`까지 가지 못해요. 닫히지 않은 연결이 하나씩 쌓이다가, DB 연결 수가 한도에 차면 **새 요청이 전부 멈춰요.** "가끔 서버가 먹통이 돼요"의 흔한 원인이에요.' },
+            { type: 'note', tone: 'analogy', text: '도서관에서 책(연결)을 빌렸으면 무슨 일이 있어도 **반납**해야 해요. `finally`는 "중간에 넘어져도 반납은 꼭 한다"는 약속이에요. 반납 안 된 책이 쌓이면 다음 사람이 빌릴 책이 없어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '인증·권한을 의존성으로',
-      points: [
-        'get_current_user 의존성: 요청에서 세션 쿠키나 토큰을 읽어 사용자를 찾고, 없으면 401을 raise한다. 라우트는 user: CurrentUser 만 선언하면 로그인 필수 API가 된다.',
-        '권한 검사는 그 위에 쌓는다: def require_admin(user: CurrentUser): if not user.is_admin: raise 403; return user.',
-        '반환값이 필요 없는 검사는 데코레이터의 dependencies=[Depends(verify_api_key)] 에 넣는다. 라우터 전체나 앱 전체(FastAPI(dependencies=[...]))에도 걸 수 있다.',
-        '이 방식은 직접 만든 데코레이터보다 낫다. 시그니처가 깨지지 않고, /docs에 보안 요구사항이 표시되고, 테스트에서 app.dependency_overrides 로 쉽게 바꿔 끼울 수 있다.',
-      ],
-      code: `def get_current_user(request: Request, db: SessionDep) -> User:
+      slides: [
+        {
+          title: '로그인 필수 API 만들기',
+          blocks: [
+            { type: 'code', code: `def get_current_user(request: Request, db: SessionDep) -> User:
     user_id = request.session.get("user_id")
     user = db.get(User, user_id) if user_id else None
     if user is None:
@@ -61,24 +79,37 @@ SessionDep = Annotated[Session, Depends(get_db)]`,
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
 
-def require_admin(user: CurrentUser) -> User:
+def require_admin(user: CurrentUser) -> User:     # 의존성 위에 의존성
     if not user.is_admin:
         raise HTTPException(403, "관리자 전용")
     return user
 
-@app.delete("/posts/{post_id}", dependencies=[Depends(require_admin)])
-def delete_post(post_id: int, db: SessionDep): ...`,
+@app.get("/me")
+def me(user: CurrentUser):          # 이 한 줄로 로그인 필수 API
+    return user` },
+            { type: 'say', text: '라우트는 `user: CurrentUser`만 선언하면 **로그인 필수** API가 돼요. 권한 검사는 그 **위에 쌓아요.** `require_admin`이 `CurrentUser`를 의존하니, 로그인 확인(401) → 관리자 확인(403)이 순서대로 일어나요.' },
+          ],
+        },
+        {
+          title: '반환값이 필요 없는 검사와 테스트',
+          blocks: [
+            { type: 'code', code: `@app.delete("/posts/{post_id}", dependencies=[Depends(require_admin)])
+def delete_post(post_id: int, db: SessionDep): ...
+
+# 라우터 전체: APIRouter(dependencies=[...]), 앱 전체: FastAPI(dependencies=[...])` },
+            { type: 'say', text: '검사만 하고 **반환값은 안 쓰는** 의존성은 `dependencies=[...]`에 넣어요.\n\npy-01에서 직접 만든 `@require_admin` 데코레이터보다 이 방식이 나은 이유:\n• 함수 **시그니처가 깨지지 않고**\n• `/docs`에 **보안 요구사항**이 표시되고\n• 테스트에서 `app.dependency_overrides[get_current_user] = lambda: fake_user`로 **가짜 사용자로 쉽게 바꿔 끼울** 수 있어요' },
+          ],
+        },
+      ],
     },
     {
       title: 'APIRouter로 파일 나누기',
       notionIds: ['3efdf951bf80810d9b84c4922dc76208'],
-      points: [
-        'Flask의 Blueprint에 해당하는 것이 APIRouter다. 기능별 파일에서 router = APIRouter(prefix="/posts", tags=["posts"]) 를 만들고 @router.get("/") 으로 라우트를 등록한다.',
-        'main.py에서 app.include_router(posts.router) 로 붙인다. prefix가 모든 경로 앞에 붙어 /posts/, /posts/{id} 가 된다.',
-        'APIRouter에도 dependencies=[...]와 responses={...}를 줄 수 있어 "이 라우터 전체는 로그인 필요" 같은 규칙을 한 번에 적용한다.',
-        '흔한 구조: app/main.py(앱 조립), app/core/(설정·DB), app/<기능>/router.py(라우트), schemas.py(Pydantic), models.py(SQLAlchemy), service.py(비즈니스 로직).',
-      ],
-      code: `# app/posts/router.py
+      slides: [
+        {
+          title: '기능별 파일로',
+          blocks: [
+            { type: 'code', code: `# app/posts/router.py
 router = APIRouter(prefix="/posts", tags=["posts"])
 
 @router.get("/")
@@ -90,34 +121,62 @@ def read_post(post_id: int): ...
 # app/main.py
 from app.posts import router as posts_router
 app = FastAPI()
-app.include_router(posts_router.router)`,
+app.include_router(posts_router.router)` },
+            { type: 'say', text: 'Flask의 **Blueprint**에 해당하는 게 **APIRouter**예요. `prefix`가 모든 경로 앞에 붙어서 `/posts/`, `/posts/{post_id}`가 돼요. APIRouter에도 `dependencies=[...]`를 줘서 "이 라우터 전체는 로그인 필요"를 한 번에 걸 수 있어요.\n\npy-01에서 배운 것 기억나죠? 라우트는 **import될 때** 등록돼요. `include_router`를 빼먹으면 `/docs`에 안 나타나요.' },
+          ],
+        },
+        {
+          title: '흔한 폴더 구조와 순환 import',
+          blocks: [
+            { type: 'code', code: `app/
+  main.py           ← 앱 조립 (include_router)
+  core/             ← 설정, DB 연결
+  posts/
+    router.py       ← 라우트
+    schemas.py      ← Pydantic
+    models.py       ← SQLAlchemy
+    service.py      ← 비즈니스 로직
+  users/ ...` },
+            { type: 'note', tone: 'warn', text: '`posts/router.py`와 `users/router.py`가 **서로를** import하면 순환 import 에러(ImportError)가 나요. 둘 다 필요한 코드(공통 의존성, 공통 스키마)는 **제3의 모듈**(`core/` 같은 곳)로 빼서 양쪽이 그쪽을 import하게 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '미들웨어와 MVC를 대하는 태도',
       notionIds: ['3efdf951bf8081d9a1ebdb20a03e7151', '3efdf951bf8081ff82c7d0b204182be2'],
-      points: [
-        '미들웨어는 모든 요청·응답을 감싸는 코드다. Flask의 before_request/after_request를 하나로 합친 모양이다. @app.middleware("http") 함수에서 call_next(request) 앞은 요청 전, 뒤는 응답 후 처리다.',
-        '미들웨어 용도: 처리 시간 측정 헤더, 요청 ID 부여, 접근 로그, CORS·GZip·세션(기본 제공 미들웨어). 특정 라우트에만 필요한 로직(로그인 검사)은 미들웨어보다 의존성이 알맞다.',
-        '앱 시작·종료 시 한 번 할 일(DB 연결 풀 만들기, 모델 로딩)은 lifespan 함수로 처리한다. Flask에서 없어진 before_first_request의 올바른 대체다.',
-        'MVC(Model·View·Controller)처럼 계층을 나누면 유지보수가 쉬워진다는 주장이 있지만, 작은 프로젝트에서 과하게 쪼개면 기능 하나를 보려고 파일 다섯 개를 열어야 한다. 기존 구조가 있으면 따르고, 없으면 기능별 폴더 + 필요한 만큼의 계층으로 단순하게 시작한다.',
-      ],
-      code: `import time
-from contextlib import asynccontextmanager
+      slides: [
+        {
+          title: '미들웨어: 모든 요청을 감싸요',
+          blocks: [
+            { type: 'code', code: `import time
 
 @app.middleware("http")
 async def add_process_time(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)          # 실제 라우트 실행
     response.headers["X-Process-Time"] = f"{time.perf_counter() - start:.4f}"
-    return response
+    return response` },
+            { type: 'say', text: '**미들웨어**는 **모든** 요청·응답을 감싸는 코드예요. `call_next(request)` 앞은 요청 전, 뒤는 응답 후 처리예요. Flask의 before/after_request를 합친 모양이에요.\n\n처리 시간 헤더, 요청 ID, 접근 로그, CORS·GZip·세션(기본 제공)처럼 **모든 요청에 똑같이** 할 일에 써요. **특정 라우트에만** 필요한 것(로그인 검사)은 의존성이 맞아요.' },
+          ],
+        },
+        {
+          title: 'lifespan과 계층 나누기',
+          blocks: [
+            { type: 'code', code: `from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("시작: DB 풀 준비")    # 서버 시작 시 1번
+    print("시작: DB 풀 준비, 모델 로딩")    # 서버 시작 시 1번
     yield
-    print("종료: 연결 정리")      # 서버 종료 시 1번
+    print("종료: 연결 정리")               # 서버 종료 시 1번
 
-app = FastAPI(lifespan=lifespan)`,
+app = FastAPI(lifespan=lifespan)` },
+            { type: 'say', text: '서버 **시작·종료 때 한 번만** 할 일(DB 연결 풀, ML 모델 로딩)은 **lifespan**으로 해요. yield 의존성과 같은 모양이죠? 앞은 시작, 뒤는 종료예요.' },
+            { type: 'note', tone: 'tip', text: 'MVC, Controller·Service·Repository·DTO처럼 계층을 나누면 유지보수가 쉬워진다고들 해요. 하지만 작은 프로젝트에서 과하게 쪼개면 **기능 하나 보려고 파일 다섯 개**를 열어야 해요. 기존 구조가 있으면 따르고, 없으면 **기능별 폴더 + 필요한 만큼의 계층**으로 단순하게 시작해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -9,39 +9,54 @@ const topic: Topic = {
   sections: [
     {
       title: '프로젝트 구조',
-      points: [
-        '기능(도메인)별 폴더: app/decks/(router.py, schemas.py, service.py), app/users/, app/core/(config.py: 설정, db.py: engine·세션·의존성, security.py: 인증). app/main.py는 앱 조립만 한다.',
-        '계층별 책임: router = HTTP(파라미터·상태 코드·응답 모델), schemas = 입출력 계약(Pydantic), service = 업무 규칙과 트랜잭션, models = DB 구조(SQLAlchemy).',
-        '의존 방향은 한쪽으로: router → service → models. 라우터끼리 서로 import하지 않는다.',
-        '작게 시작해서 필요할 때 나눈다. 처음부터 계층을 과하게 나누지 않는다(Simple is Best).',
-      ],
-      code: `app/
+      slides: [
+        {
+          title: '기능별 폴더, 계층별 책임',
+          blocks: [
+            { type: 'code', code: `app/
   main.py            # FastAPI(), lifespan, include_router, 미들웨어
   core/config.py     # Settings(BaseSettings)
   core/db.py         # engine, SessionLocal, get_db, SessionDep
   core/security.py   # 비밀번호 해시, get_current_user, CurrentUser
   decks/models.py  decks/schemas.py  decks/service.py  decks/router.py
-tests/`,
+tests/` },
+            {
+              type: 'table',
+              head: ['파일', '책임'],
+              rows: [
+                ['`router.py`', '**HTTP** — 파라미터, 상태 코드, 응답 모델'],
+                ['`schemas.py`', '**입출력 계약** (Pydantic)'],
+                ['`service.py`', '**업무 규칙과 트랜잭션** ("덱 제목은 사용자당 중복 불가")'],
+                ['`models.py`', '**DB 구조** (SQLAlchemy)'],
+              ],
+            },
+            { type: 'say', text: '의존 방향은 **한쪽으로**: router → service → models. 라우터끼리 서로 import하지 않아요(fa-16의 순환 import). 그리고 처음부터 계층을 과하게 나누지 말고, **작게 시작해서 필요할 때** 나눠요.' },
+          ],
+        },
+      ],
     },
     {
       title: '스키마와 라우터',
-      points: [
-        '스키마 세트: DeckCreate(title), DeckUpdate(title | None = None), DeckRead(id, title, created_at, from_attributes=True), Page[DeckRead](items, total, page, size).',
-        '목록: GET /decks?page&size&q → 내 덱만(owner_id = 현재 사용자), 같은 조건으로 total과 items, 정렬 고정, size 상한.',
-        '생성: POST /decks → 201, owner_id는 서버가 넣는다. 조회: GET /decks/{id} → 없거나 남의 것이면 404. 수정: PATCH → exclude_unset. 삭제: DELETE → 204.',
-        '모든 쓰기 API는 "로그인 확인 + 소유자 확인"을 거친다. 공통 헬퍼(get_owned_deck)로 만들면 빠뜨리지 않는다.',
-      ],
-      code: `def get_owned_deck(db: Session, deck_id: int, user: User) -> Deck:
+      slides: [
+        {
+          title: '소유자 확인 헬퍼',
+          blocks: [
+            { type: 'code', code: `def get_owned_deck(db: Session, deck_id: int, user: User) -> Deck:
     deck = db.get(Deck, deck_id)
     if deck is None or deck.owner_id != user.id:
         raise HTTPException(404, "덱이 없습니다")     # 남의 덱 존재 여부도 숨김
-    return deck
-
-@router.get("/", response_model=Page[DeckRead])
+    return deck` },
+            { type: 'say', text: '모든 쓰기·조회 API는 **로그인 확인 + 소유자 확인**을 거쳐요. 이걸 매번 쓰면 언젠가 빠뜨려요(au-03의 IDOR). 그래서 **공통 헬퍼** 하나로 만들어요.\n\n남의 덱이면 403이 아니라 **404**를 줘요. 403은 "그 덱은 **있는데** 네 것이 아니야"라는 정보를 흘려요. 404면 남의 덱이 **존재하는지조차** 알 수 없어요.' },
+          ],
+        },
+        {
+          title: '목록과 수정 API',
+          blocks: [
+            { type: 'code', code: `@router.get("/", response_model=Page[DeckRead])
 def list_decks(db: SessionDep, user: CurrentUser,
                page: int = Query(1, ge=1), size: int = Query(20, ge=1, le=100),
                q: str | None = Query(None, max_length=50)):
-    conds = [Deck.owner_id == user.id]
+    conds = [Deck.owner_id == user.id]                 # 내 덱만
     if q:
         conds.append(Deck.title.contains(q, autoescape=True))
     total = db.scalar(select(func.count()).select_from(Deck).where(*conds))
@@ -56,17 +71,19 @@ def update_deck(deck_id: int, data: DeckUpdate, db: SessionDep, user: CurrentUse
         setattr(deck, k, v)
     db.commit()
     db.refresh(deck)
-    return deck`,
+    return deck` },
+            { type: 'say', text: '목록 API 체크리스트: **내 것만**(owner_id) · total과 items에 **같은 조건** · **정렬 고정** · **size 상한** · 검색어 **autoescape**. 지금까지 수업에서 하나씩 배운 게 이 한 함수에 다 들어 있어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '트랜잭션이 필요한 업무 로직',
-      points: [
-        '"문제 풀이 제출": ① attempts에 기록 INSERT ② user_question_states의 box·next_due 갱신(없으면 생성) ③ 둘 다 성공해야 의미가 있다 → 한 트랜잭션.',
-        '서비스 함수가 이 규칙을 책임지고, 라우터는 결과만 응답한다. 중간에 commit을 여러 번 하지 않는다.',
-        '동시에 같은 문제 상태를 갱신할 수 있으면 원자적 갱신(upsert, SET box = box + 1)이나 행 잠금(with_for_update)을 쓴다.',
-        '실패 시 rollback하고 의미 있는 4xx로 바꾼다. 예상하지 못한 예외는 500으로 두되 로그(logger.exception)를 남긴다.',
-      ],
-      code: `def submit_attempt(db: Session, user: User, question_id: int, is_correct: bool) -> UserQuestionState:
+      slides: [
+        {
+          title: '풀이 제출은 한 덩어리',
+          blocks: [
+            { type: 'code', code: `def submit_attempt(db: Session, user: User, question_id: int, is_correct: bool) -> UserQuestionState:
     with db.begin():                                   # 함께 성공 / 함께 실패
         db.add(Attempt(user_id=user.id, question_id=question_id, is_correct=is_correct))
         state = db.scalar(
@@ -79,26 +96,59 @@ def update_deck(deck_id: int, data: DeckUpdate, db: SessionDep, user: CurrentUse
             db.add(state)
         state.box = min(state.box + 1, 5) if is_correct else 0
         state.next_due = date.today() + timedelta(days=INTERVALS[state.box])
-    return state`,
+    return state` },
+            { type: 'say', text: '"문제 풀이 제출"은 ① 풀이 기록 INSERT ② 문제 상태 갱신(없으면 생성), **둘 다 성공해야** 의미가 있어요. pr-01의 비정규화 약속을 지키는 코드예요.\n\n그래서 **서비스 함수가 한 트랜잭션**으로 책임지고, 라우터는 결과만 응답해요.' },
+          ],
+        },
+        {
+          title: '중간 commit과 동시 제출',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '기록 INSERT 후 commit, 상태 갱신 후 또 commit으로 짜면? 첫 commit과 두 번째 사이에 에러가 나면 **기록은 남고 상태는 안 바뀐** 어긋난 데이터가 생겨요. 한 업무 = **한 commit**.' },
+            { type: 'say', text: '같은 사용자가 두 기기에서 **거의 동시에** 같은 문제를 제출하면? 둘 다 box=2를 읽고 둘 다 3을 쓰는 갱신 손실이 생길 수 있어요. `with_for_update()`로 **행을 잠그거나**, upsert·`SET box = box + 1` 같은 **원자적 갱신**으로 막아요.\n\n실패 시에는 rollback하고 의미 있는 4xx로 바꾸되, **예상하지 못한 예외**는 억지로 4xx로 바꾸지 말고 500으로 두고 `logger.exception`으로 원인을 남겨요.' },
+          ],
+        },
+      ],
     },
     {
       title: '테스트와 배포',
       notionIds: ['3efdf951bf80818bb289e4782b910ad0'],
-      points: [
-        '테스트: TestClient(app)로 실제 HTTP 흐름을 호출하고, dependency_overrides로 테스트 DB 세션·가짜 로그인 사용자를 주입한다. 성공뿐 아니라 401·403/404·409·422 같은 실패 경로도 테스트한다.',
-        '배포 준비: 설정은 환경 변수(DATABASE_URL, SECRET_KEY), 스키마는 Alembic 마이그레이션(alembic upgrade head를 배포 단계에 포함), 운영에서는 --reload 끄기, docs 공개 여부 결정, CORS 허용 출처를 실제 프론트 주소로.',
-        '실행: uvicorn app.main:app --host 0.0.0.0 --port $PORT (필요하면 --workers 또는 gunicorn + uvicorn worker). 헬스 체크 엔드포인트(/health)로 플랫폼이 상태를 확인하게 한다.',
-        '배포 방식의 흐름: 노션에서 다룬 ngrok(내 PC 서버를 임시 공개 주소로, 테스트·데모용) → AWS EC2에 직접 설치(Apache + mod_wsgi 같은 WSGI 연결, 서버 관리 직접) → 요즘은 Render·Railway·Fly.io 같은 PaaS나 컨테이너(Docker)로 git push 배포. FastAPI는 ASGI라 WSGI(mod_wsgi) 대신 uvicorn을 쓴다.',
-        '운영 체크: 로그 수집, 에러 알림, DB 백업·PITR 보존 기간, 커넥션 풀 크기(서버 수 × 풀 ≤ DB 한도), 무료 플랜의 잠자기(sleep)·일시정지 정책 확인.',
-      ],
-      code: `from fastapi.testclient import TestClient
+      slides: [
+        {
+          title: '실패 경로까지 테스트',
+          blocks: [
+            { type: 'code', code: `from fastapi.testclient import TestClient
 
 def test_cannot_read_others_deck(client: TestClient, other_users_deck_id: int):
     res = client.get(f"/decks/{other_users_deck_id}")
-    assert res.status_code == 404
-
-# 배포 시작 명령 예
-# alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT`,
+    assert res.status_code == 404` },
+            { type: 'say', text: '`TestClient(app)`로 실제 HTTP 흐름을 호출하고, `app.dependency_overrides`로 **테스트 DB 세션과 가짜 로그인 사용자**를 끼워 넣어요(fa-16).\n\n성공만 테스트하지 말고 **401, 403/404, 409, 422 같은 실패 경로**도 테스트해요. 보안 구멍은 대부분 실패 경로에 있어요.' },
+          ],
+        },
+        {
+          title: '배포 준비',
+          blocks: [
+            { type: 'code', code: `# 배포 시작 명령 예
+alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT` },
+            { type: 'list', items: ['설정은 **환경 변수** (DATABASE_URL, SECRET_KEY)', '스키마는 **Alembic** (`alembic upgrade head`를 배포 단계에 포함)', '운영에서는 **`--reload` 끄기** (파일 감시는 개발용이고 자원을 낭비해요)', '`/docs` 공개 여부 결정, **CORS 허용 출처**를 실제 프론트 주소로', '**헬스 체크** 엔드포인트(`/health`)로 플랫폼이 상태 확인'] },
+          ],
+        },
+        {
+          title: '배포 방식의 흐름',
+          blocks: [
+            {
+              type: 'table',
+              head: ['방식', '특징'],
+              rows: [
+                ['**ngrok**', '내 PC 서버를 **임시 공개 주소**로. 테스트·데모용 (운영 X)'],
+                ['**AWS EC2 직접 설치**', 'Apache + mod_wsgi 같은 WSGI 연결, 서버 관리를 직접'],
+                ['**PaaS / 컨테이너**', 'Render·Railway·Fly.io, Docker. **git push로 배포** (요즘 주류)'],
+              ],
+            },
+            { type: 'say', text: 'Flask를 Apache + **mod_wsgi**로 배포하던 방식을 FastAPI에 그대로 쓰기 어려운 이유, 이제 알죠? FastAPI는 **ASGI** 앱이라 WSGI 연결 대신 **uvicorn** 같은 ASGI 서버가 필요해요(web-01).' },
+            { type: 'note', tone: 'tip', text: '운영 체크: 로그 수집, 에러 알림, **DB 백업·PITR 보존 기간**, 커넥션 풀 크기(서버 수 × 풀 ≤ DB 한도), 무료 플랜의 **잠자기·일시정지** 정책. FastAPI 트랙은 여기까지예요. 수고 많았어요! 🎉' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

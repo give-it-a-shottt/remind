@@ -10,47 +10,65 @@ const topic: Topic = {
   sections: [
     {
       title: '해시 (파이썬 dict)',
-      points: [
-        '키로 값을 O(1)에 바로 찾는 자료구조 — 리스트처럼 처음부터 뒤질 필요가 없다',
-        '프론트: 유저 ID → 닉네임 맵을 두고 렌더링할 때 최신 이름으로 바꿔 보여줄 때',
-        '백엔드: 신고·좋아요 같은 이벤트를 유저별로 집계하고 중복을 걸러낼 때',
+      slides: [
+        {
+          title: '키로 바로 찾아가는 자료구조',
+          blocks: [
+            { type: 'say', text: '알고리즘 수업이에요. 코딩 테스트 문제를 풀면서, 그 자료구조가 **실무 프론트·백엔드 어디에** 쓰이는지 같이 볼 거예요. 첫 번째는 **해시**, 파이썬에서는 **dict**예요.\n\n해시는 **키로 값을 O(1)에 바로** 찾아요. 리스트처럼 처음부터 하나씩 뒤질 필요가 없어요.' },
+            { type: 'note', tone: 'analogy', text: '리스트는 **번호 없는 책장**이에요. 원하는 책을 찾으려면 처음부터 훑어야 해요. 해시는 **도서관 청구기호**예요. 번호만 알면 그 칸으로 바로 가요.' },
+            { type: 'list', items: ['**프론트**: 유저 ID → 닉네임 맵을 두고, 그릴 때 최신 이름으로 바꿔 보여 주기', '**백엔드**: 신고·좋아요 같은 이벤트를 유저별로 집계하고 중복 걸러내기'] },
+          ],
+        },
       ],
     },
     {
       title: '자료구조별 만들기 · 추가',
-      points: [
-        'list: [] / .append(x) — 순서 있음, 중복 허용',
-        'set: set() / .add(x) — 순서 없음, 중복 자동 제거',
-        'dict: {} 또는 dict() / d[키] = 값 — 같은 키면 덮어쓰기',
-        '빈 set은 반드시 set(). {}는 빈 dict',
-        '꺼내기는 d[키], 없을 수도 있으면 d.get(키) (KeyError 대신 None)',
-        '= 는 바꿔치기, append/add는 추가',
-        '파이썬 map()은 자료구조가 아니라 함수. JS의 Map은 파이썬 dict에 해당',
+      slides: [
+        {
+          title: 'list, set, dict',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '만들기', '추가', '특징'],
+              rows: [
+                ['list', '`[]`', '`.append(x)`', '순서 있음, 중복 허용'],
+                ['set', '**`set()`**', '**`.add(x)`**', '순서 없음, **중복 자동 제거**'],
+                ['dict', '`{}` 또는 `dict()`', '`d[키] = 값`', '같은 키면 **덮어쓰기**'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '빈 set은 **반드시 `set()`** 이에요. `{}`는 빈 **dict**예요.' },
+            { type: 'list', items: ['꺼내기는 `d[키]`. 없을 수도 있으면 **`d.get(키)`** (KeyError 대신 None)', '`=`는 **바꿔치기**, `append`/`add`는 **추가**', '파이썬 `map()`은 자료구조가 아니라 **함수**예요. JS의 `Map`은 파이썬 **dict**에 해당해요'] },
+          ],
+        },
       ],
     },
     {
       title: '문법 정리',
-      points: [
-        'split()은 괄호를 비우면 공백 기준',
-        'cmd, uid, *rest = line.split() — 남은 건 rest 리스트로 (없으면 [])',
-        '{name: i for i, name in enumerate(id_list)} — 이름 → 인덱스 매핑',
-        'defaultdict(set) — 없는 키도 자동으로 빈 set 생성',
-      ],
-      code: `cmd, uid, *rest = "Enter uid1234 Muzi".split()
-idx = {name: i for i, name in enumerate(id_list)}
+      slides: [
+        {
+          title: '이번 문제에 쓰는 문법',
+          blocks: [
+            { type: 'code', code: `cmd, uid, *rest = "Enter uid1234 Muzi".split()   # rest = ["Muzi"]
+cmd, uid, *rest = "Leave uid1234".split()        # rest = []  (없으면 빈 리스트)
+
+idx = {name: i for i, name in enumerate(id_list)}  # 이름 → 인덱스
+
 from collections import defaultdict
-reported = defaultdict(set)`,
+reported = defaultdict(set)      # 없는 키도 자동으로 빈 set
+reported["frodo"].add("muzi")    # KeyError 없음` },
+            { type: 'list', items: ['`split()`은 괄호를 비우면 **공백 기준**', '`*rest` — 앞에서 정해진 개수만큼 받고 **남은 건 리스트로**', '`defaultdict(set)` — 없는 키에 접근하면 **빈 set을 자동으로** 만들어 줘요'] },
+          ],
+        },
+      ],
     },
     {
       title: '[프론트] 오픈채팅방',
-      points: [
-        '닉네임은 기록을 끝까지 봐야 확정된다 → 두 번 순회',
-        '1번째: Enter·Change로 아이디 → 최종 닉네임 저장',
-        '2번째: Enter·Leave 메시지를 최종 닉네임으로 생성 (Change는 메시지 없음)',
-        '시간 O(N), 공간 O(N)',
-        '실무: 메시지 DB에는 닉네임이 아니라 user_id를 저장하고, 그릴 때 최신 닉네임을 붙인다',
-      ],
-      code: `def solution(record):
+      slides: [
+        {
+          title: '닉네임은 끝까지 봐야 확정돼요',
+          blocks: [
+            { type: 'say', text: '채팅방 입장·퇴장 기록이 있고, 중간에 닉네임을 바꾸면 **예전 메시지에도** 새 닉네임이 보여야 해요. 그래서 기록을 **두 번** 훑어요.\n① 1번째: Enter·Change로 아이디 → **최종 닉네임** 저장\n② 2번째: Enter·Leave 메시지를 최종 닉네임으로 생성 (Change는 메시지 없음)' },
+            { type: 'code', code: `def solution(record):
     msg = {"Enter": "님이 들어왔습니다.", "Leave": "님이 나갔습니다."}
     nick, logs = {}, []
     for line in record:
@@ -59,51 +77,75 @@ reported = defaultdict(set)`,
             nick[uid] = rest[0]
         if cmd in msg:
             logs.append((cmd, uid))
-    return [nick[uid] + msg[cmd] for cmd, uid in logs]`,
+    return [nick[uid] + msg[cmd] for cmd, uid in logs]` },
+            { type: 'note', tone: 'tip', text: '시간 O(N), 공간 O(N). 실무에서도 똑같아요. 메시지 DB에는 **닉네임이 아니라 user_id**를 저장하고, 화면에 그릴 때 **최신 닉네임**을 붙여요.' },
+          ],
+        },
+      ],
     },
     {
       title: '[백엔드] 신고 결과 받기',
-      points: [
-        '신고당한 사람 → 신고자 set으로 중복 신고 제거',
-        '신고자 수가 k 이상이면 신고한 사람들에게 메일 +1',
-        '시간 O(N + M), 공간 O(N + M)',
-        'idx 사전은 DB의 AUTO_INCREMENT가 아니라 INDEX에 가깝다 (이름 → 위치를 미리 만들어 빠르게 찾기)',
-        '실무: 중복 신고는 DB에서 (신고자, 피신고자) UNIQUE 제약으로 막는다',
-      ],
-      code: `def solution(id_list, report, k):
-    reported = {name: set() for name in id_list}
+      slides: [
+        {
+          title: '중복 신고는 set으로',
+          blocks: [
+            { type: 'say', text: '유저가 다른 유저를 신고하고, **k번 이상** 신고당한 유저는 정지돼요. 정지되면 **그 유저를 신고한 사람들**에게 결과 메일이 가요. 같은 사람을 여러 번 신고해도 1번으로 쳐요.' },
+            { type: 'code', code: `def solution(id_list, report, k):
+    reported = {name: set() for name in id_list}   # 피신고자 → 신고자 set
     answer = [0] * len(id_list)
     idx = {name: i for i, name in enumerate(id_list)}
     for line in report:
         a, b = line.split()
-        reported[b].add(a)
+        reported[b].add(a)                          # 중복 신고 자동 제거
     for target, reporters in reported.items():
         if len(reporters) >= k:
             for p in reporters:
                 answer[idx[p]] += 1
-    return answer`,
+    return answer` },
+            { type: 'list', items: ['시간 O(N + M), 공간 O(N + M)', '`idx` 사전은 DB의 AUTO_INCREMENT가 아니라 **INDEX**에 가까워요. 이름 → 위치를 미리 만들어 빠르게 찾기', '실무: 중복 신고는 DB에서 **(신고자, 피신고자) UNIQUE 제약**으로 막아요'] },
+          ],
+        },
+      ],
     },
     {
       title: '오픈채팅방 사고 과정',
-      points: [
-        '신호: "아이디로 닉네임을 찾음, 같은 아이디는 덮어씀" → dict',
-        '신호: "나중에 바꾼 닉네임이 예전 메시지에도 반영" → 끝까지 봐야 확정 → 두 번 순회',
-        '닉네임 사전은 반복문 밖에서 한 번만 만든다',
-        '최적화 버전: (명령, 아이디)를 logs에 저장해 split을 1번만, 메시지는 msg 사전 조회 — 복잡도는 O(N)으로 같다',
+      slides: [
+        {
+          title: '신호 → 도구',
+          blocks: [
+            {
+              type: 'table',
+              head: ['문제의 신호', '도구'],
+              rows: [
+                ['"아이디로 닉네임을 찾음, 같은 아이디는 **덮어씀**"', '**dict**'],
+                ['"나중에 바꾼 닉네임이 **예전 메시지에도** 반영"', '끝까지 봐야 확정 → **두 번 순회**'],
+              ],
+            },
+            { type: 'say', text: '닉네임 사전은 반복문 **밖에서 한 번만** 만들어요.\n\n최적화 버전은 `(명령, 아이디)`를 logs에 저장해서 **split을 1번만** 하고, 메시지는 `msg` 사전에서 꺼내요. if 분기가 줄어 읽기 쉬워져요. 복잡도는 **O(N)으로 같아요.**' },
+          ],
+        },
       ],
     },
     {
       title: '신고 결과 받기 사고 과정',
-      points: [
-        '신호: "같은 유저를 여러 번 신고해도 1회" → set, "결과는 id_list 순서" → 이름 → 위치 사전',
-        'index()로 매번 찾으면 숨은 반복이 생긴다',
-        '최적화 버전: defaultdict(set), set(report)로 중복 문자열 먼저 제거, defaultdict(int)로 메일 집계 후 id_list 순서로 꺼내기',
-      ],
-      code: `from collections import defaultdict
+      slides: [
+        {
+          title: '숨은 반복 찾기',
+          blocks: [
+            {
+              type: 'table',
+              head: ['문제의 신호', '도구'],
+              rows: [
+                ['"같은 유저를 여러 번 신고해도 **1회**"', '**set**'],
+                ['"결과는 **id_list 순서**"', '이름 → 위치 **사전**'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '`id_list.index(name)`으로 매번 위치를 찾으면 그 안에서 **리스트를 처음부터 훑어요.** 겉보기엔 한 줄인데 반복이 숨어 있어서 O(N²)이 돼요.' },
+            { type: 'code', code: `from collections import defaultdict
 
 def solution(id_list, report, k):
     reported = defaultdict(set)
-    for line in set(report):
+    for line in set(report):            # 중복 문자열 먼저 제거
         a, b = line.split()
         reported[b].add(a)
     mail = defaultdict(int)
@@ -111,25 +153,42 @@ def solution(id_list, report, k):
         if len(reporters) >= k:
             for p in reporters:
                 mail[p] += 1
-    return [mail[name] for name in id_list]`,
+    return [mail[name] for name in id_list]   # id_list 순서로 꺼내기` },
+          ],
+        },
+      ],
     },
     {
       title: '트러블슈팅',
-      points: [
-        '한 번 순회하며 바로 메시지 생성 → 이후 닉네임 변경을 모름',
-        'x == "Enter" or "Change"는 (x == "Enter") or ("Change")라 항상 참 → x in ("Enter", "Change")',
-        'reported[b] = a는 덮어써서 마지막 1명만 남음 → set + add',
-        '없는 키에 add → KeyError → 미리 초기화 또는 defaultdict(set)',
-        '결과 길이 [0,0,0,0] 하드코딩 → [0] * len(id_list)',
+      slides: [
+        {
+          title: '자주 한 실수들',
+          blocks: [
+            {
+              type: 'table',
+              head: ['실수', '해결'],
+              rows: [
+                ['한 번 순회하며 바로 메시지 생성 → 이후 닉네임 변경을 모름', '**두 번 순회**'],
+                ['`x == "Enter" or "Change"` → **항상 참**', '`x in ("Enter", "Change")`'],
+                ['`reported[b] = a` → 덮어써서 **마지막 1명만**', '**set + add**'],
+                ['없는 키에 add → **KeyError**', '미리 초기화 또는 `defaultdict(set)`'],
+                ['결과 길이 `[0,0,0,0]` 하드코딩', '`[0] * len(id_list)`'],
+              ],
+            },
+            { type: 'ask', q: '`x == "Enter" or "Change"`가 왜 항상 참일까요?', a: '파이썬은 이걸 `(x == "Enter") or ("Change")`로 읽어요. 빈 문자열이 아닌 `"Change"`는 그 자체로 **참**이라, 앞이 거짓이어도 전체가 참이 돼요.' },
+          ],
+        },
       ],
     },
     {
       title: '면접 숙제',
-      points: [
-        '리스트 조회 O(N) vs 해시 평균 O(1) → N번 조회면 O(N²) vs O(N)',
-        'set과 dict 모두 해시 기반. dict는 키-값, set은 키만 → 중복 자동 제거',
-        '닉네임 변경 반영: 메시지엔 user_id, 닉네임은 users 테이블 한 곳 (정규화)',
-        '중복 신고 방지: (reporter_id, target_id) UNIQUE 제약 — 앱 체크만 하면 경쟁 조건',
+      slides: [
+        {
+          title: '면접에서 이렇게 답해요',
+          blocks: [
+            { type: 'list', items: ['**리스트 조회 O(N) vs 해시 평균 O(1)** → N번 조회하면 O(N²) vs O(N)', '**set과 dict 모두 해시 기반.** dict는 키-값, set은 키만 → 중복 자동 제거', '**닉네임 변경 반영**: 메시지엔 user_id, 닉네임은 users 테이블 **한 곳에만** (정규화)', '**중복 신고 방지**: (reporter_id, target_id) **UNIQUE 제약**. 앱에서 확인만 하면 동시 요청 때 경쟁 조건으로 뚫려요 (sa-02)'] },
+          ],
+        },
       ],
     },
   ],

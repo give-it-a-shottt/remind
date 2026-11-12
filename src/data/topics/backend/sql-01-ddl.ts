@@ -10,35 +10,68 @@ const topic: Topic = {
     {
       title: '관계형 데이터베이스의 구성',
       notionIds: ['3efdf951bf808157a036c1577d79644d'],
-      points: [
-        '데이터베이스는 여러 시스템이 함께 쓰도록 체계적으로 정리한 데이터 묶음이고, DBMS는 그것을 저장·검색·보호하는 소프트웨어다. 파일로 직접 관리할 때보다 중복이 줄고, 동시 접근·일관성·보안·복구를 DBMS가 책임진다.',
-        '관계형(RDB)은 데이터를 테이블(2차원 표)로 표현한다. 행(row, 레코드) = 하나의 사실, 열(column, 속성) = 사실의 항목.',
-        '기본 키(Primary Key): 각 행을 유일하게 구분하는 컬럼(들). NULL 불가 + 중복 불가. 외래 키(Foreign Key): 다른 테이블의 기본 키를 참조해 테이블 사이 관계를 만든다.',
-        '스키마(Schema): 테이블 구조·자료형·제약·관계의 정의, 즉 DB 설계도. 스키마만 있으면 같은 구조의 빈 DB를 다시 만들 수 있다(데이터 백업과 다르다).',
+      slides: [
+        {
+          title: '데이터를 맡기는 전문가',
+          blocks: [
+            { type: 'say', text: 'FastAPI 수업에서 dict에 저장한 데이터는 서버를 끄면 사라졌죠. 이제 데이터를 **영구히, 안전하게** 맡길 곳, **데이터베이스**를 배워요.\n\n**데이터베이스**는 여러 시스템이 함께 쓰도록 체계적으로 정리한 데이터 묶음이고, **DBMS**(MySQL, PostgreSQL)는 그걸 저장·검색·보호하는 **소프트웨어**예요. 파일로 직접 관리하면 중복, 동시 접근, 일관성, 보안, 복구를 내가 다 책임져야 하지만 DBMS가 이걸 대신 맡아 줘요.' },
+          ],
+        },
+        {
+          title: '표, 행, 열, 그리고 키',
+          blocks: [
+            { type: 'say', text: '**관계형 DB(RDB)** 는 데이터를 **테이블**(2차원 표)로 표현해요. 엑셀 시트를 떠올리면 돼요.\n• **행(row, 레코드)** = 하나의 사실 (회원 한 명)\n• **열(column, 속성)** = 사실의 항목 (이메일, 가입일)' },
+            {
+              type: 'table',
+              head: ['용어', '뜻'],
+              rows: [
+                ['**기본 키** (Primary Key)', '각 행을 **유일하게** 구분하는 컬럼. **NULL 불가 + 중복 불가**'],
+                ['**외래 키** (Foreign Key)', '**다른 테이블의 기본 키**를 참조해서 테이블 사이 관계를 만듦 (주문 → 회원)'],
+                ['**스키마** (Schema)', '테이블 구조·자료형·제약·관계의 정의, 즉 **DB 설계도**'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '스키마는 **설계도**일 뿐이에요. 설계도로 같은 구조의 **빈** DB는 다시 만들 수 있지만, 그 안의 **데이터**는 돌아오지 않아요. 데이터 백업은 따로 해야 해요.' },
+          ],
+        },
       ],
     },
     {
       title: 'SQL 명령의 분류',
       notionIds: ['3efdf951bf808157a036c1577d79644d'],
-      points: [
-        'DDL(Data Definition, 정의): CREATE, ALTER, DROP, TRUNCATE. 구조를 만든다·바꾼다·지운다.',
-        'DML(Data Manipulation, 조작): SELECT, INSERT, UPDATE, DELETE. 데이터를 다룬다.',
-        'DCL(Data Control, 제어): GRANT, REVOKE. 권한을 준다·뺏는다.',
-        'TCL(Transaction Control): BEGIN(START TRANSACTION), COMMIT, ROLLBACK, SAVEPOINT. 교재에 따라 DCL에 포함하기도 한다.',
-        'MySQL에서는 대부분의 DDL이 실행 즉시 암묵적으로 커밋된다. 트랜잭션 안에서 ALTER TABLE을 하면 그 전까지의 변경도 함께 확정되니 주의한다(PostgreSQL은 DDL도 트랜잭션으로 되돌릴 수 있다).',
+      slides: [
+        {
+          title: 'SQL 명령 네 가족',
+          blocks: [
+            { type: 'say', text: 'DB에게 일을 시키는 언어가 **SQL**이에요. 명령은 하는 일에 따라 네 가족으로 나뉘어요.' },
+            {
+              type: 'table',
+              head: ['가족', '하는 일', '명령'],
+              rows: [
+                ['**DDL** (Definition)', '**구조**를 만들고 바꾸고 지움', '`CREATE`, `ALTER`, `DROP`, `TRUNCATE`'],
+                ['**DML** (Manipulation)', '**데이터**를 다룸', '`SELECT`, `INSERT`, `UPDATE`, `DELETE`'],
+                ['**DCL** (Control)', '**권한**을 주고 뺏음', '`GRANT`, `REVOKE`'],
+                ['**TCL** (Transaction)', '**트랜잭션** 확정·취소', '`BEGIN`, `COMMIT`, `ROLLBACK`, `SAVEPOINT`'],
+              ],
+            },
+            { type: 'note', tone: 'analogy', text: '건물로 보면 **DDL**은 방을 짓고 허무는 공사, **DML**은 방 안 가구를 넣고 빼는 일, **DCL**은 열쇠를 나눠 주는 일, **TCL**은 "이 이사 확정!" 또는 "없던 일로!"를 외치는 일이에요.' },
+          ],
+        },
+        {
+          title: 'MySQL의 DDL 함정',
+          blocks: [
+            { type: 'say', text: 'MySQL에서는 대부분의 DDL이 **실행 즉시 암묵적으로 커밋**돼요. 트랜잭션 도중에 `ALTER TABLE`을 하면, 그 **전까지 해 둔 변경까지** 함께 확정돼 버려요. 나중에 ROLLBACK 해도 되돌릴 수 없어요.\n\nPostgreSQL은 DDL도 트랜잭션으로 되돌릴 수 있어서 이 점에서 더 안전해요.' },
+          ],
+        },
       ],
     },
     {
       title: 'CREATE TABLE과 자료형',
       notionIds: ['3efdf951bf80817db4e8f62c8f32e1df'],
-      points: [
-        'CREATE TABLE 이름 (컬럼 자료형 [제약], ..., PRIMARY KEY(컬럼)). DB를 먼저 만들고(CREATE DATABASE) 선택한다(USE).',
-        '정수: TINYINT(1바이트) < SMALLINT < INT(4바이트, 약 ±21억) < BIGINT(8바이트). UNSIGNED는 음수를 없애 양수 범위를 두 배로 늘린다(MySQL).',
-        '문자: CHAR(n)은 고정 길이(남는 칸을 공백으로 채움, 국가 코드처럼 길이가 일정한 값), VARCHAR(n)은 가변 길이(이름·이메일), TEXT는 긴 본문.',
-        '숫자: 금액은 DECIMAL(10, 2)(정확한 십진수), FLOAT/DOUBLE은 근사값이라 돈에 쓰지 않는다.',
-        '날짜: DATE(날짜), DATETIME(날짜+시각), TIMESTAMP(MySQL: UTC로 저장하고 세션 시간대로 변환, 2038년 한계). 한글·이모지를 위해 MySQL 문자셋은 utf8mb4를 쓴다(utf8은 3바이트라 이모지 불가).',
-      ],
-      code: `CREATE DATABASE IF NOT EXISTS shop DEFAULT CHARACTER SET utf8mb4;
+      slides: [
+        {
+          title: '첫 테이블 만들기',
+          blocks: [
+            { type: 'code', code: `CREATE DATABASE IF NOT EXISTS shop DEFAULT CHARACTER SET utf8mb4;
 USE shop;
 
 CREATE TABLE users (
@@ -49,36 +82,101 @@ CREATE TABLE users (
   created_at DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id),
   UNIQUE KEY uq_users_email (email)
-);`,
+);` },
+            { type: 'say', text: 'DB를 만들고(`CREATE DATABASE`), 고르고(`USE`), 그 안에 테이블을 만들어요. 컬럼마다 **이름 + 자료형 + 제약**을 적어요.' },
+          ],
+        },
+        {
+          title: '자료형 고르기',
+          blocks: [
+            {
+              type: 'table',
+              head: ['종류', '자료형', '언제'],
+              rows: [
+                ['정수', '`TINYINT` < `SMALLINT` < `INT`(약 ±21억) < `BIGINT`', '`UNSIGNED`는 음수를 없애 양수 범위 2배 (MySQL)'],
+                ['고정 문자', '`CHAR(n)`', '**길이가 항상 같은** 값 (국가 코드 KR)'],
+                ['가변 문자', '`VARCHAR(n)`', '이름, **이메일**'],
+                ['긴 글', '`TEXT`', '본문'],
+                ['돈', '**`DECIMAL(10, 2)`**', '정확한 십진수. `FLOAT`은 근사값이라 **돈에 쓰면 안 돼요**'],
+                ['날짜', '`DATE`, `DATETIME`, `TIMESTAMP`', 'TIMESTAMP는 UTC로 저장, 2038년 한계(MySQL)'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: 'MySQL의 `utf8`은 글자당 **3바이트**까지만 저장해요. 이모지(😀)는 4바이트라 "Incorrect string value" 에러가 나요. 한글·이모지를 위해 문자셋은 **`utf8mb4`** 를 써요.' },
+          ],
+        },
+      ],
     },
     {
       title: '제약 조건',
       notionIds: ['3efdf951bf80815593d8ef50293c054f'],
-      points: [
-        'NOT NULL(값 필수), DEFAULT(값을 안 주면 기본값), UNIQUE(중복 금지), PRIMARY KEY(NOT NULL + UNIQUE, 테이블당 하나), CHECK(조건식, 예: price >= 0), FOREIGN KEY(참조 무결성).',
-        'AUTO_INCREMENT(MySQL) / SERIAL·IDENTITY(PostgreSQL): 정수 기본 키를 자동으로 1씩 증가. 값을 생략하고 INSERT 한다.',
-        '외래 키가 막아 주는 것: 부모에 없는 값으로 자식 INSERT → 에러, 자식이 참조 중인 부모 DELETE → 에러(기본). 그래서 넣을 때는 부모 먼저, 지울 때는 자식 먼저.',
-        'ON DELETE CASCADE(부모 삭제 시 자식도 삭제), ON DELETE SET NULL(자식의 FK를 NULL로)로 동작을 바꿀 수 있다.',
-        '현업에서는 성능이나 유연성을 이유로 FK를 생략하기도 하지만, 그 경우 앱이 무결성을 책임져야 하고 고아 데이터가 생기기 쉽다.',
-      ],
-      code: `CREATE TABLE orders (
+      slides: [
+        {
+          title: '잘못된 데이터를 DB가 막아요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['제약', '뜻'],
+              rows: [
+                ['`NOT NULL`', '값 필수'],
+                ['`DEFAULT`', '값을 안 주면 기본값'],
+                ['`UNIQUE`', '중복 금지'],
+                ['`PRIMARY KEY`', 'NOT NULL + UNIQUE, 테이블당 하나'],
+                ['`CHECK`', '조건식 (`price >= 0`)'],
+                ['`FOREIGN KEY`', '참조 무결성 (없는 회원의 주문 금지)'],
+              ],
+            },
+            { type: 'say', text: '`AUTO_INCREMENT`(MySQL) / `SERIAL`·`IDENTITY`(PostgreSQL)는 정수 기본 키를 **자동으로 1씩 증가**시켜요. INSERT 할 때 id는 **생략**하면 돼요.' },
+          ],
+        },
+        {
+          title: '외래 키가 막아 주는 것',
+          blocks: [
+            { type: 'code', code: `CREATE TABLE orders (
   id       BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
   user_id  BIGINT UNSIGNED NOT NULL,
   total    DECIMAL(12, 2)  NOT NULL CHECK (total >= 0),
   status   VARCHAR(20)     NOT NULL DEFAULT 'pending',
   CONSTRAINT fk_orders_user FOREIGN KEY (user_id) REFERENCES users (id)
     ON DELETE RESTRICT
-);`,
+);` },
+            { type: 'list', items: ['users에 **없는** user_id로 주문 INSERT → **에러**', '주문이 남아 있는 회원을 DELETE → **에러** (기본 RESTRICT)', '그래서 **넣을 땐 부모 먼저, 지울 땐 자식 먼저**', '`ON DELETE CASCADE`(부모 삭제 시 자식도 삭제), `ON DELETE SET NULL`(자식의 FK를 NULL로)로 바꿀 수 있어요'] },
+            { type: 'note', tone: 'tip', text: '현업에서는 성능이나 유연성 때문에 FK를 생략하기도 해요. 그러면 **앱이 무결성을 책임져야** 하고, 주인 없는 "고아 데이터"가 생기기 쉬워요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'ALTER, DROP, TRUNCATE',
       notionIds: ['3efdf951bf80817db4e8f62c8f32e1df'],
-      points: [
-        'ALTER TABLE t ADD COLUMN c 자료형 / MODIFY COLUMN c 새자료형(MySQL, 타입만) / CHANGE COLUMN old new 자료형(MySQL, 이름+타입) / RENAME COLUMN old TO new / DROP COLUMN c.',
-        'DROP TABLE t: 테이블 구조와 데이터를 모두 삭제. IF EXISTS를 붙이면 없을 때 에러를 내지 않는다.',
-        'TRUNCATE TABLE t: 구조는 남기고 모든 행을 빠르게 삭제(AUTO_INCREMENT도 초기화). DELETE FROM t(조건 없음)는 행을 하나씩 지우고 트랜잭션으로 되돌릴 수 있지만 느리다.',
-        '큰 운영 테이블의 ALTER는 테이블 잠금·재작성으로 오래 걸릴 수 있다. 사용량이 적은 시간에 하거나 온라인 스키마 변경 도구를 쓴다.',
-        'DESC t(또는 SHOW CREATE TABLE t)로 구조를 확인한다.',
+      slides: [
+        {
+          title: '구조 바꾸기',
+          blocks: [
+            { type: 'code', code: `ALTER TABLE products ADD COLUMN color VARCHAR(20);
+ALTER TABLE products MODIFY COLUMN color VARCHAR(50);                  -- 타입만 (MySQL)
+ALTER TABLE products CHANGE COLUMN modelnumber model_num VARCHAR(10) NOT NULL;  -- 이름+타입 (MySQL)
+ALTER TABLE products RENAME COLUMN color TO colour;
+ALTER TABLE products DROP COLUMN colour;
+
+DESC products;              -- 구조 확인 (또는 SHOW CREATE TABLE products)` },
+            { type: 'note', tone: 'warn', text: '큰 운영 테이블의 ALTER는 **테이블 잠금·재작성** 때문에 오래 걸릴 수 있어요. 그동안 서비스가 멈출 수도 있으니 사용량이 적은 시간에 하거나 온라인 스키마 변경 도구를 써요.' },
+          ],
+        },
+        {
+          title: '지우는 세 가지 방법',
+          blocks: [
+            {
+              type: 'table',
+              head: ['명령', '구조', '데이터', '특징'],
+              rows: [
+                ['`DROP TABLE t`', '**삭제**', '삭제', '테이블 자체가 사라짐. `IF EXISTS`로 없을 때 에러 방지'],
+                ['`TRUNCATE TABLE t`', '남음', '**전부 삭제**', '**빠름**, AUTO_INCREMENT도 **1부터 다시**'],
+                ['`DELETE FROM t`', '남음', '삭제 (조건 가능)', '한 행씩 지움. 느리지만 **트랜잭션으로 되돌릴 수 있음**'],
+              ],
+            },
+            { type: 'ask', q: '테스트 데이터를 싹 비우고 id도 1부터 다시 시작하고 싶어요. 무엇을 쓸까요?', a: '`TRUNCATE TABLE`이에요. 구조는 남기고 데이터를 빠르게 비우면서 AUTO_INCREMENT도 초기화해요.' },
+          ],
+        },
       ],
     },
   ],

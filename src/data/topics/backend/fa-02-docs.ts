@@ -9,54 +9,92 @@ const topic: Topic = {
   sections: [
     {
       title: 'OpenAPI 스펙이란',
-      points: [
-        'OpenAPI는 "이 API에는 어떤 경로가 있고, 각각 어떤 입력을 받고 어떤 출력을 주는지"를 JSON(또는 YAML)으로 적는 표준 형식이다.',
-        'FastAPI는 라우트·파라미터·타입 힌트·Pydantic 모델을 읽어 이 스펙을 자동으로 만들고 /openapi.json 에서 제공한다.',
-        '이 스펙 하나로 문서 화면(Swagger UI, ReDoc), 프론트용 API 클라이언트 코드 자동 생성(openapi-typescript 등), 테스트 도구 연동이 모두 가능하다.',
-        '코드가 바뀌면 스펙도 자동으로 바뀐다. 문서를 따로 손으로 고칠 필요가 없다.',
+      slides: [
+        {
+          title: 'API의 설명서를 표준 형식으로',
+          blocks: [
+            { type: 'say', text: 'FastAPI의 가장 큰 자랑, **자동 문서**를 배울 시간이에요. 그 바탕에는 **OpenAPI**라는 표준이 있어요.\n\nOpenAPI는 "이 API에는 어떤 경로가 있고, 각각 무엇을 받고 무엇을 돌려주는지"를 **JSON(또는 YAML)으로 적는 표준 형식**이에요.' },
+            { type: 'say', text: 'FastAPI는 우리가 쓴 **라우트·파라미터·타입 힌트·Pydantic 모델**을 읽어서 이 스펙을 자동으로 만들고, `/openapi.json`에서 보여 줘요. 코드를 고치면 스펙도 자동으로 바뀌니 **문서를 손으로 고칠 일이 없어요.**' },
+          ],
+        },
+        {
+          title: '스펙 하나로 할 수 있는 것들',
+          blocks: [
+            { type: 'list', items: ['**문서 화면** — Swagger UI(`/docs`), ReDoc(`/redoc`)', '**프론트용 코드 생성** — openapi-typescript 같은 도구가 스펙을 읽고 TypeScript 타입과 API 함수를 자동으로 만들어 줘요', '**테스트 도구 연동** — Postman 등에 스펙을 그대로 불러오기'] },
+            { type: 'note', tone: 'analogy', text: 'OpenAPI 스펙은 **레시피 원본**이에요. 이 원본 하나로 요리책(문서), 장보기 목록(프론트 타입), 주방 체크리스트(테스트)를 다 찍어 낼 수 있어요. 원본만 고치면 전부 같이 바뀌어요.' },
+            { type: 'ask', q: '프론트의 TypeScript 타입이 백엔드 모델과 자꾸 어긋나요. 근본적인 해결책은?', a: '백엔드의 `/openapi.json`에서 프론트 타입을 **자동 생성**하는 거예요. 손으로 옮겨 적지 않으니 어긋날 수가 없어요. 백엔드가 바뀌면 다시 생성만 하면 돼요.' },
+          ],
+        },
       ],
     },
     {
       title: 'Swagger UI (/docs)',
-      points: [
-        '/docs 로 들어가면 모든 엔드포인트가 목록으로 보이고, 각 항목을 펼쳐 "Try it out" → 값 입력 → "Execute"로 실제 요청을 보낼 수 있다.',
-        '요청 결과로 실제 응답 본문, 상태 코드, 응답 헤더, 그리고 같은 요청을 보내는 curl 명령까지 보여 준다. curl 명령을 복사해 터미널에서 다시 실행할 수 있다.',
-        '아래쪽 Schemas 영역에는 Pydantic 모델의 구조(필드, 타입, 필수 여부, 예시)가 정리돼 있다.',
-        '인증이 설정돼 있으면 오른쪽 위 Authorize 버튼으로 로그인 정보를 넣고 테스트할 수 있다.',
+      slides: [
+        {
+          title: '눌러 보는 문서',
+          blocks: [
+            { type: 'say', text: '서버를 켜고 `/docs`로 들어가면 모든 엔드포인트가 목록으로 나와요. 하나를 펼쳐서\n**Try it out → 값 입력 → Execute**\n를 누르면 **실제 요청**이 서버로 날아가요.' },
+            { type: 'list', items: ['실제 **응답 본문, 상태 코드, 응답 헤더**를 보여 줘요', '같은 요청을 보내는 **curl 명령**도 보여 줘서, 복사해 터미널에서 다시 실행할 수 있어요', '아래쪽 **Schemas**에는 Pydantic 모델의 구조(필드, 타입, 필수 여부, 예시)가 정리돼 있어요', '인증이 설정돼 있으면 오른쪽 위 **Authorize** 버튼으로 로그인 정보를 넣고 테스트해요'] },
+            { type: 'note', tone: 'tip', text: 'Swagger UI에서 보낸 요청도 진짜 요청이에요. uvicorn 터미널에 접근 로그가 똑같이 찍히고, POST를 보내면 DB에 진짜로 저장돼요.' },
+          ],
+        },
       ],
     },
     {
       title: 'ReDoc (/redoc)',
-      points: [
-        '/redoc 은 같은 OpenAPI 스펙을 "읽기 좋은 문서" 형태로 보여 준다. 왼쪽 목차, 가운데 설명, 오른쪽 예시 구조다.',
-        'Swagger UI는 "직접 눌러 보는 테스트 도구", ReDoc은 "외부 공유용 문서"에 어울린다.',
-        'ReDoc에는 요청을 보내는 Try it out 기능이 없다.',
+      slides: [
+        {
+          title: '읽기 좋은 문서',
+          blocks: [
+            { type: 'say', text: '`/redoc`은 **같은 OpenAPI 스펙**을 읽기 좋은 문서 모양으로 보여 줘요. 왼쪽 목차, 가운데 설명, 오른쪽 예시 구조예요.' },
+            {
+              type: 'table',
+              head: ['', 'Swagger UI `/docs`', 'ReDoc `/redoc`'],
+              rows: [
+                ['성격', '**직접 눌러 보는 테스트 도구**', '**외부 공유용 문서**'],
+                ['요청 보내기', 'O (Try it out)', '**X**'],
+                ['원본', 'OpenAPI 스펙', '같은 OpenAPI 스펙'],
+              ],
+            },
+          ],
+        },
       ],
     },
     {
       title: '문서를 풍부하게 만드는 방법',
-      points: [
-        'FastAPI(title=..., description=..., version=...) 로 문서 맨 위 정보를 바꾼다.',
-        '라우트 데코레이터에 tags=["users"] 를 주면 문서에서 그룹으로 묶인다. summary="...", description="...", response_description="..." 로 설명을 붙인다. 함수의 docstring도 description으로 쓰인다.',
-        'Pydantic 필드에 Field(description="...", examples=[...]) 를 주면 스키마 문서에 설명과 예시가 들어간다.',
-        'deprecated=True 를 주면 문서에 줄이 그어진 채로 "곧 없어질 API"라고 표시된다. include_in_schema=False 를 주면 문서에서 숨긴다(동작은 그대로).',
-        '운영에서 문서를 숨기려면 FastAPI(docs_url=None, redoc_url=None) 로 끈다. openapi_url=None 이면 스펙 자체도 사라진다.',
-      ],
-      code: `app = FastAPI(
+      slides: [
+        {
+          title: '제목, 태그, 설명',
+          blocks: [
+            { type: 'code', code: `app = FastAPI(
     title="Remind API",
     description="복습 기록 동기화 API",
     version="1.0.0",
-    docs_url="/docs",        # None 이면 Swagger UI 끔
 )
 
 @app.get("/users/{user_id}", tags=["users"], summary="사용자 한 명 조회")
 def read_user(user_id: int):
-    """id로 사용자를 찾는다. 없으면 404."""
-    ...
+    """id로 사용자를 찾는다. 없으면 404."""     # ← docstring 도 설명으로
+    ...` },
+            { type: 'list', items: ['`FastAPI(title, description, version)` → 문서 맨 위 정보', '`tags=["users"]` → 문서에서 **그룹으로 묶임**', '`summary`, `description`, `response_description` → 설명 붙이기. 함수의 **docstring**도 설명으로 쓰여요', 'Pydantic 필드에 `Field(description=..., examples=[...])` → 스키마에 설명과 예시'] },
+          ],
+        },
+        {
+          title: '사용 중단 표시와 문서 숨기기',
+          blocks: [
+            { type: 'code', code: `@app.get("/v1/items", deprecated=True)            # 줄 그어진 채로 "곧 없어질 API"
+def old_items(): ...
 
-@app.get("/internal/ping", include_in_schema=False)
+@app.get("/internal/ping", include_in_schema=False) # 문서에서만 숨김 (동작은 그대로)
 def ping():
-    return "pong"`,
+    return "pong"
+
+app = FastAPI(docs_url=None, redoc_url=None)       # 운영에서 문서 화면 끄기
+# openapi_url=None 이면 /openapi.json 스펙 자체도 사라짐` },
+            { type: 'note', tone: 'warn', text: '`include_in_schema=False`는 **문서에서만** 안 보이게 할 뿐, 주소를 아는 사람은 여전히 호출할 수 있어요. 보안 장치가 아니에요. 막아야 하는 API라면 인증을 걸어야 해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

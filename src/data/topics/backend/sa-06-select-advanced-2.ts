@@ -9,13 +9,11 @@ const topic: Topic = {
   sections: [
     {
       title: '집계 함수와 group_by',
-      points: [
-        'func.count(), func.sum(), func.avg(), func.max(), func.min() 로 집계한다. func.이름(...) 은 같은 이름의 SQL 함수를 만든다.',
-        'select(Post.author_id, func.count(Post.id)).group_by(Post.author_id) → 작성자별 글 수. 결과는 (author_id, count) Row다.',
-        '집계 결과에 조건을 걸 때는 where가 아니라 having을 쓴다. where는 묶기 전 행을 거르고, having은 묶은 뒤 그룹을 거른다.',
-        '집계 결과에 이름을 붙이려면 .label("post_count"). 정렬에도 그 이름(또는 표현식)을 쓴다.',
-      ],
-      code: `from sqlalchemy import func, desc
+      slides: [
+        {
+          title: 'SQL의 GROUP BY를 파이썬으로',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import func, desc
 
 post_count = func.count(Post.id).label("post_count")
 stmt = (
@@ -26,42 +24,53 @@ stmt = (
     .order_by(desc("post_count"))
 )
 for row in db.execute(stmt):
-    print(row.author_id, row.post_count)`,
+    print(row.author_id, row.post_count)` },
+            { type: 'say', text: '`func.이름(...)`은 **같은 이름의 SQL 함수**를 만들어요. `func.count`, `func.sum`, `func.avg`, `func.max`… SQL 수업의 집계 그대로예요.\n\n`.label("post_count")`로 이름을 붙이면 결과 Row에서 `row.post_count`로 꺼낼 수 있고, 정렬에도 그 이름을 써요.' },
+            { type: 'note', tone: 'tip', text: '"글을 5개 이상 쓴 작성자"는 **집계 결과**에 거는 조건이니 `having`이에요. `where`는 묶기 **전** 개별 행을 거르는 곳이라 COUNT를 모르거든요. sql-04의 WHERE vs HAVING과 똑같아요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'relationship 정의',
-      points: [
-        'relationship은 FK로 연결된 객체를 속성처럼 탐색하게 해 준다. post.author(다대일), user.posts(일대다).',
-        '양쪽에 relationship을 두고 back_populates로 서로를 가리키게 하면, 한쪽을 바꿀 때 다른 쪽도 메모리에서 함께 맞춰진다.',
-        '일대다의 "다" 쪽 타입은 Mapped[list["Post"]], 다대일은 Mapped["User"]. 문자열로 클래스 이름을 쓰면 아직 정의되지 않은 클래스도 가리킬 수 있다.',
-        'cascade="all, delete-orphan": 부모 삭제 시 자식도 ORM이 삭제하고, 부모에서 떼어 낸 자식(고아)도 삭제한다. 주문-주문항목처럼 생명 주기가 같은 관계에 쓴다.',
-        '다대다는 연결 테이블(association table)을 두고 relationship(secondary=연결테이블)로 표현한다. 연결 자체에 데이터(좋아요 누른 시각 등)가 있으면 연결 테이블을 별도 모델로 만든다.',
-      ],
-      code: `from sqlalchemy.orm import relationship
+      slides: [
+        {
+          title: '객체에서 객체로 걸어가기',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
     id: Mapped[int] = mapped_column(primary_key=True)
-    posts: Mapped[list["Post"]] = relationship(back_populates="author")
+    posts: Mapped[list["Post"]] = relationship(back_populates="author")   # 일대다
 
 class Post(Base):
     __tablename__ = "posts"
     id: Mapped[int] = mapped_column(primary_key=True)
     author_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
-    author: Mapped["User"] = relationship(back_populates="posts")
+    author: Mapped["User"] = relationship(back_populates="posts")         # 다대일
     comments: Mapped[list["Comment"]] = relationship(
         back_populates="post", cascade="all, delete-orphan"
-    )`,
+    )` },
+            { type: 'say', text: 'FK는 DB에 "이 글의 작성자는 3번"이라고 적어 둔 숫자일 뿐이에요. **relationship**을 정의하면 `post.author`(작성자 객체), `user.posts`(글 리스트)처럼 **객체에서 객체로 걸어갈** 수 있어요.\n\n"다" 쪽은 `Mapped[list["Post"]]`, "일" 쪽은 `Mapped["User"]`. 클래스 이름을 **문자열**로 쓰면 아직 정의되지 않은 클래스도 가리킬 수 있어요.' },
+          ],
+        },
+        {
+          title: 'back_populates와 cascade',
+          blocks: [
+            { type: 'say', text: '**`back_populates`** 로 양쪽을 서로 연결하면, 한쪽을 바꿀 때 **다른 쪽도 메모리에서 함께** 맞춰져요. `post.author = user`라고 하면 commit 전이라도 `user.posts`에 post가 들어 있어요.\n\n**`cascade="all, delete-orphan"`** 은 부모를 지우면 자식도 ORM이 지우고, 부모에서 **떼어 낸 자식(고아)** 도 지워요. 주문과 주문 항목처럼 **생명 주기가 같은** 관계에 써요. 주문 없는 주문 항목은 의미가 없으니까요.' },
+            { type: 'note', tone: 'tip', text: '**다대다**(글 ↔ 태그)는 연결 테이블을 두고 `relationship(secondary=연결테이블)`로 표현해요. 그런데 연결 자체에 데이터(태그를 붙인 **시각**)가 있으면, 연결 테이블을 **별도 모델**(PostTag)로 만들어 일대다 두 개로 풀어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'join으로 함께 조회하기',
-      points: [
-        'select(Post).join(Post.author) 는 relationship을 따라 INNER JOIN을 만든다. 조인한 테이블의 컬럼으로 조건을 걸 수 있다: .where(User.nickname == "kim").',
-        'outerjoin 은 LEFT OUTER JOIN이다. 댓글이 없는 글도 포함해야 할 때 쓴다.',
-        'select(Post, User).join(Post.author) 처럼 두 엔티티를 함께 고르면 Row(Post, User)가 나온다.',
-        '주의: join은 "조건과 필터링"을 위한 것이다. join만 했다고 post.author가 미리 채워지지는 않는다. 관계를 미리 채우는 것은 아래의 로딩 옵션이다.',
-      ],
-      code: `# kim 이 쓴 글
+      slides: [
+        {
+          title: 'relationship을 따라 JOIN',
+          blocks: [
+            { type: 'code', code: `# kim 이 쓴 글
 stmt = select(Post).join(Post.author).where(User.nickname == "kim")
 
 # 글별 댓글 수 (댓글 0개 글 포함)
@@ -69,18 +78,34 @@ stmt = (
     select(Post.id, Post.title, func.count(Comment.id).label("comment_count"))
     .outerjoin(Post.comments)
     .group_by(Post.id, Post.title)
-)`,
+)
+
+# 두 엔티티 함께: Row(Post, User)
+rows = db.execute(select(Post, User).join(Post.author)).all()` },
+            { type: 'say', text: '`.join(Post.author)`는 relationship을 따라 **INNER JOIN**을 만들어요. 그러면 **조인한 테이블의 컬럼**(`User.nickname`)으로 조건을 걸 수 있어요. 댓글이 없는 글도 포함하려면 **`outerjoin`** (LEFT OUTER JOIN)이에요.' },
+            { type: 'note', tone: 'warn', text: 'join은 **조건과 필터링**을 위한 거예요. `select(Post).join(Post.author)`만 했다고 `post.author`가 **미리 채워지진 않아요.** 나중에 `post.author`에 접근하면 또 쿼리가 나가요. 미리 채우는 건 다음 개념의 **로딩 옵션**이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'N+1 문제와 로딩 전략',
-      points: [
-        '기본 관계 로딩은 lazy(지연 로딩)다. post.author에 처음 접근하는 순간 SELECT가 나간다.',
-        'N+1: 글 목록 1번 조회(1) + 각 글의 작성자 접근마다 1번씩(N). 글 20개면 21번 쿼리다. 응답 모델에 author를 중첩하면 변환 중에 숨어서 일어난다.',
-        'selectinload(Post.author): 목록을 가져온 뒤 "WHERE id IN (...)" 쿼리 하나로 관련 객체를 한 번에 가져온다. 총 2번. 일대다(user.posts, post.comments)에 특히 좋다.',
-        'joinedload(Post.author): JOIN으로 한 번에 가져온다. 다대일(post.author)에 잘 맞는다. 일대다에 쓰면 부모 행이 자식 수만큼 늘어나 중복이 생기므로 .unique() 가 필요하다.',
-        'raiseload: 지연 로딩이 일어나면 에러를 내게 해서 N+1을 개발 중에 바로 발견하게 한다.',
-      ],
-      code: `from sqlalchemy.orm import selectinload, joinedload
+      slides: [
+        {
+          title: '21번의 쿼리',
+          blocks: [
+            { type: 'code', code: `posts = db.scalars(select(Post).limit(20)).all()   # 1번
+for p in posts:
+    print(p.author.nickname)                         # 글마다 1번씩 → 20번
+# 합계 21번` },
+            { type: 'say', text: '관계는 기본이 **지연 로딩(lazy)** 이에요. `post.author`에 **처음 접근하는 순간** SELECT가 나가요. 그래서 목록 1번 + 글마다 작성자 1번씩 = **N+1**번 쿼리가 나가요.\n\n응답 모델에 `author: UserSummary`를 중첩하면, FastAPI가 응답을 만들며 `post.author`를 읽는 순간 **숨어서** 일어나요. echo 로그에 SELECT가 21번 찍히면 의심하세요.' },
+            { type: 'note', tone: 'analogy', text: '반 친구 20명의 부모님 연락처가 필요할 때, 한 명씩 **20번 교무실에 가서** 묻는 게 N+1이에요. "이 20명 부모님 연락처 **한꺼번에** 주세요" 하고 **한 번만** 가면 되죠.' },
+          ],
+        },
+        {
+          title: 'selectinload와 joinedload',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy.orm import selectinload, joinedload
 
 stmt = (
     select(Post)
@@ -89,22 +114,40 @@ stmt = (
     .limit(20)
 )
 posts = db.scalars(stmt).unique().all()   # joinedload 와 함께면 unique()
-# 쿼리: 글+작성자 JOIN 1번 + 댓글 IN 1번 = 2번`,
+# 쿼리: 글+작성자 JOIN 1번 + 댓글 IN 1번 = 2번` },
+            {
+              type: 'table',
+              head: ['옵션', '방식', '잘 맞는 관계'],
+              rows: [
+                ['`selectinload`', '목록을 가져온 뒤 **`WHERE id IN (...)` 쿼리 하나**로 한꺼번에', '**일대다** (user.posts, post.comments)'],
+                ['`joinedload`', '**JOIN으로** 한 번에', '**다대일** (post.author). 일대다에 쓰면 행이 늘어나 `.unique()` 필요'],
+                ['`raiseload`', '지연 로딩이 일어나면 **에러**', '개발 중 N+1 바로 발견'],
+              ],
+            },
+          ],
+        },
+      ],
     },
     {
       title: '서브쿼리',
-      points: [
-        '쿼리 안의 쿼리. .subquery() 로 만들어 다른 select의 FROM처럼 쓰거나, .scalar_subquery() 로 값 하나를 돌려주는 식으로 쓴다.',
-        '예: 평균보다 조회수가 높은 글 → where(Post.views > select(func.avg(Post.views)).scalar_subquery()).',
-        '"댓글이 하나라도 있는 글"은 exists() 로 표현한다: where(exists().where(Comment.post_id == Post.id)). 관계가 있으면 Post.comments.any() 가 같은 SQL을 만든다.',
-      ],
-      code: `from sqlalchemy import exists
+      slides: [
+        {
+          title: '쿼리 안의 쿼리',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import exists
 
+# 값 하나를 돌려주는 서브쿼리
 avg_views = select(func.avg(Post.views)).scalar_subquery()
 popular = select(Post).where(Post.views > avg_views)
 
-has_comment = select(Post).where(Post.comments.any())          # EXISTS 서브쿼리
-no_comment = select(Post).where(~Post.comments.any())`,
+# 존재 여부
+has_comment = select(Post).where(Post.comments.any())     # EXISTS 서브쿼리
+no_comment  = select(Post).where(~Post.comments.any())
+# 관계가 없다면: where(exists().where(Comment.post_id == Post.id))` },
+            { type: 'list', items: ['`.scalar_subquery()` — **값 하나**를 돌려주는 서브쿼리 (평균 조회수)', '`.subquery()` — 다른 select의 **FROM처럼** 쓰는 서브쿼리', '`Post.comments.any()` — relationship이 있으면 **EXISTS**를 만들어 줘요. "댓글이 하나라도 있는 글"을 JOIN + DISTINCT보다 효율적으로 찾아요'] },
+          ],
+        },
+      ],
     },
   ],
   questions: [

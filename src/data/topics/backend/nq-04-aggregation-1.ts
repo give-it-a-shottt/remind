@@ -10,64 +10,132 @@ const topic: Topic = {
     {
       title: '파이프라인의 개념',
       notionIds: ['3efdf951bf80812abe25e63b8fb84cf2'],
-      points: [
-        'find()로 어려운 그룹핑·집계·가공은 aggregate([스테이지1, 스테이지2, ...])로 한다. 앞 스테이지의 결과 문서들이 다음 스테이지의 입력이 된다(유닉스 파이프 | 와 같은 개념).',
-        '스테이지는 적은 순서대로 실행된다. find 커서(sort → skip → limit 고정)와 다르다.',
-        '주요 스테이지: $match(거르기), $group(묶어 집계), $sort, $limit, $skip, $count, $unwind(배열 풀기), $project(모양 바꾸기), $lookup(다른 컬렉션 조인).',
-        '성능 원칙: $match와 $sort를 가능한 한 앞에 둔다. 앞에서 문서 수를 줄이면 뒤 스테이지가 가벼워지고, 맨 앞의 $match·$sort는 인덱스를 쓸 수 있다.',
-        '샤딩 환경에서는 각 서버가 자기 데이터를 먼저 집계하고 합치므로 대용량 데이터에 유리하다.',
-      ],
-      code: `db.books.aggregate([
+      slides: [
+        {
+          title: '스테이지를 이어 붙이기',
+          blocks: [
+            { type: 'say', text: 'find로 어려운 **그룹핑·집계·가공**은 `aggregate([스테이지1, 스테이지2, ...])`로 해요. **앞 스테이지의 결과 문서들이 다음 스테이지의 입력**이 돼요. 공장의 컨베이어 벨트처럼요.' },
+            { type: 'code', code: `db.books.aggregate([
   { $match: { year: { $gte: 2022 } } },   // 1) 거르기
   { $count: "recent_books" }              // 2) 세기
 ])
-// → [ { recent_books: 12 } ]`,
+// → [ { recent_books: 12 } ]` },
+            {
+              type: 'table',
+              head: ['스테이지', 'SQL로 치면'],
+              rows: [
+                ['`$match`', 'WHERE (뒤에 오면 HAVING)'],
+                ['`$group`', 'GROUP BY'],
+                ['`$sort`, `$limit`, `$skip`', 'ORDER BY, LIMIT, OFFSET'],
+                ['`$project`', 'SELECT (모양 바꾸기)'],
+                ['`$lookup`', 'JOIN'],
+                ['`$unwind`', '배열 펼치기 (SQL엔 없음)'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '순서가 곧 성능',
+          blocks: [
+            { type: 'say', text: '스테이지는 **적은 순서대로** 실행돼요. find 커서(항상 sort → skip → limit)와 달라요.\n\n그래서 성능 원칙이 있어요. **`$match`와 `$sort`를 가능한 한 앞에** 둬요. 앞에서 문서 수를 줄이면 뒤 스테이지가 가벼워지고, **맨 앞의** $match·$sort는 **인덱스**를 쓸 수 있어요. sql-04의 "WHERE로 미리 거르는 게 HAVING보다 효율적"과 같은 원리예요.' },
+            { type: 'note', tone: 'tip', text: '샤딩(데이터를 여러 서버에 나눠 저장) 환경에서는 각 서버가 **자기 데이터를 먼저 집계하고 합쳐서** 대용량 데이터에 유리해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '$group과 누산기',
       notionIds: ['3efdf951bf80812abe25e63b8fb84cf2'],
-      points: [
-        '{ $group: { _id: "$그룹기준필드", 결과필드: { 누산기: "$필드" } } }. 필드 값을 가리킬 때는 이름 앞에 $를 붙인다("$author").',
-        '_id: null 이면 전체를 하나의 그룹으로 묶는다(전체 합계·평균). 여러 필드 기준이면 _id: { year: "$year", author: "$author" }.',
-        '누산기: $sum: 1(개수), $sum: "$pages"(합계), $avg, $min, $max, $push(값들을 배열로, 중복 포함), $addToSet(중복 없이), $first/$last(그룹 안 첫·마지막 값, 앞에 $sort가 있어야 의미가 있다).',
-        'SQL 대응: $group = GROUP BY, 누산기 = 집계 함수, $match(뒤에 오는) = HAVING.',
-      ],
-      code: `// 작가별 책 수와 총 페이지, 많은 순 상위 3명
+      slides: [
+        {
+          title: '_id가 묶음 기준',
+          blocks: [
+            { type: 'code', code: `// 작가별 책 수와 총 페이지, 많은 순 상위 3명
 db.books.aggregate([
   { $group: { _id: "$author", books: { $sum: 1 }, pages: { $sum: "$pages" } } },
   { $sort: { pages: -1 } },
   { $limit: 3 }
-])`,
+])` },
+            { type: 'say', text: '`{ $group: { _id: "$그룹기준", 결과필드: { 누산기: "$필드" } } }`. 필드 **값**을 가리킬 땐 이름 앞에 **`$`** 를 붙여요(`"$author"`). 안 붙이면 그냥 글자 "author"예요.\n• `_id: null` → 전체를 **하나의 그룹**으로 (전체 평균: `{ _id: null, avg: { $avg: "$pages" } }`)\n• 여러 필드 기준 → `_id: { year: "$year", author: "$author" }`' },
+          ],
+        },
+        {
+          title: '누산기',
+          blocks: [
+            {
+              type: 'table',
+              head: ['누산기', '결과'],
+              rows: [
+                ['`$sum: 1`', '**개수** (문서마다 1씩 더함)'],
+                ['`$sum: "$pages"`', '합계'],
+                ['`$avg`, `$min`, `$max`', '평균, 최소, 최대'],
+                ['`$push`', '값들을 배열로 (**중복 포함**)'],
+                ['`$addToSet`', '값들을 배열로 (**중복 없이**)'],
+                ['`$first` / `$last`', '그룹 안 첫·마지막 값 (앞에 **$sort가 있어야** 의미 있음)'],
+              ],
+            },
+            { type: 'code', code: `// SQL: SELECT author, COUNT(*) FROM books GROUP BY author HAVING COUNT(*) >= 3
+db.books.aggregate([
+  { $group: { _id: "$author", n: { $sum: 1 } } },
+  { $match: { n: { $gte: 3 } } }          // $group 뒤의 $match = HAVING
+])` },
+          ],
+        },
+      ],
     },
     {
       title: '$sort + $group + $first 패턴',
       notionIds: ['3efdf951bf80812abe25e63b8fb84cf2'],
-      points: [
-        '"그룹별 최고 1개"(연도별 평점 1위 책)는 먼저 $sort로 그룹 기준과 순위 기준을 정렬하고, $group에서 $first로 첫 값을 고른다.',
-        '$first/$last는 앞선 정렬에 의존한다. 정렬 없이 쓰면 결과가 매번 달라질 수 있다.',
-        '최신 버전에는 $top, $topN, $bottomN 같은 누산기가 있어 정렬 기준을 누산기 안에 넣을 수 있다.',
-      ],
-      code: `db.books.aggregate([
-  { $sort: { year: 1, rating: -1 } },
-  { $group: { _id: "$year", best: { $first: "$title" }, rating: { $first: "$rating" } } },
+      slides: [
+        {
+          title: '그룹별 1등 뽑기',
+          blocks: [
+            { type: 'code', code: `// 연도별 평점이 가장 높은 책
+db.books.aggregate([
+  { $sort: { year: 1, rating: -1 } },                    // ① 연도별로, 평점 높은 순
+  { $group: { _id: "$year",
+              best: { $first: "$title" },               // ② 각 연도의 첫 번째 = 1등
+              rating: { $first: "$rating" } } },
   { $sort: { _id: 1 } }
-])`,
+])` },
+            { type: 'say', text: '"그룹별 최고 1개"는 **먼저 정렬**하고, `$group`에서 **`$first`** 로 첫 값을 골라요. sql-04의 윈도우 함수 `ROW_NUMBER() ... WHERE rn = 1`과 같은 문제를 푸는 MongoDB 방식이에요.' },
+            { type: 'note', tone: 'warn', text: '`$first`/`$last`는 **앞선 정렬에 의존**해요. `$sort` 없이 쓰면 "첫 번째"가 아무 문서나 될 수 있어서 결과가 매번 달라질 수 있어요(sql-03의 "ORDER BY 없으면 순서 보장 없음"). 최신 버전엔 정렬 기준을 누산기 안에 넣는 `$top`, `$topN`도 있어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '$unwind와 타입 주의',
       notionIds: ['3efdf951bf80812abe25e63b8fb84cf2'],
-      points: [
-        '$unwind: "$genres" 는 배열 필드를 원소별 문서로 펼친다. genres: ["소설", "역사"]인 책 1권 → genres가 "소설"인 문서 + "역사"인 문서 2개.',
-        '배열 필드를 그대로 _id로 묶으면 배열 전체가 그룹 기준이 된다. 장르별 책 수를 세려면 먼저 $unwind 해야 한다.',
-        '빈 배열이나 필드가 없는 문서는 $unwind에서 사라진다. 남기려면 { $unwind: { path: "$genres", preserveNullAndEmptyArrays: true } }.',
-        '스키마가 없어서 같은 필드에 숫자와 문자열이 섞여 있을 수 있다(평점이 ""인 문서). $avg는 숫자가 아닌 값을 무시하고, 비교·정렬은 타입 순서가 섞여 이상해진다. { $match: { rating: { $type: "number" } } }로 거르거나 $toDouble로 변환한다.',
-      ],
-      code: `// 장르별 책 수
+      slides: [
+        {
+          title: '배열을 원소별 문서로',
+          blocks: [
+            { type: 'code', code: `// { title: "A", genres: ["소설", "역사"] }  1권
+//   → $unwind: "$genres" →
+// { title: "A", genres: "소설" }
+// { title: "A", genres: "역사" }            2개 문서
+
+// 장르별 책 수
 db.books.aggregate([
   { $unwind: "$genres" },
   { $group: { _id: "$genres", count: { $sum: 1 } } },
   { $sort: { count: -1 } }
-])`,
+])` },
+            { type: 'say', text: '`$unwind`는 배열 필드를 **원소별 문서로 펼쳐요.** 장르별 책 수를 세려면 **먼저 펼쳐야** 해요. `$unwind` 없이 `_id: "$genres"`로 묶으면 `["소설", "역사"]` **배열 전체**가 하나의 그룹 기준이 돼서, "소설+역사 조합" 같은 엉뚱한 그룹이 생겨요.' },
+            { type: 'note', tone: 'warn', text: '**빈 배열이나 필드가 없는** 문서는 `$unwind`에서 **사라져요.** 남기려면 `{ $unwind: { path: "$genres", preserveNullAndEmptyArrays: true } }`.' },
+          ],
+        },
+        {
+          title: '스키마가 없어서 생기는 타입 문제',
+          blocks: [
+            { type: 'say', text: '스키마가 없어서 같은 필드에 **숫자와 문자열이 섞일** 수 있어요. 크롤링 데이터에서 평점이 `""`(빈 문자열)인 문서처럼요.\n• `$avg`는 숫자가 아닌 값을 **조용히 무시**해요\n• 비교·정렬은 **타입 순서**가 섞여서 이상해져요' },
+            { type: 'code', code: `{ $match: { rating: { $type: "number" } } }      // 숫자만 거르기
+{ $addFields: { rating: { $toDouble: "$rating" } } }   // 또는 변환` },
+            { type: 'say', text: '근본 해결은 dbd-13의 **데이터 클렌징**이에요. 저장하기 **전에** 검증·정리하는 단계를 파이프라인에 넣어요. "스키마가 없다 = 검증을 내가 해야 한다"를 다시 확인하는 장면이에요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

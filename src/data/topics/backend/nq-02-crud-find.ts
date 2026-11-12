@@ -10,56 +10,110 @@ const topic: Topic = {
     {
       title: '삽입',
       notionIds: ['3efdf951bf80818c81ecdeb74d4faaca'],
-      points: [
-        'insertOne({...}): 문서 하나. insertMany([{...}, {...}]): 여러 개. 결과로 생성된 _id(들)를 돌려준다.',
-        '스키마가 없으므로 같은 컬렉션에 필드가 다른 문서를 넣을 수 있다. 예: city가 없는 회원.',
-        'insertMany는 기본적으로 순서대로(ordered) 넣다가 에러가 나면 멈춘다. { ordered: false }면 실패한 것만 건너뛰고 계속한다.',
-      ],
-      code: `db.members.insertMany([
+      slides: [
+        {
+          title: 'insertOne, insertMany',
+          blocks: [
+            { type: 'code', code: `db.members.insertMany([
   { name: "김민준", age: 28, city: "서울" },
   { name: "이서연", age: 34, city: "부산" },
-  { name: "박지훈", age: 22 }                  // city 없음
-])`,
+  { name: "박지훈", age: 22 }                  // city 없음 (스키마가 없으니 OK)
+])` },
+            { type: 'say', text: '`insertOne({...})`은 하나, **`insertMany([...])`** 는 여러 개. 결과로 생성된 `_id`(들)를 돌려줘요. 스키마가 없어서 같은 컬렉션에 **필드가 다른** 문서를 넣을 수 있어요.\n\n`insertMany`는 기본이 **순서대로(ordered)** 넣다가 에러가 나면 **멈춰요.** 1만 개 중 500번째가 중복 `_id`로 실패하면 **앞의 499개는 들어가고** 501번째부터는 안 들어가요. `{ ordered: false }`면 실패한 것만 건너뛰고 계속해요.' },
+            { type: 'note', tone: 'tip', text: 'sa-03의 "하나의 commit으로 1,000개 넣다 실패하면 전부 롤백"과 비교해 보세요. MongoDB의 insertMany는 **트랜잭션이 아니라서** 앞부분은 이미 들어가 있어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'find와 projection',
       notionIds: ['3efdf951bf80818c81ecdeb74d4faaca'],
-      points: [
-        'db.컬렉션.find({ 조건 }, { projection }). 조건이 {}면 전체. findOne()은 첫 문서 하나.',
-        'projection: 1은 포함, 0은 제외. _id는 기본으로 포함되므로 빼려면 _id: 0. 포함과 제외를 섞을 수 없다(_id만 예외).',
-        'SQL 대응: find() = SELECT *, find({}, { name: 1, city: 1, _id: 0 }) = SELECT name, city, find({ city: "서울" }) = WHERE city = \'서울\'.',
-        'find()는 결과 전체가 아니라 커서(cursor)를 돌려준다. 반복하면서 일정 개수씩 서버에서 가져온다.',
-        '임베디드 필드는 점 표기로 조회한다: find({ "address.city": "서울" }). 따옴표가 필요하다.',
+      slides: [
+        {
+          title: 'find(조건, 보여줄 필드)',
+          blocks: [
+            {
+              type: 'table',
+              head: ['MongoDB', 'SQL'],
+              rows: [
+                ['`find()`', '`SELECT *`'],
+                ['`find({}, { name: 1, city: 1, _id: 0 })`', '`SELECT name, city`'],
+                ['`find({ city: "서울" })`', '`WHERE city = \'서울\'`'],
+                ['`findOne(...)`', '첫 문서 하나'],
+              ],
+            },
+            { type: 'say', text: '두 번째 인자 **projection**: `1`은 포함, `0`은 제외. **`_id`는 기본으로 포함**되니 빼려면 `_id: 0`. 포함과 제외를 **섞을 수 없어요**(`_id`만 예외).' },
+          ],
+        },
+        {
+          title: '점 표기와 커서',
+          blocks: [
+            { type: 'code', code: `db.users.find({ "address.city": "Seoul" })     // 임베디드 필드 — 따옴표 필수` },
+            { type: 'say', text: '임베디드 문서 안의 필드는 **점 표기**로 찾아요. 키에 점이 들어가니 **따옴표가 필요**해요.\n\n`find()`는 결과 전체가 아니라 **커서(cursor)** 를 돌려줘요. 반복하면서 **일정 개수씩** 서버에서 가져와요. 결과가 백만 개여도 한꺼번에 메모리에 올리지 않아요. sa-04의 "scalars().all()은 전부 메모리에"와 대조돼요.' },
+          ],
+        },
       ],
-      code: `db.members.find({ city: "서울" }, { _id: 0, name: 1, age: 1 })
-db.users.find({ "address.city": "Seoul" })`,
     },
     {
       title: '비교 연산자',
       notionIds: ['3efdf951bf80818c81ecdeb74d4faaca'],
-      points: [
-        '$eq(같음), $ne(다름), $gt(초과), $gte(이상), $lt(미만), $lte(이하). 사용법: { age: { $gte: 20, $lt: 30 } }.',
-        '$in: 배열 값 중 하나와 같으면. $nin: 어느 것과도 같지 않으면. { city: { $in: ["서울", "부산"] } }.',
-        '{ age: 30 } 은 { age: { $eq: 30 } } 의 줄임이다.',
-        '$ne와 $nin은 그 필드가 아예 없는 문서도 결과에 포함한다. { city: { $ne: "서울" } } 은 city가 없는 박지훈도 나온다.',
+      slides: [
+        {
+          title: '$로 시작하는 연산자',
+          blocks: [
+            {
+              type: 'table',
+              head: ['연산자', '뜻', 'SQL'],
+              rows: [
+                ['`$eq` / `$ne`', '같음 / 다름', '`=` / `<>`'],
+                ['`$gt` / `$gte`', '초과 / 이상', '`>` / `>=`'],
+                ['`$lt` / `$lte`', '미만 / 이하', '`<` / `<=`'],
+                ['`$in` / `$nin`', '목록 중 하나 / 어느 것도 아님', '`IN` / `NOT IN`'],
+              ],
+            },
+            { type: 'code', code: `db.members.find({ age: { $gte: 20, $lt: 30 } })          // 20 이상 30 미만
+db.members.find({ city: { $in: ["서울", "부산"] } })
+db.members.find({ age: 30 })                              // = { age: { $eq: 30 } }` },
+            { type: 'say', text: 'FastAPI의 `Path(ge=1)`에서 본 **gt, ge, lt, le**와 같은 이름이에요(fa-03). 앞에 `$`만 붙었어요.' },
+          ],
+        },
+        {
+          title: '$ne의 함정',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '`$ne`와 `$nin`은 그 필드가 **아예 없는 문서도** 결과에 포함해요. `{ city: { $ne: "서울" } }`을 하면 부산의 이서연뿐 아니라 **city가 없는 박지훈**도 나와요. "서울이 아닌 곳에 산다"가 아니라 "city가 서울이 **아니다**(없는 것도 서울은 아니니까)"로 동작해요. SQL에선 NULL이 `<>`에 안 걸리는 것과 반대라 헷갈리기 쉬워요.' },
+          ],
+        },
       ],
     },
     {
       title: '논리 연산자와 존재 확인',
       notionIds: ['3efdf951bf80818c81ecdeb74d4faaca'],
-      points: [
-        '같은 객체 안에 조건을 여러 개 쓰면 기본이 AND다: { city: "서울", age: { $lt: 30 } }. 그래서 $and는 대부분 생략한다.',
-        '$and가 꼭 필요한 경우: 같은 필드에 같은 연산자를 두 번 써야 할 때(객체 키가 겹치므로), 또는 $or 두 개를 AND로 묶을 때.',
-        '$or: [ {조건1}, {조건2} ]. $nor: 모두 아닌 것. $not: 연산자 결과 뒤집기 { age: { $not: { $gt: 30 } } }(필드가 없는 문서도 포함).',
-        '$exists: { city: { $exists: true } } 는 city 필드가 있는 문서. 값이 null인 필드도 "존재"로 본다. null과 "필드 없음"을 구분하려면 $exists와 $type을 함께 쓴다.',
-      ],
-      code: `// 서울 사는 30세 미만 또는 부산 사는 사람
+      slides: [
+        {
+          title: 'AND는 기본, OR는 $or',
+          blocks: [
+            { type: 'code', code: `// AND: 같은 객체 안에 여러 조건
+db.members.find({ city: "서울", age: { $lt: 30 } })
+
+// OR: 서울 사는 30세 미만 또는 부산 사는 사람
 db.members.find({
   $or: [
     { city: "서울", age: { $lt: 30 } },
     { city: "부산" }
   ]
-})`,
+})` },
+            { type: 'say', text: '같은 객체 안에 조건을 여러 개 쓰면 기본이 **AND**라서 `$and`는 대부분 생략해요. `$and`가 꼭 필요한 건\n• 같은 필드에 같은 연산자를 **두 번** 써야 할 때 (객체 키가 겹치니까)\n• **`$or` 두 개**를 AND로 묶을 때\n\n그 밖에 `$nor`(모두 아님), `$not`(연산자 결과 뒤집기)이 있어요.' },
+          ],
+        },
+        {
+          title: '$exists와 $not의 함정',
+          blocks: [
+            { type: 'code', code: `db.members.find({ city: { $exists: true } })        // city 필드가 "있는" 문서
+db.members.find({ age: { $not: { $gt: 30 } } })     // 30 넘지 않는 + age 없는 문서도!` },
+            { type: 'say', text: '`$exists: true`는 필드가 **있는** 문서예요. 값이 `null`인 필드도 "존재"로 봐요. null과 "필드 없음"을 구분하려면 `$exists`와 `$type`을 함께 써요.\n\n`$not`도 `$ne`처럼 **필드가 없는 문서를 포함**해요. "age가 30을 넘는다"가 거짓인 문서 = 30 이하 **+ age가 없는 문서**. 필드 없는 문서를 빼려면 `$exists: true`를 같이 걸어요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

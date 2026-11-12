@@ -9,63 +9,101 @@ const topic: Topic = {
   sections: [
     {
       title: '템플릿 상속: extends와 block',
-      points: [
-        '모든 페이지에 공통인 머리글·메뉴·바닥글을 base.html에 한 번만 쓰고, 페이지마다 바뀌는 부분은 {% block 이름 %}{% endblock %} 으로 비워 둔다.',
-        '자식 템플릿은 맨 위에 {% extends "base.html" %} 를 쓰고, 같은 이름의 block을 채운다. 자식에서 block 밖에 쓴 내용은 출력되지 않는다.',
-        '부모 block의 기본 내용을 유지하면서 덧붙이려면 자식 block 안에서 {{ super() }} 를 호출한다.',
-        'block은 여러 개 둘 수 있다: title, content, scripts 등.',
-      ],
-      code: `{# base.html #}
+      slides: [
+        {
+          title: '공통 틀은 한 번만',
+          blocks: [
+            { type: 'say', text: '페이지가 열 개라면 머리글·메뉴·바닥글을 열 번 복사해야 할까요? 하나를 고치면 열 곳을 다 고쳐야 하죠. **템플릿 상속**은 공통 틀을 `base.html`에 **한 번만** 쓰고, 페이지마다 바뀌는 부분만 **빈칸(block)** 으로 비워 둬요.' },
+            { type: 'code', code: `{# base.html #}
 <!doctype html>
 <html>
 <head><title>{% block title %}My Blog{% endblock %}</title></head>
 <body>
   <nav>...</nav>
   <main>{% block content %}{% endblock %}</main>
+  {% block scripts %}{% endblock %}
 </body>
-</html>
-
-{# posts.html #}
+</html>` },
+          ],
+        },
+        {
+          title: '자식은 빈칸만 채워요',
+          blocks: [
+            { type: 'code', code: `{# posts.html #}
 {% extends "base.html" %}
 {% block title %}글 목록 - {{ super() }}{% endblock %}
 {% block content %}
   {% for p in posts %}<h2>{{ p.title }}</h2>{% endfor %}
-{% endblock %}`,
+{% endblock %}` },
+            { type: 'list', items: ['맨 위에 `{% extends "base.html" %}`', '같은 이름의 block을 채우면 부모의 빈칸에 들어가요', '`{{ super() }}` — 부모 block의 **기본 내용을 유지**하면서 덧붙이기 → "글 목록 - My Blog"', 'block을 여러 개 둘 수 있어요. `scripts` block은 **특정 페이지에만 필요한 JS**를 끼워 넣는 자리예요'] },
+            { type: 'note', tone: 'warn', text: '자식 템플릿에서 **block 밖에** 쓴 내용은 출력되지 않아요. 자식은 "빈칸 채우기 답안지"라서, 빈칸 밖에 쓴 글은 어디에도 붙을 자리가 없어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'include와 macro',
-      points: [
-        '{% include "partials/post_card.html" %} 는 다른 템플릿 조각을 그 자리에 끼워 넣는다. 현재 템플릿의 변수를 그대로 쓸 수 있다.',
-        'macro는 템플릿용 함수다. {% macro input(name, type="text") %}<input name="{{ name }}" type="{{ type }}">{% endmacro %} 로 정의하고 {{ input("email", "email") }} 로 호출한다.',
-        '여러 파일에서 쓸 매크로는 {% from "macros.html" import input %} 로 가져온다.',
-        '상속 = 큰 틀(레이아웃) 공유, include = 조각 끼워 넣기, macro = 인자를 받아 반복 생성.',
+      slides: [
+        {
+          title: '조각 끼우기와 템플릿 함수',
+          blocks: [
+            { type: 'code', code: `{# 조각 끼우기: 현재 변수를 그대로 쓸 수 있음 #}
+{% for post in posts %}
+  {% include "partials/post_card.html" %}
+{% endfor %}
+
+{# macro: 인자를 받는 템플릿 함수 #}
+{% macro input(name, type="text") %}
+  <input name="{{ name }}" type="{{ type }}">
+{% endmacro %}
+{{ input("email", "email") }}
+
+{# 다른 파일의 매크로 가져오기 #}
+{% from "macros.html" import input %}` },
+            {
+              type: 'table',
+              head: ['도구', '용도'],
+              rows: [
+                ['상속 `extends`', '**큰 틀**(레이아웃) 공유'],
+                ['`include`', '**조각** 끼워 넣기 — 게시글 카드를 목록·검색 결과에서 똑같이'],
+                ['`macro`', '**인자를 받아** 반복 생성 — 입력창, 버튼'],
+              ],
+            },
+          ],
+        },
       ],
     },
     {
       title: '정적 파일과 url_for',
       notionIds: ['3efdf951bf8081d0a7cacadcbe6e2608'],
-      points: [
-        'CSS, JS, 이미지 같은 정적 파일은 app.mount("/static", StaticFiles(directory="static"), name="static") 으로 연결한다. static/css/app.css 는 /static/css/app.css 주소로 제공된다.',
-        '템플릿에서는 경로를 직접 쓰기보다 {{ url_for("static", path="css/app.css") }} 를 쓴다. 앱이 하위 경로(/blog)에 배포돼도 올바른 주소가 만들어진다.',
-        '라우트 주소도 url_for("함수이름", 경로파라미터=값) 으로 만든다. url_for("read_post", post_id=3) → /posts/3. 경로를 바꿔도 템플릿을 고칠 필요가 없다.',
-        'mount는 그 경로 아래를 하위 앱에 통째로 넘기는 것이라, 일반 라우트와 달리 /docs에 나오지 않는다.',
-      ],
-      code: `from fastapi.staticfiles import StaticFiles
+      slides: [
+        {
+          title: 'CSS, JS, 이미지 연결',
+          blocks: [
+            { type: 'code', code: `from fastapi.staticfiles import StaticFiles
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-<link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
-<a href="{{ url_for('read_post', post_id=post.id) }}">{{ post.title }}</a>`,
+# static/img/logo.png → /static/img/logo.png` },
+            { type: 'say', text: '`app.mount`는 "`/static` 아래 주소는 **통째로** StaticFiles라는 **하위 앱**에게 맡겨"라는 뜻이에요. 그래서 일반 라우트와 달리 `/docs`에는 나오지 않아요.' },
+          ],
+        },
+        {
+          title: '주소는 url_for로 만들어요',
+          blocks: [
+            { type: 'code', code: `<link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+<a href="{{ url_for('read_post', post_id=post.id) }}">{{ post.title }}</a>` },
+            { type: 'say', text: '`/static/css/app.css`, `/posts/3`을 직접 쓰지 않고 `url_for`로 만드는 이유:\n• 앱이 `/blog` 같은 **하위 경로에 배포**돼도 올바른 주소가 나와요\n• 라우트 경로를 `/posts/{id}` → `/articles/{id}`로 **바꿔도** 템플릿을 고칠 필요가 없어요. `url_for`는 **함수 이름**(`read_post`)으로 주소를 찾으니까요' },
+          ],
+        },
+      ],
     },
     {
       title: '폼 처리와 PRG 패턴',
-      points: [
-        '글쓰기 화면(GET /posts/new)은 폼 HTML을 보여 주고, 제출(POST /posts)은 Form()으로 값을 받아 저장한다.',
-        '저장 후에는 HTML을 바로 그리지 말고 RedirectResponse(url, status_code=303) 로 목록이나 상세 페이지로 보낸다(Post-Redirect-Get). 새로고침해도 중복 저장되지 않는다.',
-        '검증 실패 시에는 같은 폼 템플릿을 에러 메시지와 이전 입력값을 담아 다시 렌더링한다(상태 코드 400 또는 422).',
-        '쿠키 세션으로 로그인하는 폼 기반 사이트는 CSRF(다른 사이트가 사용자의 브라우저로 몰래 폼을 제출하는 공격)에 대비해 SameSite 쿠키와 CSRF 토큰을 쓴다.',
-      ],
-      code: `@app.get("/posts/new", response_class=HTMLResponse)
+      slides: [
+        {
+          title: '글쓰기 화면과 저장',
+          blocks: [
+            { type: 'code', code: `@app.get("/posts/new", response_class=HTMLResponse)
 def new_post_form(request: Request):
     return templates.TemplateResponse(request, "post_form.html", {"errors": [], "title": ""})
 
@@ -77,7 +115,18 @@ def create_post(request: Request, title: Annotated[str, Form()]):
             {"errors": ["제목은 2자 이상"], "title": title}, status_code=400,
         )
     post_id = save(title)
-    return RedirectResponse(f"/posts/{post_id}", status_code=303)`,
+    return RedirectResponse(f"/posts/{post_id}", status_code=303)` },
+            { type: 'list', items: ['`GET /posts/new` — 폼 HTML 보여 주기', '`POST /posts` — `Form()`으로 받아 저장', '검증 실패 → 같은 폼을 **에러 메시지와 이전 입력값**을 담아 다시 그리기 (사용자가 처음부터 다시 쓰지 않게)', '성공 → **303**으로 리다이렉트 (PRG)'] },
+          ],
+        },
+        {
+          title: '303이어야 하는 이유와 CSRF',
+          blocks: [
+            { type: 'say', text: '저장 후 `RedirectResponse("/posts")`를 기본값(**307**)으로 보내면, 307은 **메서드를 유지**해서 브라우저가 `/posts`로 **POST**를 다시 보내요. 목록 페이지는 GET만 있으니 **405**가 나거나, 최악엔 글이 또 저장돼요. 그래서 **303**(다음은 GET으로 가)을 써요.' },
+            { type: 'note', tone: 'warn', text: '쿠키 세션으로 로그인하는 폼 사이트는 **CSRF**에 대비해야 해요. 다른 사이트가 사용자의 브라우저를 이용해 **몰래 폼을 제출**하는 공격이에요(브라우저는 쿠키를 자동으로 붙이니까요). **SameSite 쿠키**와 **CSRF 토큰**으로 막아요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

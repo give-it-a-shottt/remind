@@ -10,52 +10,109 @@ const topic: Topic = {
     {
       title: '정규표현식 검색',
       notionIds: ['3efdf951bf8081c5b7f6cd8d3fa61c04'],
-      points: [
-        '$regex로 문자열 패턴을 찾는다: { name: /진/ }(포함, SQL LIKE \'%진%\'), /^서/(시작), { name: { $regex: "윤$" } }(끝). 대소문자 무시는 /abc/i 또는 $options: "i".',
-        '^로 시작하는 정규식(접두어)은 인덱스를 활용할 수 있지만, 중간 포함 검색은 인덱스를 제대로 쓰지 못해 전체를 훑는다.',
-        '사용자 입력을 그대로 정규식에 넣으면 특수문자(. * + ?)가 패턴으로 해석되고, 복잡한 패턴으로 서버를 느리게 만드는 공격(ReDoS)도 가능하다. 파이썬에서는 re.escape()로 감싼다.',
+      slides: [
+        {
+          title: '$regex로 패턴 찾기',
+          blocks: [
+            { type: 'code', code: `db.members.find({ name: /진/ })                     // 포함 (LIKE '%진%')
+db.members.find({ name: { $regex: "^서" } })        // 시작
+db.members.find({ name: { $regex: "윤$" } })        // 끝
+db.books.find({ title: { $regex: "fastapi", $options: "i" } })   // 대소문자 무시` },
+            { type: 'say', text: '`^`는 **시작**, `$`는 **끝**, `i`는 대소문자 무시예요. sa-05의 LIKE와 같은 원리로 `^`로 시작하는 **접두어** 정규식은 인덱스를 쓸 수 있지만, **중간 포함** 검색은 인덱스를 제대로 못 써서 전체를 훑어요.' },
+            { type: 'note', tone: 'warn', text: '사용자 입력을 **그대로** 정규식에 넣으면 `.`, `*`, `+`, `?` 같은 특수문자가 패턴으로 해석돼요. 게다가 일부러 복잡한 패턴을 넣어 서버를 느리게 만드는 공격(**ReDoS**)도 가능해요. 파이썬에서는 **`re.escape()`** 로 감싸요(sa-05의 autoescape와 같은 생각).' },
+          ],
+        },
       ],
-      code: `db.members.find({ name: /진/ })
-db.members.find({ name: { $regex: "^서" } })
-db.books.find({ title: { $regex: "fastapi", $options: "i" } })`,
     },
     {
       title: '정렬 · 개수 · 일부만 · 배열 검색',
       notionIds: ['3efdf951bf8081c5b7f6cd8d3fa61c04'],
-      points: [
-        'sort({ age: 1 }) 오름차순, sort({ age: -1 }) 내림차순. limit(n), skip(n). 순서는 항상 sort → skip → limit으로 적용된다(적은 순서와 무관).',
-        'countDocuments(조건): 조건에 맞는 문서 수. estimatedDocumentCount(): 전체 개수 추정(빠름). 예전 count()는 사용 중단.',
-        'distinct("city"): 중복 없는 값 목록.',
-        '배열 필드 검색: { favorites: "소설" }은 배열에 "소설"이 들어 있으면 일치. $all: 모두 들어 있어야, $in: 하나라도, $nin: 하나도 없어야, $size: 배열 길이.',
-        '배열 안 객체의 여러 조건을 "같은 원소"에 적용하려면 $elemMatch: { items: { $elemMatch: { name: "펜", qty: { $gte: 2 } } } }.',
-      ],
-      code: `db.members.find().sort({ age: -1 }).limit(3)
+      slides: [
+        {
+          title: '정렬과 개수',
+          blocks: [
+            { type: 'code', code: `db.members.find().sort({ age: -1 }).limit(3)      // 나이 많은 순 3명
+db.members.find().limit(3).sort({ age: -1 })      // 결과 같음! (적은 순서 무관)
 db.members.countDocuments({ city: { $exists: true } })
-db.members.distinct("city")
-db.members.find({ favorites: { $all: ["소설", "역사"] } })`,
+db.members.estimatedDocumentCount()               // 전체 개수 추정 (빠름)
+db.members.distinct("city")                       // 중복 없는 값 목록` },
+            { type: 'say', text: '`sort({ age: 1 })` 오름차순, `-1` 내림차순. 중요한 점: find 커서는 **적은 순서와 상관없이 항상 sort → skip → limit** 순으로 적용돼요. 그래서 `limit(3).sort(...)`도 "나이 많은 순 3명"이에요.\n\n개수는 **`countDocuments(조건)`**. 예전 `count()`는 사용 중단됐어요.' },
+          ],
+        },
+        {
+          title: '배열 검색',
+          blocks: [
+            {
+              type: 'table',
+              head: ['조건', '뜻'],
+              rows: [
+                ['`{ favorites: "소설" }`', '배열에 "소설"이 **들어 있으면**'],
+                ['`{ favorites: { $all: ["소설", "역사"] } }`', '**둘 다** 들어 있어야'],
+                ['`{ favorites: { $in: [...] } }`', '**하나라도**'],
+                ['`{ favorites: { $size: 3 } }`', '배열 **길이**가 3'],
+              ],
+            },
+            { type: 'code', code: `// items 배열 안 "같은 원소"가 name=펜 이면서 qty>=2
+db.orders.find({ items: { $elemMatch: { name: "펜", qty: { $gte: 2 } } } })` },
+            { type: 'note', tone: 'warn', text: '`{ "items.name": "펜", "items.qty": { $gte: 2 } }`라고 쓰면, 펜 1개짜리 원소와 **다른** 상품 5개짜리 원소가 있는 주문도 걸려요. 조건이 **서로 다른 원소**에서 각각 만족돼도 되거든요. **같은 원소**에 여러 조건을 걸려면 `$elemMatch`예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '수정: updateOne · updateMany',
       notionIds: ['3efdf951bf8081c5b7f6cd8d3fa61c04'],
-      points: [
-        'updateOne(조건, 변경, 옵션): 조건에 맞는 첫 문서만. updateMany: 맞는 모든 문서.',
-        '변경 연산자: $set(값 변경, 없으면 추가), $unset(필드 삭제), $inc(숫자 증가·감소, 원자적), $push(배열에 추가), $pull(배열에서 조건에 맞는 값 제거), $addToSet(중복 없이 추가), $rename(필드 이름 변경).',
-        '변경 연산자 없이 { name: "새이름" }만 넘기면 updateOne은 에러가 난다(전체 교체는 replaceOne의 역할). 예전 update() 메서드는 문서 전체를 갈아 끼워 다른 필드가 사라지는 사고가 잦았다.',
-        'upsert: true → 조건에 맞는 문서가 없으면 새로 만든다. "있으면 수정, 없으면 생성"을 한 번에 원자적으로.',
-        '결과의 matchedCount(찾은 수)와 modifiedCount(실제 바뀐 수)로 처리 여부를 확인한다.',
+      slides: [
+        {
+          title: '변경 연산자',
+          blocks: [
+            { type: 'code', code: `db.members.updateOne({ name: "김민준" }, { $set: { city: "인천" } })   // 첫 문서만
+db.members.updateMany({ city: "부산" }, { $inc: { age: 1 } })        // 맞는 것 모두
+db.members.updateOne({ name: "이서연" }, { $push: { favorites: "과학" } })` },
+            {
+              type: 'table',
+              head: ['연산자', '하는 일'],
+              rows: [
+                ['`$set` / `$unset`', '값 변경(없으면 추가) / 필드 삭제'],
+                ['**`$inc`**', '숫자 증가·감소 (**원자적**)'],
+                ['`$push` / `$addToSet`', '배열에 추가 / **중복 없이** 추가'],
+                ['`$pull`', '배열에서 조건에 맞는 값 **제거**'],
+                ['`$rename`', '필드 이름 변경'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '변경 연산자 없이 `{ name: "새이름" }`만 넘기면 `updateOne`은 **에러**예요. 문서 **전체 교체**는 `replaceOne`의 역할이에요. 예전 `update()`는 문서를 통째로 갈아 끼워서 **다른 필드가 다 사라지는** 사고가 잦았어요. fa-07의 "PUT은 전체 교체, PATCH는 부분 수정"과 같은 구분이에요.' },
+          ],
+        },
+        {
+          title: '원자적 증가와 upsert',
+          blocks: [
+            { type: 'code', code: `// 오늘 방문 수 +1, 오늘 문서가 없으면 새로 만듦
+db.stats.updateOne({ day: "2026-10-20" }, { $inc: { visits: 1 } }, { upsert: true })` },
+            { type: 'say', text: '조회수처럼 동시 요청이 몰리는 값은 **`$inc`** 로 올려요. 읽어서 +1 해서 쓰면 sql-06의 **갱신 손실**이 생기지만, `$inc`는 DB가 **원자적으로** 계산해요(sa-07의 `values(views=Post.views + 1)`와 같아요).\n\n**`upsert: true`** 는 조건에 맞는 문서가 **없으면 새로 만들어요.** "있으면 수정, 없으면 생성"을 한 번에 원자적으로(sa-03의 upsert).\n\n결과의 `matchedCount`(찾은 수)와 `modifiedCount`(실제 바뀐 수)로 처리 여부를 확인해요.' },
+          ],
+        },
       ],
-      code: `db.members.updateOne({ name: "김민준" }, { $set: { city: "인천" } })
-db.members.updateMany({ city: "부산" }, { $inc: { age: 1 } })
-db.members.updateOne({ name: "이서연" }, { $push: { favorites: "과학" } })
-db.stats.updateOne({ day: "2026-10-20" }, { $inc: { visits: 1 } }, { upsert: true })`,
     },
     {
       title: '삭제',
       notionIds: ['3efdf951bf8081c5b7f6cd8d3fa61c04'],
-      points: [
-        'deleteOne(조건): 첫 문서 하나. deleteMany(조건): 모두. deleteMany({})는 전체 삭제(컬렉션은 남는다). 컬렉션째 지우려면 drop().',
-        '교재의 removeOne/removeMany 같은 이름은 실제로 없다. 최신 이름은 deleteOne/deleteMany다.',
-        '조건을 잘못 쓰면 의도보다 많이 지워진다. 같은 조건으로 countDocuments를 먼저 해서 대상 수를 확인한다.',
+      slides: [
+        {
+          title: 'deleteOne, deleteMany, drop',
+          blocks: [
+            {
+              type: 'table',
+              head: ['명령', '결과'],
+              rows: [
+                ['`deleteOne(조건)`', '첫 문서 하나'],
+                ['`deleteMany(조건)`', '맞는 것 모두'],
+                ['`deleteMany({})`', '**전체 문서** 삭제 (컬렉션과 인덱스는 **남음**) — SQL의 TRUNCATE 느낌'],
+                ['`drop()`', '컬렉션째 삭제'],
+              ],
+            },
+            { type: 'say', text: '교재의 `removeOne`/`removeMany` 같은 이름은 실제로 **없어요.** 최신 이름은 `deleteOne`/`deleteMany`예요.\n\n조건을 잘못 쓰면 의도보다 많이 지워져요. 같은 조건으로 **`countDocuments`를 먼저** 해서 대상 수를 확인하는 습관을 들여요. sql-02의 "UPDATE/DELETE 전에 같은 WHERE로 SELECT"와 똑같아요.' },
+          ],
+        },
       ],
     },
   ],
