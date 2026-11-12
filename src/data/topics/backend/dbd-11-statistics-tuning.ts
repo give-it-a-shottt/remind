@@ -9,37 +9,75 @@ const topic: Topic = {
   sections: [
     {
       title: '옵티마이저와 실행 계획',
-      points: [
-        'SQL은 "무엇을 원하는가"만 말하는 선언형 언어다. "어떻게 가져올지"(어느 인덱스, 어떤 JOIN 순서와 방식)는 DB의 옵티마이저가 정한다. 그 결정이 실행 계획이다.',
-        '비용 기반 옵티마이저(CBO)는 가능한 계획들의 비용(예상 I/O, 행 수)을 추정해 가장 싼 것을 고른다. 추정의 재료가 통계 정보다.',
-        'EXPLAIN SELECT ... 로 실행 계획을 본다. MySQL: type(ALL=전체 스캔, ref/range/const=인덱스 사용), key(사용 인덱스), rows(예상 행 수), Extra(Using filesort, Using temporary는 비용 신호). PostgreSQL: Seq Scan / Index Scan, cost, rows.',
-        'EXPLAIN ANALYZE(PostgreSQL, MySQL 8.0.18+)는 실제로 실행해서 예상 행 수와 실제 행 수를 함께 보여 준다. 둘이 크게 다르면 통계가 틀렸다는 신호다.',
-      ],
-      code: `EXPLAIN SELECT * FROM orders WHERE user_id = 3 ORDER BY created_at DESC LIMIT 20;
+      slides: [
+        {
+          title: '"어떻게"는 DB가 정해요',
+          blocks: [
+            { type: 'say', text: 'SQL은 "**무엇을** 원하는가"만 말하는 **선언형** 언어예요. "**어떻게** 가져올지"(어느 인덱스를, 어떤 JOIN 순서와 방식으로)는 DB의 **옵티마이저**가 정해요. 그 결정이 **실행 계획**이에요.\n\n**비용 기반 옵티마이저**(CBO)는 가능한 계획들의 비용(예상 I/O, 행 수)을 추정해서 가장 싼 걸 골라요. 그래서 같은 SQL이어도 데이터가 늘면 **갑자기** 전체 스캔으로 바뀌기도 해요. 결정한 건 개발자가 아니라 옵티마이저예요.' },
+            { type: 'note', tone: 'analogy', text: '내비게이션과 같아요. "강남역 가 줘"(무엇)만 말하면, 내비가 지금 교통량(통계)을 보고 경로(실행 계획)를 골라요. 교통 정보가 틀리면 엉뚱한 길로 안내하죠.' },
+          ],
+        },
+        {
+          title: 'EXPLAIN 읽기',
+          blocks: [
+            { type: 'code', code: `EXPLAIN SELECT * FROM orders WHERE user_id = 3 ORDER BY created_at DESC LIMIT 20;
 -- type: ref, key: idx_orders_user_created, rows: 37, Extra: Backward index scan
 
-EXPLAIN ANALYZE SELECT ...;   -- 실제 시간과 행 수까지`,
+EXPLAIN ANALYZE SELECT ...;   -- 실제로 실행해서 시간과 행 수까지` },
+            {
+              type: 'table',
+              head: ['MySQL EXPLAIN', '보는 법'],
+              rows: [
+                ['`type`', '**ALL = 전체 스캔** (의심!), ref·range·const = 인덱스 사용'],
+                ['`key`', '실제로 쓴 인덱스 (NULL이면 안 씀)'],
+                ['`rows`', '예상해서 읽을 행 수'],
+                ['`Extra`', '**Using filesort**, **Using temporary** = 비용 신호'],
+              ],
+            },
+            { type: 'say', text: 'PostgreSQL은 `Seq Scan`(전체 스캔) / `Index Scan`, cost, rows로 보여요. **EXPLAIN ANALYZE**(PostgreSQL, MySQL 8.0.18+)는 **예상 행 수와 실제 행 수**를 함께 보여 줘요. 둘이 크게 다르면 **통계가 틀렸다**는 신호예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '통계 정보',
-      points: [
-        '통계 정보: 테이블 행 수, 컬럼의 서로 다른 값 개수(카디널리티), 값 분포(히스토그램), NULL 비율, 인덱스 크기 등.',
-        '통계가 실제와 다르면 옵티마이저가 잘못된 계획을 고른다. 예: 10행이라고 알고 있던 테이블이 실제로는 1000만 행이면 전체 스캔이나 비효율적인 JOIN 방식을 선택할 수 있다.',
-        '통계 갱신 시점: 대량 INSERT·DELETE·데이터 이전 직후, 데이터 분포가 크게 바뀐 뒤. MySQL: ANALYZE TABLE t; PostgreSQL: ANALYZE t;(autovacuum이 자동으로도 수행).',
-        '통계 갱신으로 실행 계획이 갑자기 바뀌어 오히려 느려지는 경우도 있다. 그래서 중요한 시스템은 통계 갱신 시점을 관리하거나, 검증된 통계·계획을 고정하기도 한다(교재의 "통계 정보 고정").',
+      slides: [
+        {
+          title: '옵티마이저의 교통 정보',
+          blocks: [
+            { type: 'say', text: '**통계 정보**: 테이블 행 수, 컬럼의 카디널리티, 값 분포(히스토그램), NULL 비율, 인덱스 크기 등. 옵티마이저는 이걸 보고 비용을 추정해요.\n\n통계가 실제와 다르면 **잘못된 계획**을 골라요. 10행인 줄 알던 테이블이 실제로는 **1000만 행**이면, 전체 스캔이나 비효율적인 JOIN 방식을 고를 수 있어요.' },
+            { type: 'code', code: `ANALYZE TABLE orders;   -- MySQL
+ANALYZE orders;         -- PostgreSQL (autovacuum 이 자동으로도 수행)` },
+            { type: 'say', text: '갱신할 때: **대량 INSERT·DELETE·데이터 이전 직후**, 분포가 크게 바뀐 뒤. 데이터 이전으로 1000만 행을 넣은 직후 갑자기 느려졌다면 **통계부터** 확인해요.' },
+            { type: 'note', tone: 'warn', text: '통계를 갱신하면 실행 계획이 **항상 좋아지는 건 아니에요.** 갑자기 바뀐 계획이 오히려 느릴 수도 있어요. 그래서 중요한 시스템은 갱신 시점을 관리하거나, 검증된 통계·계획을 **고정**하기도 해요.' },
+          ],
+        },
       ],
     },
     {
       title: '인덱스 이외의 튜닝 방법',
-      points: [
-        'SQL 개선: 필요한 컬럼만 SELECT, N+1 쿼리를 JOIN·IN 한 번으로, 인덱스를 못 쓰는 조건 고치기, 불필요한 정렬(ORDER BY)·DISTINCT 제거, 페이지네이션을 커서 방식으로.',
-        '파티션: 큰 테이블을 날짜 등 기준으로 나눠 저장한다. 조건에 맞는 파티션만 읽고(파티션 프루닝), 오래된 파티션은 통째로 삭제(DROP PARTITION)해 대량 DELETE를 피한다.',
-        '캐시: 애플리케이션 캐시(Redis), DB 버퍼 크기 조정(innodb_buffer_pool_size). 자주 읽고 잘 안 바뀌는 데이터에 효과적.',
-        '커넥션 풀: 요청마다 연결을 새로 맺는 비용을 없앤다. 풀 크기는 무작정 키우지 말고 DB가 감당할 동시 연결 수에 맞춘다.',
-        '배치 처리: 한 건씩 반복 대신 묶어서(bulk insert, 한 번의 UPDATE). 읽기 부하 분리: 읽기 복제본.',
-        '하드웨어 증설(스케일 업)·서버 추가(스케일 아웃)는 효과가 확실하지만 비싸다. 설계·SQL 문제는 하드웨어로 가려질 뿐 사라지지 않는다.',
-      ],
-      code: `-- 월별 파티션 (MySQL)
+      slides: [
+        {
+          title: 'SQL, 캐시, 커넥션 풀, 배치',
+          blocks: [
+            {
+              type: 'table',
+              head: ['방법', '내용'],
+              rows: [
+                ['**SQL 개선**', '필요한 컬럼만, **N+1 제거**, 인덱스 못 쓰는 조건 고치기, 불필요한 ORDER BY·DISTINCT 제거, **커서 페이지네이션**'],
+                ['**캐시**', 'Redis, DB 버퍼 크기(`innodb_buffer_pool_size`). 자주 읽고 잘 안 바뀌는 데이터에'],
+                ['**커넥션 풀**', '연결 맺는 비용 제거. 크기는 **DB가 감당할 동시 연결 수**에 맞춤 (무작정 키우면 DB가 죽음)'],
+                ['**배치 처리**', '한 건씩 대신 묶어서 (bulk insert, 한 번의 UPDATE)'],
+                ['**읽기 복제본**', '읽기 부하 분리 (dbd-03)'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '하드웨어 증설(스케일 업)·서버 추가(스케일 아웃)는 효과는 확실하지만 **비싸요.** 그리고 설계·SQL 문제는 하드웨어로 **가려질 뿐 사라지지 않아요.** 데이터가 더 늘면 다시 터져요.' },
+          ],
+        },
+        {
+          title: '파티션',
+          blocks: [
+            { type: 'code', code: `-- 월별 파티션 (MySQL)
 CREATE TABLE logs (
   id BIGINT NOT NULL, created_at DATETIME NOT NULL, msg TEXT,
   PRIMARY KEY (id, created_at)
@@ -48,16 +86,23 @@ PARTITION BY RANGE (TO_DAYS(created_at)) (
   PARTITION p202609 VALUES LESS THAN (TO_DAYS('2026-10-01')),
   PARTITION p202610 VALUES LESS THAN (TO_DAYS('2026-11-01'))
 );
-ALTER TABLE logs DROP PARTITION p202609;   -- 지난달 로그를 순식간에 삭제`,
+ALTER TABLE logs DROP PARTITION p202609;   -- 지난달 로그를 순식간에 삭제` },
+            { type: 'say', text: '**파티션**은 큰 테이블을 날짜 등 기준으로 **나눠 저장**해요.\n• 조건에 맞는 파티션만 읽어요 (**파티션 프루닝**). "최근 7일"이면 이번 달 파티션만\n• 오래된 파티션은 **통째로 DROP** → sql-02의 "대량 DELETE는 서비스에 영향" 문제를 피해요\n\n수십억 행 로그 테이블에 딱 맞는 물리 설계예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '튜닝 절차',
-      points: [
-        '① 측정: 느린 쿼리 로그(slow query log), APM, pg_stat_statements로 "빈도 × 소요 시간"이 큰 쿼리를 찾는다. 한 번에 10초인 쿼리보다 초당 1000번 실행되는 50ms 쿼리가 더 중요할 수 있다.',
-        '② 분석: EXPLAIN(ANALYZE)로 전체 스캔, 예상과 실제 행 수 차이, filesort·임시 테이블을 확인한다.',
-        '③ 개선: 인덱스·SQL·통계·구조 순으로 영향이 작은 것부터 바꾼다.',
-        '④ 검증: 같은 조건으로 다시 측정한다. 한 쿼리가 빨라져도 다른 쿼리(특히 쓰기)가 느려질 수 있으니 전체를 본다.',
-        '운영 환경과 비슷한 데이터 양으로 테스트해야 한다. 개발 DB에 100건뿐이면 모든 쿼리가 빨라 보인다.',
+      slides: [
+        {
+          title: '측정 → 분석 → 개선 → 검증',
+          blocks: [
+            { type: 'list', ordered: true, items: ['**측정** — 느린 쿼리 로그(slow query log), APM, pg_stat_statements로 "**빈도 × 소요 시간**"이 큰 쿼리 찾기', '**분석** — EXPLAIN(ANALYZE)로 전체 스캔, 예상과 실제 행 수 차이, filesort·임시 테이블 확인', '**개선** — 인덱스 → SQL → 통계 → 구조 순으로 **영향이 작은 것부터**', '**검증** — 같은 조건으로 다시 측정. 한 쿼리가 빨라져도 다른 쿼리(특히 **쓰기**)가 느려질 수 있으니 전체를 봐요'] },
+            { type: 'say', text: '한 번에 10초 걸리는 쿼리보다, **초당 1000번** 실행되는 50ms 쿼리가 더 중요할 수 있어요. 1000 × 0.05초 = 매초 50초어치 일이니까요. 그래서 기준이 "빈도 × 소요 시간"이에요.' },
+            { type: 'note', tone: 'warn', text: '**운영과 비슷한 데이터 양**으로 테스트해야 해요. 개발 DB에 100건뿐이면 전체 스캔도 순식간이라 모든 쿼리가 빨라 보여요. 인덱스가 빠졌는지 알 길이 없어요.' },
+          ],
+        },
       ],
     },
   ],
