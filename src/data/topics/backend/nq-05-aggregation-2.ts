@@ -10,68 +10,94 @@ const topic: Topic = {
     {
       title: '$project: 모양 바꾸기',
       notionIds: ['3efdf951bf8081ae9eabe559f5572274'],
-      points: [
-        '$project로 필드를 고르고(1), 빼고(0), 이름을 바꾸고("$원래필드"), 계산한 새 필드를 만든다.',
-        '문자열 결합 $concat은 문자열만 받으므로 숫자는 $toString으로 바꾼다. 문자열 길이는 $strLenCP(글자 수).',
-        '조건 값: { $cond: [조건, 참일때, 거짓일때] }. 예: 평점 4 이상이면 "추천".',
-        '필드를 유지하면서 몇 개만 추가하려면 $addFields(= $set 스테이지)가 편하다.',
-      ],
-      code: `db.books.aggregate([
+      slides: [
+        {
+          title: '고르고, 빼고, 이름 바꾸고, 만들고',
+          blocks: [
+            { type: 'code', code: `db.books.aggregate([
   { $project: {
-      _id: 0,
-      title: 1,
+      _id: 0,                                              // 빼기
+      title: 1,                                            // 고르기
       writer: "$author",                                   // 이름 바꾸기
-      label: { $concat: ["$title", " (", { $toString: "$year" }, ")"] },
+      label: { $concat: ["$title", " (", { $toString: "$year" }, ")"] },   // 만들기
       badge: { $cond: [{ $gte: ["$rating", 4] }, "추천", ""] }
   } }
-])`,
+])` },
+            { type: 'say', text: '`$project`는 SQL의 SELECT처럼 결과 **모양**을 정해요. `writer: "$author"`는 author 값을 writer라는 **새 이름**으로 내보내요(결과엔 `{ writer: "..." }`만 남아요).\n• `$concat`은 **문자열만** 받아요. 숫자 year를 넣으면 결과가 **null**이 돼요 → `$toString`으로 바꿔요\n• `$cond: [조건, 참, 거짓]` — SQL의 CASE (sql-03)\n• 기존 필드를 **다 유지하면서** 몇 개만 추가하려면 `$addFields`(= `$set` 스테이지)가 편해요' },
+          ],
+        },
+      ],
     },
     {
       title: '$lookup: 다른 컬렉션 붙이기',
       notionIds: ['3efdf951bf8081ae9eabe559f5572274'],
-      points: [
-        '{ $lookup: { from: "reviews", localField: "title", foreignField: "book_title", as: "reviews" } } → 각 책 문서에 리뷰들이 배열(reviews)로 붙는다.',
-        '결과는 항상 배열이다. 매칭이 없으면 빈 배열이라 SQL의 LEFT JOIN과 비슷하다.',
-        '붙인 배열은 $size로 개수를 세고, "$reviews.user"로 배열 안 특정 필드만 모을 수 있다. 하나만 필요하면 $unwind로 펼친다.',
-        '$lookup은 편리하지만 매번 조인하면 비싸다. foreignField에 인덱스를 두고, 자주 함께 읽는 데이터라면 모델링 단계에서 임베딩을 검토한다.',
-      ],
-      code: `db.books.aggregate([
+      slides: [
+        {
+          title: 'MongoDB의 JOIN',
+          blocks: [
+            { type: 'code', code: `db.books.aggregate([
   { $lookup: { from: "reviews", localField: "title", foreignField: "book_title", as: "reviews" } },
   { $project: { title: 1, review_count: { $size: "$reviews" }, reviewers: "$reviews.user" } },
   { $sort: { review_count: -1 } }
-])`,
+])` },
+            { type: 'say', text: '`$lookup`은 다른 컬렉션(`from`)을 붙여요. 결과는 **항상 배열**(`as`)로 붙고, 짝이 없으면 **빈 배열**이에요. 그래서 SQL의 **LEFT JOIN**과 비슷해요(sql-05).\n• `$size`로 개수\n• `"$reviews.user"`로 배열 안 특정 필드만 모으기\n• 하나만 필요하면 `$unwind`로 펼치기' },
+            { type: 'note', tone: 'tip', text: '`$lookup`은 편리하지만 매번 조인하면 비싸요. `foreignField`에 **인덱스**를 두고, 자주 함께 읽는 데이터라면 마지막 개념의 **임베딩**을 검토해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '$skip · $facet',
       notionIds: ['3efdf951bf8081ae9eabe559f5572274'],
-      points: [
-        '$skip + $limit = 파이프라인 안의 페이지네이션. $sort 다음에 둔다.',
-        '$facet은 같은 입력으로 여러 하위 파이프라인을 동시에 돌려 결과를 한 문서에 모은다. 목록 + 전체 개수, 대시보드의 여러 통계를 한 번에 구할 때 쓴다.',
-        '$redact는 $cond로 $$KEEP/$$PRUNE을 정해 중첩 문서를 층별로 거른다. 단순 필터라면 $match가 더 간단하고 빠르다.',
-      ],
-      code: `db.books.aggregate([
+      slides: [
+        {
+          title: '한 번에 여러 결과',
+          blocks: [
+            { type: 'code', code: `db.books.aggregate([
   { $match: { year: { $gte: 2020 } } },
   { $facet: {
-      items: [{ $sort: { rating: -1 } }, { $skip: 0 }, { $limit: 10 }],
-      total: [{ $count: "n" }],
+      items: [{ $sort: { rating: -1 } }, { $skip: 0 }, { $limit: 10 }],   // 목록
+      total: [{ $count: "n" }],                                          // 전체 개수
       byGenre: [{ $unwind: "$genres" }, { $group: { _id: "$genres", n: { $sum: 1 } } }]
   } }
-])`,
+])` },
+            { type: 'say', text: '`$facet`은 **같은 입력**으로 여러 하위 파이프라인을 동시에 돌려서 결과를 **한 문서**에 모아요. sa-05에서 목록과 total을 쿼리 두 번으로 구했죠? `$facet`이면 **한 번의 aggregate**로 "10개짜리 페이지 + 전체 개수 + 장르별 통계"까지 받아요.' },
+            { type: 'note', tone: 'warn', text: '파이프라인은 **적은 순서대로** 실행돼요(nq-04). `$skip`·`$limit`을 `$sort` **앞에** 두면 아무 10개를 자른 다음 정렬해 버려요. 페이지네이션은 **$sort 다음에** $skip·$limit. find 커서와 다른 점이에요.' },
+            { type: 'say', text: '`$redact`는 `$cond`로 `$$KEEP`/`$$PRUNE`을 정해 중첩 문서를 **층별로** 거르는 고급 스테이지예요. 단순 필터라면 `$match`가 더 간단하고 빨라요.' },
+          ],
+        },
+      ],
     },
     {
       title: '문서 모델링: 임베딩 vs 참조',
-      points: [
-        '임베딩(embedding): 관련 데이터를 한 문서 안에 넣는다. 한 번 읽기로 끝나고, 단일 문서 쓰기는 원자적이다. 주문 + 주문 항목, 글 + 최근 댓글 몇 개처럼 "함께 읽고 함께 바뀌는" 데이터에 맞는다.',
-        '참조(reference): 다른 컬렉션의 _id만 저장하고 필요할 때 $lookup이나 두 번째 조회로 가져온다. 여러 곳에서 공유되거나(작가, 상품), 개수가 끝없이 늘어나거나(모든 댓글, 로그), 따로 자주 바뀌는 데이터에 맞는다.',
-        '문서 하나의 최대 크기는 16MB다. 무한히 커지는 배열(모든 댓글)을 임베딩하면 결국 한계에 닿고 갱신도 느려진다.',
-        '설계 질문: "이 데이터를 어떻게 읽는가?"(접근 패턴)를 먼저 정하고 그에 맞춰 문서 모양을 정한다. RDB가 "중복 없는 정규화"에서 출발한다면, 문서 DB는 "읽기 패턴"에서 출발한다.',
-        '임베딩은 일종의 비정규화다. 복사해 둔 값(주문 당시 상품명·가격)이 원본과 달라져도 되는지(스냅숏) 꼭 판단한다.',
-      ],
-      code: `// 임베딩: 주문 안에 항목 (함께 생성·조회, 주문 당시 가격 보존)
+      slides: [
+        {
+          title: '넣을까, 가리킬까',
+          blocks: [
+            { type: 'code', code: `// 임베딩: 주문 안에 항목 (함께 생성·조회, 주문 당시 가격 보존)
 { _id: 1, user_id: 7, items: [ { product_id: 3, name: "펜", price: 1200, qty: 2 } ] }
 
 // 참조: 리뷰는 별도 컬렉션 (계속 늘어남)
-{ _id: 9, book_id: ObjectId("..."), user: "kim", score: 5 }`,
+{ _id: 9, book_id: ObjectId("..."), user: "kim", score: 5 }` },
+            {
+              type: 'table',
+              head: ['', '임베딩', '참조'],
+              rows: [
+                ['방법', '관련 데이터를 **한 문서 안에**', '다른 컬렉션의 **_id만** 저장'],
+                ['장점', '**한 번 읽기**로 끝, 단일 문서 쓰기는 **원자적**', '공유·독립적 변경에 강함'],
+                ['어울리는 곳', '**함께 읽고 함께 바뀜** — 주문 + 항목, 글 + 최근 댓글 몇 개', '여러 곳에서 **공유**(작가, 상품), **끝없이 늘어남**(모든 댓글, 로그), 따로 자주 바뀜'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '읽기 패턴에서 출발해요',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '문서 하나의 최대 크기는 **16MB**예요. 인기 글에 댓글이 수십만 개 달린다면? 댓글을 글 문서에 **임베딩**하면 결국 한계에 닿고 갱신도 느려져요. 끝없이 늘어나는 건 **별도 컬렉션 + 참조**로.' },
+            { type: 'say', text: 'RDB가 "**중복 없는 정규화**"에서 출발한다면(dbd-06), 문서 DB는 "**이 데이터를 어떻게 읽는가**(접근 패턴)"에서 출발해요.\n\n그리고 임베딩은 일종의 **비정규화**예요(dbd-09). 주문에 복사한 상품명·가격이 원본과 **달라져도 되는지**(스냅숏인지) 꼭 판단해요. 주문 당시 가격이라면 달라지는 게 맞고요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

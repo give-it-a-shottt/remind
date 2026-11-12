@@ -10,52 +10,78 @@ const topic: Topic = {
     {
       title: '연결과 기본 CRUD (pymongo)',
       notionIds: ['3efdf951bf80819a8352e7237f303d32', '3efdf951bf808154afacd2a64ca5c595'],
-      points: [
-        'client = MongoClient("mongodb://아이디:비번@localhost:27017") → db = client["library"] → col = db["books"]. 속성 방식(client.library.books)도 된다.',
-        '셸 메서드를 snake_case로 쓴다: insert_one, insert_many, find_one, find, update_one, update_many, delete_one, delete_many, count_documents.',
-        '조건과 연산자는 파이썬 dict로 쓰고, 연산자 키는 문자열이다: {"age": {"$gte": 20}}.',
-        '결과 객체: insert_one().inserted_id, update_one().matched_count / modified_count, delete_many().deleted_count.',
-        'MongoClient는 내부에 커넥션 풀이 있어 앱 전체에서 하나를 만들어 재사용한다. 요청마다 새로 만들지 않는다. 끝낼 때 client.close()(with 문을 쓰면 자동).',
-        '연결은 지연 생성되므로, 시작 시 client.admin.command("ping")으로 실제 연결을 확인하면 설정 오류를 빨리 발견한다(노션의 ismaster/server_info 확인과 같은 목적).',
-      ],
-      code: `from pymongo import MongoClient
+      slides: [
+        {
+          title: '셸 명령을 snake_case로',
+          blocks: [
+            { type: 'say', text: '백엔드 트랙의 마지막 수업이에요! MongoDB를 **파이썬에서**, 그리고 **FastAPI에** 붙여 볼게요. 공식 드라이버는 **pymongo**예요.' },
+            { type: 'code', code: `from pymongo import MongoClient
 
 client = MongoClient(settings.mongo_url)
 client.admin.command("ping")               # 연결 확인
-col = client["library"]["books"]
+col = client["library"]["books"]           # 또는 client.library.books
 
 new_id = col.insert_one({"title": "FastAPI 입문", "year": 2026}).inserted_id
 book = col.find_one({"_id": new_id})
 col.update_one({"_id": new_id}, {"$inc": {"views": 1}})
-print(col.count_documents({"year": {"$gte": 2025}}))`,
+print(col.count_documents({"year": {"$gte": 2025}}))` },
+            { type: 'say', text: '셸 메서드를 **snake_case**로 쓰면 돼요. `findOne` → `find_one`, `insertMany` → `insert_many`, `countDocuments` → `count_documents`. 조건과 연산자는 **파이썬 dict**로, 연산자 키는 **문자열**(`"$gte"`)이에요.\n\n결과 객체: `insert_one().inserted_id`, `update_one().matched_count`/`modified_count`, `delete_many().deleted_count`.' },
+          ],
+        },
+        {
+          title: '클라이언트는 하나만',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '`MongoClient`는 내부에 **커넥션 풀**이 있어요. sa-01의 engine처럼 **앱 전체에서 하나**를 만들어 재사용해요. 요청마다 새로 만들고 닫으면 풀이 의미가 없어지고 오히려 느려져요.' },
+            { type: 'say', text: '연결은 **지연 생성**돼요. 즉 `MongoClient(...)`만으로는 주소나 계정이 틀려도 에러가 안 나고, **첫 요청 때** 터져요. 그래서 시작할 때 `client.admin.command("ping")`으로 **실제 연결을 확인**하면 설정 오류를 빨리 발견해요. au-01의 "설정이 틀리면 시작할 때 빨리 실패"와 같은 생각이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '커서와 조회 옵션',
       notionIds: ['3efdf951bf8081a99f3fe339dcd343a3'],
-      points: [
-        'find()는 Cursor를 돌려준다. for doc in col.find(...): 로 반복하며 조금씩 가져온다. list(cursor)를 하면 전부 메모리에 올라온다.',
-        'projection: col.find({}, {"_id": 0, "title": 1}). 정렬: .sort("year", -1) 또는 .sort([("year", -1), ("title", 1)]). .skip(n).limit(n).',
-        '정규식: {"title": {"$regex": re.escape(q), "$options": "i"}}. distinct: col.distinct("author"). 존재: {"rating": {"$exists": True}}(파이썬 True).',
-        'aggregate(파이프라인 리스트) → 커서. 파이프라인은 셸과 같은 구조를 dict와 list로 쓴다.',
-      ],
-      code: `pipeline = [
+      slides: [
+        {
+          title: 'find와 aggregate',
+          blocks: [
+            { type: 'code', code: `col.find({}, {"_id": 0, "title": 1})                       # projection
+col.find().sort([("year", -1), ("title", 1)]).skip(20).limit(10)
+col.find({"title": {"$regex": re.escape(q), "$options": "i"}})   # nq-03 의 re.escape
+col.distinct("author")
+col.find({"rating": {"$exists": True}})                    # 파이썬 True
+
+pipeline = [
     {"$unwind": "$genres"},
     {"$group": {"_id": "$genres", "avg_pages": {"$avg": "$pages"}}},
     {"$sort": {"avg_pages": -1}},
     {"$limit": 1},
 ]
 for row in col.aggregate(pipeline):
-    print(row["_id"], round(row["avg_pages"]))`,
+    print(row["_id"], round(row["avg_pages"]))` },
+            { type: 'say', text: '정렬 기준이 여러 개면 **튜플 리스트** `[("year", -1), ("title", 1)]`로 줘요(파이썬 dict는 예전엔 순서가 보장되지 않았거든요). aggregate 파이프라인은 셸과 **같은 구조를 dict와 list로** 써요.' },
+          ],
+        },
+        {
+          title: '커서는 조금씩',
+          blocks: [
+            { type: 'say', text: '`find()`는 **Cursor**를 돌려줘요. `for doc in col.find(...)`로 반복하면 서버에서 **조금씩** 가져와요(nq-02).\n\n100만 개 문서를 처리하는 배치에서 `list(col.find())`를 하면 **전부 메모리에** 올라와요. 커서를 그대로 **반복**하면서 하나씩 처리해야 메모리를 아껴요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'ObjectId와 JSON 응답',
-      points: [
-        '_id는 ObjectId 객체라 그대로 JSON으로 바꿀 수 없다. FastAPI 응답 전에 str(doc["_id"])로 바꾸거나, 응답 모델에서 문자열 필드로 받는다.',
-        '경로 파라미터로 받은 id 문자열은 ObjectId(id_str)로 바꿔 조회한다. 형식이 틀리면 bson.errors.InvalidId 예외가 나므로 ObjectId.is_valid(id_str)로 먼저 검사해 400/404로 응답한다.',
-        'datetime은 BSON Date로 저장되고(밀리초 정밀도, 기본적으로 UTC로 해석), 읽으면 naive datetime이 될 수 있다. MongoClient(tz_aware=True)로 시간대 정보를 유지할 수 있다.',
-        'Pydantic 모델로 문서를 검증해 받으면, 스키마 없는 DB에서도 앱이 기대하는 형식을 지킬 수 있다.',
-      ],
-      code: `from bson import ObjectId
+      slides: [
+        {
+          title: 'ObjectId는 JSON이 아니에요',
+          blocks: [
+            { type: 'say', text: '`_id`는 **ObjectId 객체**라 그대로 JSON으로 바꿀 수 없어요. `find_one` 결과 dict를 FastAPI에서 그대로 return 하면 에러가 나는 가장 흔한 원인이에요. 응답 전에 `str(doc["_id"])`로 바꾸거나, 응답 모델에서 **문자열 필드**로 받아요.\n\n반대로 경로 파라미터로 받은 id 문자열은 **`ObjectId(id_str)`** 로 바꿔 조회해요. 형식이 틀리면(`/books/abc`) `InvalidId` **예외 → 500**이 나요. **`ObjectId.is_valid()`** 로 먼저 검사해서 404(또는 400)로 응답해요.' },
+          ],
+        },
+        {
+          title: 'Pydantic으로 응답 만들기',
+          blocks: [
+            { type: 'code', code: `from bson import ObjectId
 from pydantic import BaseModel, Field
 
 class BookOut(BaseModel):
@@ -73,25 +99,27 @@ def read_book(book_id: str):
     doc = col.find_one({"_id": ObjectId(book_id)})
     if doc is None:
         raise HTTPException(404, "책이 없습니다")
-    return to_out(doc)`,
+    return to_out(doc)` },
+            { type: 'say', text: 'fa-08의 **alias**가 여기서 쓰여요. DB에선 `_id`, API에선 `id`. `response_model_by_alias=False`로 응답에는 `id` 이름으로 나가요.\n\nPydantic 모델로 문서를 검증해 받으면, **스키마 없는 DB**에서도 앱이 기대하는 형식을 지킬 수 있어요(nq-01). 날짜는 BSON Date로 저장되고(밀리초, UTC), 읽을 때 시간대가 빠질 수 있어 `MongoClient(tz_aware=True)`로 유지해요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI와 비동기 드라이버',
-      points: [
-        'pymongo의 기본 MongoClient는 동기다. FastAPI에서는 def 엔드포인트로 쓰면(스레드 풀에서 실행) 이벤트 루프를 막지 않는다.',
-        'async def 엔드포인트에서는 비동기 드라이버를 쓴다: PyMongo의 AsyncMongoClient(최신 pymongo) 또는 Motor(AsyncIOMotorClient). 조회·쓰기에 await가 붙는다.',
-        '비동기 커서는 async for doc in col.find(...) 로 반복하거나 await cursor.to_list(length=100)으로 가져온다.',
-        '클라이언트는 lifespan에서 한 번 만들고, 종료 시 닫는다. 의존성으로 컬렉션을 주입하면 테스트에서 바꿔 끼우기 쉽다.',
-        'ODM(객체-문서 매퍼) 라이브러리 Beanie는 Pydantic 모델 기반으로 MongoDB를 다뤄 FastAPI와 궁합이 좋다(SQLAlchemy ORM에 해당하는 역할).',
-      ],
-      code: `from contextlib import asynccontextmanager
+      slides: [
+        {
+          title: 'def냐 async def냐 (또 나왔죠)',
+          blocks: [
+            { type: 'say', text: 'as-01에서 배운 규칙이 그대로 적용돼요.\n• pymongo의 기본 `MongoClient`는 **동기** → **`def`** 엔드포인트로 (스레드 풀에서 실행, 루프 안 막음)\n• **`async def`** 에서 동기 MongoClient를 부르면 → **이벤트 루프가 막혀요**\n• async def에서는 **비동기 드라이버**: 최신 pymongo의 `AsyncMongoClient` 또는 **Motor**(`AsyncIOMotorClient`). 조회·쓰기에 await' },
+            { type: 'code', code: `from contextlib import asynccontextmanager
 from pymongo import AsyncMongoClient     # 또는 motor.motor_asyncio.AsyncIOMotorClient
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.mongo = AsyncMongoClient(settings.mongo_url)
+    app.state.mongo = AsyncMongoClient(settings.mongo_url)   # 시작 시 한 번
     yield
-    await app.state.mongo.close()
+    await app.state.mongo.close()                            # 종료 시 정리
 
 app = FastAPI(lifespan=lifespan)
 
@@ -101,7 +129,17 @@ def get_books(request: Request):
 @app.get("/books")
 async def list_books(col = Depends(get_books), limit: int = 20):
     cursor = col.find({}, {"title": 1}).sort("_id", -1).limit(limit)
-    return [{"id": str(d["_id"]), "title": d["title"]} async for d in cursor]`,
+    return [{"id": str(d["_id"]), "title": d["title"]} async for d in cursor]` },
+          ],
+        },
+        {
+          title: '마무리',
+          blocks: [
+            { type: 'say', text: '비동기 커서는 **`async for doc in cursor`** 로 돌거나 **`await cursor.to_list(length=100)`** 으로 받아요. 클라이언트는 **lifespan**에서 한 번 만들고 종료 시 닫고, 컬렉션은 **의존성**으로 주입하면 테스트에서 바꿔 끼우기 쉬워요(fa-16).\n\n**Beanie** 같은 **ODM**(객체-문서 매퍼)은 Pydantic 모델로 MongoDB 문서를 다뤄서 FastAPI와 궁합이 좋아요. SQLAlchemy ORM에 해당하는 역할이에요.' },
+            { type: 'say', text: '백엔드 트랙이 모두 끝났어요! HTTP와 REST → FastAPI → SQL과 SQLAlchemy → 비동기 → 인증 → 종합 실전 → DB 설계 → MongoDB까지. 정말 긴 여정이었어요. 수고 많았어요! 🎉' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
