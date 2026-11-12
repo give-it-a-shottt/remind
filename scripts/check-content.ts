@@ -26,7 +26,8 @@ for (const t of topics) {
   if (t.sections.length === 0) err(at, '섹션(개념 설명) 없음')
 
   const titles = new Set(t.sections.map((s) => s.title))
-  const lesson = t.track === 'fullstack' || t.track === 'react'
+  // 한 섹션이라도 수업 카드가 있으면 레슨형 토픽 → 모든 섹션에 카드가 있어야 한다
+  const lesson = t.sections.some((s) => s.slides?.length)
   for (const s of t.sections) {
     if (lesson) {
       // 레슨형: 넘겨 보는 수업 카드가 있어야 하고, 카드마다 내용이 있어야 한다
