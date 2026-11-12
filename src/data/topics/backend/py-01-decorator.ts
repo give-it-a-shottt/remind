@@ -10,28 +10,53 @@ const topic: Topic = {
     {
       title: '함수는 값이다 (First-class 함수)',
       notionIds: ['3efdf951bf808142b13df5bd00c4a917'],
-      points: [
-        '파이썬에서 함수는 숫자나 문자열처럼 "값"이다. 변수에 담을 수 있고, 다른 함수의 인자로 넘길 수 있고, 함수의 리턴값이 될 수 있다. 이를 First-class 함수라고 한다.',
-        '함수 이름 뒤에 ()를 붙이면 "호출"이고, 안 붙이면 "함수 그 자체"다. sorted(data, key=len)에서 len에 괄호가 없는 이유가 이것이다.',
-        '함수 안에 함수를 정의할 수 있다(중첩 함수). 안쪽 함수는 기본적으로 바깥 함수 안에서만 보인다. 하지만 바깥 함수가 안쪽 함수를 return 하면 밖에서도 쓸 수 있다.',
-      ],
-      code: `def html_creator(tag):
+      slides: [
+        {
+          title: '@app.get 뒤에 숨은 파이썬',
+          blocks: [
+            { type: 'say', text: 'FastAPI 코드는 `@app.get("/items")`로 시작해요. 이 `@`가 뭔지 모르고 넘어가면, 나중에 "라우트가 왜 안 잡히지?" 같은 문제를 만났을 때 손을 못 써요. 이번 수업에서 **데코레이터**의 원리를 바닥부터 이해해 볼게요.\n\n출발점은 이 한 문장이에요. **파이썬에서 함수는 "값"이다.**' },
+            { type: 'say', text: '숫자나 문자열처럼 함수도\n• 변수에 **담을 수 있고**\n• 다른 함수에 **인자로 넘길 수 있고**\n• 함수의 **리턴값**이 될 수 있어요\n이런 함수를 **First-class 함수**(일급 함수)라고 해요.' },
+          ],
+        },
+        {
+          title: '괄호가 있으면 호출, 없으면 함수 자체',
+          blocks: [
+            { type: 'code', code: `len("hello")              # 괄호 O → 호출, 결과 5
+sorted(data, key=len)     # 괄호 X → "len 이라는 함수 자체"를 넘김` },
+            { type: 'say', text: '`sorted`에 `len()`이 아니라 `len`을 주는 이유는, "지금 실행한 결과"가 아니라 **"나중에 각 항목에 쓸 함수"** 를 넘기는 거라서예요. FastAPI의 `Depends(get_db)`에 괄호가 없는 것도 똑같은 이유예요. FastAPI가 **요청이 올 때마다** 그 함수를 대신 호출해 줘요.' },
+          ],
+        },
+        {
+          title: '함수가 함수를 돌려줄 수도 있어요',
+          blocks: [
+            { type: 'code', code: `def html_creator(tag):
     def text_wrapper(msg):
         return f"<{tag}>{msg}</{tag}>"
     return text_wrapper     # 괄호 없음: 함수 자체를 돌려줌
 
 h1 = html_creator("h1")   # h1 은 함수
-print(h1("제목"))          # <h1>제목</h1>`,
+print(h1("제목"))          # <h1>제목</h1>` },
+            { type: 'say', text: '함수 안에 함수를 만들 수 있어요(**중첩 함수**). 안쪽 함수는 원래 바깥 함수 안에서만 보이지만, 바깥 함수가 그걸 **return** 하면 밖에서도 쓸 수 있어요. `html_creator("h1")`은 "h1 태그를 붙여 주는 함수"를 **찍어 내는 공장**이 된 셈이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '클로저: 함수가 바깥 변수를 기억한다',
       notionIds: ['3efdf951bf8081ebab07d7c8c1112978'],
-      points: [
-        '위 예에서 html_creator("h1") 호출은 끝났는데도, 돌려받은 h1 함수는 tag="h1"을 여전히 기억한다. 이렇게 "함수 + 그 함수가 만들어질 때의 바깥 변수"를 함께 들고 다니는 것을 클로저(Closure)라고 한다.',
-        '클로저는 작은 객체처럼 쓸 수 있다. calc_power(2)는 제곱 함수, calc_power(3)은 세제곱 함수를 만든다. 기능이 하나뿐이면 클로저, 여러 개면 클래스가 어울린다.',
-        '안쪽 함수에서 바깥 변수를 "다시 대입"하려면 nonlocal 선언이 필요하다. 읽기만 할 때는 필요 없다.',
-      ],
-      code: `def make_counter():
+      slides: [
+        {
+          title: '끝난 함수의 변수를 기억해요',
+          blocks: [
+            { type: 'say', text: '방금 예제에서 이상한 점 눈치채셨나요? `html_creator("h1")` 호출은 **이미 끝났어요.** 그런데 돌려받은 `h1` 함수는 여전히 `tag="h1"`을 기억하고 있어요.\n\n이렇게 **함수 + 그 함수가 만들어질 때의 바깥 변수**를 함께 들고 다니는 걸 **클로저(Closure)** 라고 해요.' },
+            { type: 'note', tone: 'analogy', text: '클로저는 **도시락**이에요. 집(바깥 함수)을 떠나도, 집에서 싸 준 반찬(바깥 변수)을 들고 다니죠. 집이 문을 닫아도 도시락 안 반찬은 그대로예요.' },
+            { type: 'say', text: '클로저는 작은 객체처럼 쓸 수 있어요. `calc_power(2)`는 제곱 함수, `calc_power(3)`은 세제곱 함수를 만들어요. 기능이 **하나뿐이면 클로저**, 여러 개면 **클래스**가 어울려요.' },
+          ],
+        },
+        {
+          title: '바꾸려면 nonlocal',
+          blocks: [
+            { type: 'code', code: `def make_counter():
     count = 0
     def increase():
         nonlocal count   # 없으면 UnboundLocalError
@@ -41,18 +66,35 @@ print(h1("제목"))          # <h1>제목</h1>`,
 
 c = make_counter()
 c(); c()
-print(c())   # 3`,
+print(c())   # 3` },
+            { type: 'say', text: '안쪽 함수에서 바깥 변수를 **읽기만** 할 땐 아무것도 필요 없어요. 하지만 `count += 1`처럼 **다시 대입**하려고 하면, 파이썬은 "count는 이 함수 안의 새 지역 변수구나"라고 착각해요. 그래서 값을 읽기도 전에 대입하려 한다는 에러가 나요.\n\n`nonlocal count`는 "이 count는 **바깥 함수의 그 count**야"라고 알려 주는 선언이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '데코레이터 = 함수를 받아 감싼 함수를 돌려주는 함수',
       notionIds: ['3efdf951bf8081faad83c5aa0c575c3f'],
-      points: [
-        '데코레이터는 함수 앞뒤에 공통 기능(로그, 시간 측정, 권한 검사)을 붙이는 기법이다. 원래 함수를 고치지 않고 기능을 더한다.',
-        '@deco 를 함수 위에 쓰는 것은 func = deco(func) 와 완전히 같다. 즉 함수 정의 직후 데코레이터가 한 번 호출되고, 그 리턴값(보통 wrapper)이 원래 이름에 다시 대입된다.',
-        '어떤 함수에도 쓰려면 wrapper가 (*args, **kwargs)로 받아서 그대로 넘기고, 원래 함수의 리턴값도 return 해야 한다. return을 빼먹으면 감싼 함수가 항상 None을 돌려준다.',
-        'functools.wraps(func)를 붙이면 wrapper가 원래 함수의 이름·설명·시그니처 정보를 물려받는다. FastAPI처럼 함수 시그니처를 읽는 프레임워크와 함께 쓸 때 특히 중요하다.',
-      ],
-      code: `import time
+      slides: [
+        {
+          title: '@는 사실 대입이에요',
+          blocks: [
+            { type: 'say', text: '이제 재료가 다 모였어요. **데코레이터**는 함수를 받아서, 앞뒤에 기능을 덧붙인 **새 함수(wrapper)** 를 돌려주는 함수예요. 원래 함수를 고치지 않고 로그, 시간 측정, 권한 검사 같은 공통 기능을 붙일 수 있어요.' },
+            { type: 'code', code: `@timer
+def add(a, b):
+    return a + b
+
+# 위 코드는 아래와 완전히 같아요
+def add(a, b):
+    return a + b
+add = timer(add)` },
+            { type: 'say', text: '`@timer`는 마법이 아니라 **`add = timer(add)`의 줄임말**이에요. 함수를 정의한 직후 데코레이터가 **한 번** 호출되고, 그 리턴값(보통 wrapper)이 원래 이름 `add`에 다시 담겨요. 이후 `add(1, 2)`를 부르면 실제로는 wrapper가 실행돼요.' },
+          ],
+        },
+        {
+          title: '제대로 만든 데코레이터',
+          blocks: [
+            { type: 'code', code: `import time
 from functools import wraps
 
 def timer(func):
@@ -62,22 +104,34 @@ def timer(func):
         result = func(*args, **kwargs)   # 원래 함수 실행
         print(f"{func.__name__}: {time.perf_counter() - start:.3f}s")
         return result                    # 리턴값 전달 잊지 않기
-    return wrapper
-
-@timer               # add = timer(add)
-def add(a, b):
-    return a + b`,
+    return wrapper` },
+            { type: 'list', items: ['`*args, **kwargs` — 인자가 몇 개든 **받아서 그대로 넘겨요.** 그래야 어떤 함수에도 붙일 수 있어요', '`return result` — 원래 함수의 결과를 돌려줘야 해요. **빼먹으면 항상 None**', '`@wraps(func)` — wrapper가 원래 함수의 **이름·설명·시그니처**를 물려받게 해요'] },
+            { type: 'ask', q: '데코레이터를 붙였더니 `add(1, 2)`가 3이 아니라 None이에요. 어디를 봐야 할까요?', a: 'wrapper 안에서 `func(*args, **kwargs)`의 결과를 **return** 했는지 보세요. 원래 함수는 3을 돌려줬지만, wrapper가 그걸 받기만 하고 돌려주지 않으면 파이썬 함수의 기본 리턴값 None이 나가요.' },
+          ],
+        },
+      ],
     },
     {
       title: '여러 개의 데코레이터와 파라미터 있는 데코레이터',
       notionIds: ['3efdf951bf8081a1abeae8f03c744e48'],
-      points: [
-        '데코레이터를 여러 줄 쌓으면 함수에 가까운(아래) 것부터 감싼다. @bold @italic def f → f = bold(italic(f)). 실행할 때는 바깥(위) wrapper부터 들어간다.',
-        '@app.get("/items") 처럼 괄호 안에 값을 받는 데코레이터는 한 단계 더 깊다. app.get("/items")를 먼저 호출해서 "진짜 데코레이터"를 받고, 그것이 함수를 감싼다. 즉 f = app.get("/items")(f).',
-        '파라미터 있는 데코레이터의 구조: 바깥 함수(설정값) → 데코레이터(func) → wrapper(*args, **kwargs). 함수가 3겹이다.',
-        '클래스 메서드에 쓰는 데코레이터의 wrapper는 첫 인자로 self를 받게 된다. (*args, **kwargs)로 받으면 self도 args[0]으로 자연스럽게 넘어간다.',
-      ],
-      code: `def tag(name):                    # 1) 설정값을 받는 바깥 함수
+      slides: [
+        {
+          title: '쌓으면 아래부터 감싸요',
+          blocks: [
+            { type: 'code', code: `@bold
+@italic
+def hello():
+    return "hi"
+
+# 같은 뜻: hello = bold(italic(hello))` },
+            { type: 'say', text: '데코레이터를 여러 줄 쌓으면 **함수에 가까운(아래) 것부터** 감싸요. 포장지를 안쪽부터 싸는 것과 같아요. 실행할 땐 반대로 **바깥(위) 포장지부터** 열고 들어가요.' },
+          ],
+        },
+        {
+          title: '괄호가 있는 데코레이터는 3겹',
+          blocks: [
+            { type: 'say', text: '`@app.get("/items")`처럼 **괄호 안에 값을 받는** 데코레이터는 한 단계 더 깊어요. `app.get("/items")`를 **먼저 호출**해서 "진짜 데코레이터"를 받고, 그게 함수를 감싸요.\n즉 `f = app.get("/items")(f)`예요.' },
+            { type: 'code', code: `def tag(name):                    # 1) 설정값을 받는 바깥 함수
     def decorator(func):          # 2) 진짜 데코레이터
         def wrapper(*args, **kwargs):   # 3) 감싼 함수
             return f"<{name}>{func(*args, **kwargs)}</{name}>"
@@ -89,16 +143,19 @@ def add(a, b):
 def hello():
     return "hi"
 
-print(hello())   # <b><i>hi</i></b>`,
+print(hello())   # <b><i>hi</i></b>` },
+            { type: 'note', tone: 'tip', text: '클래스 메서드에 데코레이터를 붙이면 wrapper의 첫 인자로 `self`가 들어와요. `(*args, **kwargs)`로 받으면 `self`도 `args[0]`으로 자연스럽게 넘어가니 따로 신경 쓸 필요 없어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'FastAPI의 @app.get 은 무엇을 하나',
-      points: [
-        '@app.get("/items")는 함수를 감싸서 바꾸기보다는, 함수를 "GET /items 담당"으로 라우팅 표에 등록하는 데코레이터다. 등록 후 원래 함수를 그대로 돌려준다.',
-        '등록 시점: 데코레이터는 "파일이 import될 때" 실행된다. 요청이 올 때가 아니다. 그래서 라우트 함수가 정의된 모듈을 import하지 않으면 라우트도 등록되지 않는다(APIRouter를 include_router 하는 이유).',
-        'FastAPI는 등록된 함수의 시그니처(파라미터 이름·타입·기본값)를 읽어서 경로 파라미터·쿼리·본문을 결정한다. 그래서 직접 만든 데코레이터로 라우트 함수를 감쌀 때 @wraps가 없으면 시그니처가 (*args, **kwargs)로 보여 파라미터 인식이 깨진다.',
-      ],
-      code: `# FastAPI 내부를 아주 단순화한 모습
+      slides: [
+        {
+          title: '감싸기보다 등록하기',
+          blocks: [
+            { type: 'code', code: `# FastAPI 내부를 아주 단순화한 모습
 class MiniApp:
     def __init__(self):
         self.routes = {}
@@ -115,7 +172,24 @@ app = MiniApp()
 def list_items():
     return []
 
-print(app.routes)   # {('GET', '/items'): <function list_items>}`,
+print(app.routes)   # {('GET', '/items'): <function list_items>}` },
+            { type: 'say', text: '`@app.get`은 함수를 감싸서 바꾸기보다, **"GET /items 담당은 이 함수"라고 라우팅 표에 적어 두는** 데코레이터예요. 적어 둔 다음 원래 함수를 그대로 돌려줘요.' },
+          ],
+        },
+        {
+          title: '등록은 import 될 때 일어나요',
+          blocks: [
+            { type: 'say', text: '데코레이터는 **파일이 import 될 때** 실행돼요. 요청이 올 때가 아니에요. 그래서 라우트 함수가 들어 있는 모듈을 **아무도 import 하지 않으면** 라우트도 등록되지 않아요.\n\n나중에 `routers/items.py`로 라우트를 나눴는데 `/docs`에 안 보인다면, `main.py`에서 `app.include_router(...)`로 연결했는지부터 보세요.' },
+          ],
+        },
+        {
+          title: '@wraps가 없으면 FastAPI가 헷갈려요',
+          blocks: [
+            { type: 'say', text: 'FastAPI는 등록된 함수의 **시그니처**(파라미터 이름·타입·기본값)를 읽어서 경로 파라미터, 쿼리, 본문을 정해요.\n\n그런데 직접 만든 데코레이터로 라우트 함수를 감쌀 때 `@wraps`를 안 쓰면, FastAPI 눈에는 함수가 `wrapper(*args, **kwargs)`로 보여요. 그러면 쿼리 파라미터 `q`도 못 알아보고, 문서에는 `args`, `kwargs`라는 이상한 파라미터가 나타나요.' },
+            { type: 'ask', q: '직접 만든 `@require_admin`을 라우트에 붙였더니 `/docs`에 args, kwargs가 보여요. 해결책은?', a: '데코레이터 안 wrapper에 **`@functools.wraps(func)`** 를 붙여요. 원래 함수의 시그니처가 wrapper로 옮겨져서 FastAPI가 파라미터를 제대로 읽어요. (권한 검사는 원래 FastAPI의 `Depends`로 하는 게 더 자연스러워요. 의존성 수업에서 배워요.)' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -10,13 +10,12 @@ const topic: Topic = {
     {
       title: '클래스, 객체, self',
       notionIds: ['3efdf951bf80817abb60e92382bb6efa'],
-      points: [
-        '클래스는 "설계도", 객체(인스턴스)는 설계도로 찍어낸 "실물"이다. user1 = User("kim") 처럼 클래스를 함수처럼 호출하면 객체가 만들어진다.',
-        '__init__ 은 객체가 만들어질 때 자동으로 실행되는 초기화 메서드(생성자)다. self.name = name 처럼 객체마다 따로 가질 속성(attribute)을 만든다.',
-        '메서드의 첫 파라미터 self는 "이 메서드를 호출한 객체 자신"이다. user1.greet() 는 실제로 User.greet(user1) 로 실행된다. 그래서 self를 빼먹으면 "인자 개수가 맞지 않는다"는 TypeError가 난다.',
-        '클래스 이름은 CapWords(UserCreate, PostRead)로 짓는다. FastAPI 코드에서 대문자로 시작하는 이름은 대부분 클래스(모델)다.',
-      ],
-      code: `class User:
+      slides: [
+        {
+          title: '설계도와 실물',
+          blocks: [
+            { type: 'say', text: 'FastAPI 코드를 열면 `class PostCreate(BaseModel):`, `class Post(Base):` 같은 **클래스**가 가득해요. 이걸 읽을 수 있어야 Pydantic도 ORM도 이해돼요. 이번 수업은 그 기초예요.\n\n**클래스**는 설계도, **객체(인스턴스)** 는 설계도로 찍어 낸 실물이에요. 클래스를 함수처럼 호출하면 객체가 만들어져요.' },
+            { type: 'code', code: `class User:
     def __init__(self, name: str, age: int):
         self.name = name     # 인스턴스 속성
         self.age = age
@@ -26,18 +25,49 @@ const topic: Topic = {
 
 u = User("kim", 20)
 print(u.greet())         # 안녕, kim
-print(User.greet(u))     # 똑같은 호출`,
+print(User.greet(u))     # 똑같은 호출` },
+            { type: 'note', tone: 'analogy', text: '붕어빵 틀(클래스)과 붕어빵(객체)이에요. 틀은 하나지만 붕어빵은 여러 개 찍어 낼 수 있고, 붕어빵마다 속(팥, 슈크림)이 달라요. 그 "붕어빵마다 다른 속"이 **속성**이에요.' },
+          ],
+        },
+        {
+          title: '__init__과 self',
+          blocks: [
+            { type: 'say', text: '`__init__`은 객체가 만들어질 때 **자동으로 실행되는 초기화 메서드**(생성자)예요. 여기서 `self.name = name`처럼 객체마다 따로 가질 속성을 만들어요.\n\n`self`는 **"이 메서드를 호출한 객체 자신"** 이에요. `u.greet()`는 실제로 `User.greet(u)`로 실행돼요. 파이썬이 점 앞의 객체를 첫 인자로 몰래 넣어 주는 거예요.' },
+            { type: 'note', tone: 'warn', text: '메서드를 정의할 때 `self`를 빼먹으면, 파이썬은 여전히 객체를 첫 인자로 넣어 주는데 받을 자리가 없어서 **"인자 개수가 맞지 않는다"는 TypeError**가 나요.' },
+            { type: 'say', text: '클래스 이름은 **CapWords**(`UserCreate`, `PostRead`)로 지어요. 그래서 FastAPI 코드에서 대문자로 시작하는 이름은 대부분 클래스(모델)라고 보면 돼요.' },
+          ],
+        },
+      ],
     },
     {
       title: '클래스 변수와 인스턴스 변수',
       notionIds: ['3efdf951bf8081798cc5cbbf7c22b9c9'],
-      points: [
-        '클래스 변수: 클래스 본문(메서드 밖)에 쓴 변수. 모든 객체가 함께 쓴다. User.count 처럼 접근한다.',
-        '인스턴스 변수: 메서드 안에서 self.x 로 만든 변수. 객체마다 따로 있다.',
-        '함정: 클래스 변수에 리스트 같은 가변 객체를 두면 모든 객체가 같은 리스트를 공유한다. 한 객체에서 append하면 모두에게 보인다.',
-        'Pydantic과 SQLAlchemy는 이 "클래스 본문에 적은 변수" 문법을 빌려 "필드 선언"으로 쓴다. class Item(BaseModel): name: str 은 클래스 변수처럼 보이지만, 라이브러리가 이를 읽어 객체마다 따로 갖는 필드로 바꿔 준다.',
-      ],
-      code: `from pydantic import BaseModel
+      slides: [
+        {
+          title: '함께 쓰는 변수, 따로 쓰는 변수',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '클래스 변수', '인스턴스 변수'],
+              rows: [
+                ['어디에 쓰나', '클래스 본문 (메서드 **밖**)', '메서드 안에서 `self.x = ...`'],
+                ['누가 가지나', '**모든 객체가 함께** 하나를', '**객체마다 따로**'],
+                ['접근', '`User.count`', '`u.name`'],
+              ],
+            },
+            { type: 'code', code: `class Basket:
+    items = []              # 클래스 변수 — 모두가 같은 리스트!
+
+a = Basket(); b = Basket()
+a.items.append("빵")
+print(b.items)              # ['빵']  ← b 바구니에도 들어 있음` },
+            { type: 'note', tone: 'warn', text: '클래스 변수에 **리스트 같은 가변 객체**를 두면 모든 객체가 같은 리스트를 공유해요. 한 객체에서 append하면 모두에게 보여요. 객체마다 따로 가져야 하면 `__init__`에서 `self.items = []`로 만들어요.' },
+          ],
+        },
+        {
+          title: 'Pydantic이 이 문법을 빌려 써요',
+          blocks: [
+            { type: 'code', code: `from pydantic import BaseModel
 
 class Item(BaseModel):
     name: str          # 클래스 본문에 "이름: 타입" 으로 필드 선언
@@ -45,21 +75,39 @@ class Item(BaseModel):
 
 a = Item(name="pen")
 b = Item(name="cup", price=3000)
-print(a.price, b.price)   # 0 3000  (객체마다 따로)`,
+print(a.price, b.price)   # 0 3000  (객체마다 따로)` },
+            { type: 'say', text: '`name: str`은 클래스 본문에 쓴 클래스 변수처럼 생겼죠. 그런데 Pydantic과 SQLAlchemy는 이 문법을 **"필드 선언"** 으로 빌려 써요. 라이브러리가 클래스 본문을 읽어서 **객체마다 따로 갖는 필드**로 바꿔 줘요. 그래서 `a`와 `b`의 price가 따로예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '상속과 오버라이드, super()',
       notionIds: ['3efdf951bf8081ada6a4fe809ac5761b'],
-      points: [
-        '상속: class Child(Parent): 로 부모의 속성과 메서드를 물려받고, 다른 부분만 추가하거나 바꾼다. 공통 코드를 한 곳에 모을 수 있다.',
-        '오버라이드: 부모와 같은 이름의 메서드를 자식에서 다시 정의하면 자식 객체에서는 자식 것이 호출된다.',
-        'super().__init__(...) 으로 부모의 초기화를 먼저 실행하고 자식만의 속성을 더한다. 이걸 빼먹으면 부모가 만들어야 할 속성이 없어서 AttributeError가 난다.',
-        'isinstance(obj, Parent)는 자식 객체에도 True다. issubclass(Child, Parent)는 클래스끼리 상속 관계를 확인한다.',
-        'FastAPI에서 상속이 가장 많이 쓰이는 곳: Pydantic 스키마의 공통 필드 묶기(PostBase → PostCreate, PostRead)와 SQLAlchemy의 class Post(Base).',
-      ],
-      code: `from pydantic import BaseModel
+      slides: [
+        {
+          title: '물려받고, 다른 것만 바꾸기',
+          blocks: [
+            { type: 'say', text: '**상속**은 `class Child(Parent):`로 부모의 속성과 메서드를 물려받고, **다른 부분만** 추가하거나 바꾸는 거예요. 공통 코드를 한곳에 모을 수 있어요.\n\n**오버라이드**: 부모와 같은 이름의 메서드를 자식에서 다시 정의하면, 자식 객체에서는 **자식 것**이 호출돼요.' },
+            { type: 'code', code: `class Animal:
+    def __init__(self, name):
+        self.name = name
+    def speak(self):
+        return "..."
 
-class PostBase(BaseModel):
+class Dog(Animal):
+    def __init__(self, name, breed):
+        super().__init__(name)     # 부모 초기화 먼저 (self.name 생김)
+        self.breed = breed
+    def speak(self):               # 오버라이드
+        return "멍멍"` },
+            { type: 'note', tone: 'warn', text: '`super().__init__(name)`을 빼먹으면 부모가 만들어 줘야 할 `self.name`이 **생기지 않아서** `d.name`에 접근할 때 AttributeError가 나요.' },
+          ],
+        },
+        {
+          title: 'FastAPI에서 상속을 쓰는 곳',
+          blocks: [
+            { type: 'code', code: `class PostBase(BaseModel):
     title: str
     content: str
 
@@ -67,18 +115,30 @@ class PostCreate(PostBase):     # 입력용: 공통 필드 그대로
     pass
 
 class PostRead(PostBase):       # 출력용: id 추가
-    id: int`,
+    id: int` },
+            { type: 'say', text: '게시글 API에는 **입력용**(클라이언트가 보내는 것)과 **출력용**(서버가 돌려주는 것) 스키마가 따로 필요해요. id는 서버가 만드니 입력엔 없고 출력엔 있죠. 공통 필드를 `PostBase`에 모아 두면, 필드가 바뀔 때 **한 곳만** 고치면 돼요.\n\nSQLAlchemy의 `class Post(Base):`도 상속이에요.' },
+            { type: 'say', text: '`isinstance(obj, Parent)`는 **자식 객체에도 True**예요. 강아지도 동물이니까요. `issubclass(Child, Parent)`는 클래스끼리의 관계를 확인해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '@staticmethod 와 @classmethod',
       notionIds: ['3efdf951bf8081798cc5cbbf7c22b9c9'],
-      points: [
-        '인스턴스 메서드: self를 받는다. 객체의 속성을 읽고 쓴다. 가장 흔하다.',
-        '@classmethod: self 대신 cls(호출한 클래스)를 받는다. 객체를 만드는 "다른 방법"(대체 생성자)을 만들 때 주로 쓴다. 예: User.from_dict(data). 자식 클래스에서 호출하면 cls가 자식 클래스가 된다.',
-        '@staticmethod: self도 cls도 받지 않는다. 클래스와 논리적으로 관련 있지만 객체 상태가 필요 없는 도우미 함수다.',
-        'Pydantic의 Item.model_validate(data) 가 대표적인 classmethod 예다. "dict나 ORM 객체로부터 Item을 만들어 줘"라는 대체 생성자다.',
-      ],
-      code: `class User:
+      slides: [
+        {
+          title: '메서드 세 종류',
+          blocks: [
+            {
+              type: 'table',
+              head: ['종류', '첫 인자', '언제'],
+              rows: [
+                ['인스턴스 메서드', '`self` (객체)', '객체의 속성을 읽고 쓸 때. 가장 흔함'],
+                ['`@classmethod`', '`cls` (클래스)', '객체를 만드는 **다른 방법**(대체 생성자)'],
+                ['`@staticmethod`', '없음', '클래스와 관련 있지만 객체 상태가 필요 없는 **도우미 함수**'],
+              ],
+            },
+            { type: 'code', code: `class User:
     def __init__(self, name):
         self.name = name
 
@@ -91,16 +151,41 @@ class PostRead(PostBase):       # 출력용: id 추가
         return 2 <= len(name) <= 20
 
 u = User.from_email("kim@a.com")
-print(u.name, User.is_valid_name("k"))   # kim False`,
+print(u.name, User.is_valid_name("k"))   # kim False` },
+          ],
+        },
+        {
+          title: 'Pydantic의 classmethod',
+          blocks: [
+            { type: 'say', text: '`@classmethod`는 `cls`를 받기 때문에, 자식 클래스에서 호출하면 `cls`가 **자식 클래스**가 돼요. 그래서 상속해도 올바른 클래스의 객체가 만들어져요.\n\nPydantic의 `Item.model_validate(data)`가 대표적인 classmethod예요. "dict나 ORM 객체로부터 Item을 만들어 줘"라는 **대체 생성자**죠. 나중에 ORM 객체를 응답 스키마로 바꿀 때 만나요.' },
+          ],
+        },
+      ],
     },
     {
       title: '특별 메서드와 dataclass',
-      points: [
-        '__로 둘러싼 메서드는 파이썬이 특정 상황에 자동으로 호출한다. __init__(생성), __repr__(print·디버깅 표시), __eq__(== 비교), __len__(len()).',
-        '__repr__ 을 정의해 두면 print(user)가 <User object at 0x...> 대신 User(id=1, name="kim") 처럼 읽기 좋게 나온다. SQLAlchemy 모델 디버깅에 유용하다.',
-        '@dataclass 는 필드만 적으면 __init__, __repr__, __eq__ 를 자동으로 만들어 준다. 다만 타입 검증은 하지 않는다. "abc"를 int 필드에 넣어도 그대로 들어간다. 검증까지 필요하면 Pydantic을 쓴다.',
-      ],
-      code: `from dataclasses import dataclass
+      slides: [
+        {
+          title: '__로 둘러싼 메서드',
+          blocks: [
+            { type: 'say', text: '`__init__`처럼 앞뒤에 밑줄 두 개가 붙은 메서드는 파이썬이 **특정 상황에 자동으로** 호출해요.' },
+            {
+              type: 'table',
+              head: ['메서드', '자동 호출되는 때'],
+              rows: [
+                ['`__init__`', '객체 생성'],
+                ['`__repr__`', '`print()`, 디버거에서 객체를 보여 줄 때 (개발자용 표현)'],
+                ['`__eq__`', '`==` 비교'],
+                ['`__len__`', '`len()`'],
+              ],
+            },
+            { type: 'say', text: '`__repr__`을 정의해 두면 `print(user)`가 `<User object at 0x...>` 대신 `User(id=1, name="kim")`처럼 읽기 좋게 나와요. SQLAlchemy 모델을 디버깅할 때 정말 유용해요.' },
+          ],
+        },
+        {
+          title: 'dataclass와 Pydantic의 차이',
+          blocks: [
+            { type: 'code', code: `from dataclasses import dataclass
 
 @dataclass
 class Point:
@@ -110,7 +195,11 @@ class Point:
 p = Point(1, 2)
 print(p)                   # Point(x=1, y=2)
 print(p == Point(1, 2))    # True
-print(Point("a", "b"))     # Point(x='a', y='b')  ← 검증 없음`,
+print(Point("a", "b"))     # Point(x='a', y='b')  ← 검증 없음` },
+            { type: 'say', text: '`@dataclass`는 필드만 적으면 `__init__`, `__repr__`, `__eq__`를 **자동으로** 만들어 줘요. 편하죠.\n\n하지만 **타입 검증은 하지 않아요.** `int` 필드에 `"a"`를 넣어도 그대로 들어가요. 타입 힌트는 그냥 "설명"일 뿐이에요. 바깥에서 들어오는 값을 **검사까지** 해야 하는 API에서는 Pydantic을 써요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
