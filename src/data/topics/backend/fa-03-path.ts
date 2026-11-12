@@ -10,42 +10,69 @@ const topic: Topic = {
     {
       title: '경로 파라미터 기본',
       notionIds: ['3efdf951bf808141a071fd4cbb558ff9'],
-      points: [
-        '경로 안의 {이름} 부분이 경로 파라미터다. @app.get("/posts/{post_id}") 에 GET /posts/7 이 오면 함수의 post_id 파라미터에 7이 들어간다.',
-        '데코레이터의 {이름}과 함수 파라미터 이름이 정확히 같아야 연결된다. 다르면 FastAPI는 그 함수 파라미터를 쿼리 파라미터로 착각한다.',
-        '경로 파라미터는 항상 필수다. /posts/ 처럼 값이 비면 그 라우트에 매칭되지 않는다(404).',
-        '경로 파라미터는 "어떤 자원 하나"를 가리킬 때 쓴다. /users/3, /posts/7/comments 처럼 자원의 위치를 나타낸다.',
-      ],
-      code: `@app.get("/posts/{post_id}")
+      slides: [
+        {
+          title: '주소 안의 빈칸',
+          blocks: [
+            { type: 'say', text: '`/posts/1`, `/posts/2`, `/posts/3`… 글마다 라우트를 따로 만들 순 없죠. 주소 안에 **빈칸**을 뚫어 두고, 들어온 값을 함수가 받게 해요. 그게 **경로 파라미터**예요.' },
+            { type: 'code', code: `@app.get("/posts/{post_id}")
 def read_post(post_id: int):
     return {"post_id": post_id, "type": type(post_id).__name__}
 
 # GET /posts/7    → {"post_id": 7, "type": "int"}
-# GET /posts/abc  → 422 (int 변환 실패)`,
+# GET /posts/abc  → 422 (int 변환 실패)` },
+            { type: 'say', text: '데코레이터의 `{post_id}`와 함수 파라미터 `post_id`의 **이름이 정확히 같아야** 연결돼요. 이름이 다르면 FastAPI는 그 함수 파라미터를 쿼리 파라미터(다음 수업)로 착각해요.' },
+          ],
+        },
+        {
+          title: '경로 파라미터는 항상 필수',
+          blocks: [
+            { type: 'say', text: '경로 파라미터는 **항상 필수**예요. `/posts/`처럼 값이 비면 그 라우트와 아예 맞지 않아서 404가 나요. 기본값을 줘도 선택 값이 되지 않아요.\n\n경로 파라미터는 **"어떤 자원 하나"의 위치**를 가리킬 때 써요. `/users/3`, `/posts/7/comments`처럼요.' },
+            { type: 'ask', q: '"3번 글"과 "검색어 fastapi", 경로 파라미터로 받기 자연스러운 건 어느 쪽일까요?', a: '**3번 글**이에요. 특정 자원 하나를 콕 집으니까요(`/posts/3`). 검색어·정렬·페이지처럼 **목록을 거르는 조건**은 쿼리 파라미터(`/posts?keyword=fastapi`)가 자연스러워요.' },
+          ],
+        },
+      ],
     },
     {
       title: '타입 변환과 검증',
-      points: [
-        'URL은 원래 모두 문자열이다. 타입 힌트를 int로 주면 FastAPI가 "7" → 7로 바꿔 준다. 타입 힌트가 없으면 문자열 그대로 들어온다.',
-        '변환이 불가능하면("abc" → int) 함수는 실행되지 않고 422가 응답된다. float, bool, UUID, date 같은 타입도 쓸 수 있다.',
-        'Path()로 숫자 범위를 선언할 수 있다. post_id: int = Path(ge=1) 이면 0이나 음수는 422로 거절된다. gt(초과), ge(이상), lt(미만), le(이하).',
-        '요즘 권장 문법은 Annotated[int, Path(ge=1)] 다. 타입과 검증 정보를 한 곳에 묶는다(타입 힌트 고급 토픽).',
-      ],
-      code: `from typing import Annotated
+      slides: [
+        {
+          title: '"7"이 7이 되는 과정',
+          blocks: [
+            { type: 'say', text: 'URL은 원래 **전부 문자열**이에요. `/posts/7`의 7도 사실 `"7"`이죠. 타입 힌트를 `int`로 주면 FastAPI가 `"7"` → `7`로 **바꿔 줘요.** 타입 힌트가 없으면 문자열 그대로 들어와요.\n\n바꿀 수 없는 값(`"abc"` → int, `"3.5"` → int)이 오면 함수는 **실행조차 되지 않고** 422가 응답돼요. float, bool, UUID, date 같은 타입도 쓸 수 있어요.' },
+          ],
+        },
+        {
+          title: '숫자 범위까지 선언하기',
+          blocks: [
+            { type: 'code', code: `from typing import Annotated
 from fastapi import Path
 
 @app.get("/items/{item_id}")
 def read_item(item_id: Annotated[int, Path(ge=1, le=10_000, description="상품 ID")]):
-    return {"item_id": item_id}`,
+    return {"item_id": item_id}` },
+            {
+              type: 'table',
+              head: ['키워드', '뜻', '외우기'],
+              rows: [
+                ['`gt`', '초과 `>`', '**g**reater **t**han'],
+                ['`ge`', '이상 `>=`', '**g**reater or **e**qual'],
+                ['`lt`', '미만 `<`', '**l**ess **t**han'],
+                ['`le`', '이하 `<=`', '**l**ess or **e**qual'],
+              ],
+            },
+            { type: 'say', text: '`Path(ge=1)`이면 0이나 음수는 함수에 오기 전에 422로 거절돼요. 직접 `if item_id < 1:` 검사를 쓸 필요가 없어요.\n\n`Annotated[타입, 검증정보]`는 요즘 권장하는 문법이에요. 타입과 검증 정보를 한 곳에 묶어요. 타입 힌트 고급 수업에서 자세히 봐요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'Enum으로 값 제한하기',
-      points: [
-        '경로 값이 정해진 몇 가지 중 하나여야 한다면 Enum을 쓴다. class Category(str, Enum): book = "book"; music = "music".',
-        'str을 함께 상속하면 값이 문자열로 다뤄져 JSON으로 그대로 나가고, /docs에 선택 목록(드롭다운)이 생긴다.',
-        '목록에 없는 값이 오면 422와 함께 "허용 값: book, music"이 응답된다. 함수 안에서는 category == Category.book 또는 category.value 로 비교한다.',
-      ],
-      code: `from enum import Enum
+      slides: [
+        {
+          title: '정해진 몇 개 중 하나만',
+          blocks: [
+            { type: 'code', code: `from enum import Enum
 
 class Category(str, Enum):
     book = "book"
@@ -55,24 +82,41 @@ class Category(str, Enum):
 def by_category(category: Category):
     if category is Category.book:
         return {"msg": "책 목록"}
-    return {"msg": f"{category.value} 목록"}`,
+    return {"msg": f"{category.value} 목록"}` },
+            { type: 'say', text: '경로 값이 **정해진 몇 가지 중 하나**여야 한다면 Enum을 써요.\n• 목록에 없는 값(`/categories/movie`)이 오면 422와 함께 **허용 값 목록**을 알려 줘요\n• `/docs`에 **드롭다운 선택 목록**이 생겨요\n• 함수 안에서는 `category is Category.book`이나 `category.value`로 비교해요' },
+            { type: 'note', tone: 'tip', text: '`str`을 **같이 상속**하는 이유: 값이 문자열로 다뤄져서 JSON으로 그대로 나가고, 문서에도 문자열 선택지로 보여요. `class Category(str, Enum)` 모양을 통째로 기억해 두세요.' },
+          ],
+        },
+      ],
     },
     {
       title: '라우트 순서와 경로 안의 경로',
-      points: [
-        '라우트는 등록 순서대로 비교된다. /users/me 같은 고정 경로는 /users/{user_id} 같은 변수 경로보다 먼저 선언해야 한다.',
-        '파일 경로처럼 슬래시(/)가 포함된 값을 통째로 받으려면 {file_path:path} 를 쓴다. /files/a/b/c.txt → file_path = "a/b/c.txt".',
-        '하위 자원은 경로 파라미터를 여러 개 쓴다. /posts/{post_id}/comments/{comment_id}. 이 경우 comment가 정말 그 post에 속하는지 DB에서 함께 확인해야 한다.',
-      ],
-      code: `@app.get("/users/me")          # 먼저!
+      slides: [
+        {
+          title: '고정 경로를 먼저',
+          blocks: [
+            { type: 'code', code: `@app.get("/users/me")          # 먼저!
 def read_me(): ...
 
 @app.get("/users/{user_id}")
-def read_user(user_id: int): ...
-
-@app.get("/files/{file_path:path}")
+def read_user(user_id: int): ...` },
+            { type: 'say', text: '라우트는 **등록 순서대로** 비교된다고 했죠. 순서를 거꾸로 쓰면 `/users/me` 요청이 `/users/{user_id}`에 먼저 걸려서 `user_id="me"`를 int로 바꾸려다 **422**가 나요.\n\n규칙: **고정 경로는 변수 경로보다 먼저** 선언해요.' },
+          ],
+        },
+        {
+          title: '슬래시를 품은 값과 하위 자원',
+          blocks: [
+            { type: 'code', code: `@app.get("/files/{file_path:path}")
 def read_file(file_path: str):
-    return {"path": file_path}`,
+    return {"path": file_path}
+
+# GET /files/a/b/c.txt → {"path": "a/b/c.txt"}` },
+            { type: 'say', text: '보통 `{이름}`은 슬래시 사이 한 칸만 받아요. 파일 경로처럼 **슬래시가 들어간 값을 통째로** 받으려면 `{file_path:path}`라고 써요.' },
+            { type: 'code', code: `@app.get("/posts/{post_id}/comments/{comment_id}")` },
+            { type: 'note', tone: 'warn', text: '하위 자원 경로에서는 **그 댓글이 정말 그 글에 속하는지** DB에서 함께 확인해야 해요. `comment_id`만 보고 찾으면 `/posts/1/comments/99`로 **다른 글의 댓글**을 꺼내 보는 구멍이 생겨요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

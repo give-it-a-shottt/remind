@@ -9,27 +9,37 @@ const topic: Topic = {
   sections: [
     {
       title: '가상 환경과 설치',
-      points: [
-        '프로젝트마다 가상 환경(venv)을 만들어 패키지를 따로 설치한다. 다른 프로젝트와 라이브러리 버전이 섞이지 않게 하기 위해서다.',
-        'python -m venv .venv → 활성화(Windows: .venv\\Scripts\\activate, macOS/Linux: source .venv/bin/activate) → pip install "fastapi[standard]". [standard]를 붙이면 uvicorn 등 실행에 필요한 패키지가 함께 설치된다.',
-        '설치한 목록은 pip freeze > requirements.txt 로 저장하고, 다른 컴퓨터에서는 pip install -r requirements.txt 로 똑같이 설치한다. 요즘은 uv나 poetry 같은 도구로 pyproject.toml에 관리하기도 한다.',
-        'VS Code에서는 오른쪽 아래(또는 명령 팔레트의 Python: Select Interpreter)에서 .venv의 파이썬을 골라야 import 에러 표시가 사라지고 자동 완성이 된다.',
+      slides: [
+        {
+          title: '프로젝트마다 따로 쓰는 방',
+          blocks: [
+            { type: 'say', text: '이제 FastAPI를 직접 설치하고 첫 서버를 띄워 볼 거예요. 그 전에 꼭 만드는 게 있어요. **가상 환경(venv)** 이에요.\n\nA 프로젝트는 라이브러리 1.0이 필요하고, B 프로젝트는 2.0이 필요하다면? 컴퓨터 전체에 하나만 깔 수 있으면 둘 중 하나가 고장 나요. 가상 환경은 **프로젝트마다 따로 쓰는 라이브러리 방**이에요. 버전이 서로 섞이지 않아요.' },
+            { type: 'code', code: `python -m venv .venv            # 1) .venv 라는 방 만들기
+.venv\\Scripts\\activate          # 2) 방에 들어가기 (Windows)
+source .venv/bin/activate       #    macOS / Linux
+pip install "fastapi[standard]" # 3) 그 방에 설치` },
+            { type: 'say', text: '`[standard]`를 붙이면 FastAPI와 함께 **uvicorn** 등 실행에 필요한 패키지가 같이 설치돼요.' },
+          ],
+        },
+        {
+          title: '설치 목록 공유와 VS Code 설정',
+          blocks: [
+            { type: 'code', code: `pip freeze > requirements.txt      # 지금 설치된 목록 저장
+pip install -r requirements.txt    # 다른 컴퓨터에서 똑같이 설치` },
+            { type: 'say', text: '`requirements.txt`는 **장보기 목록**이에요. 팀원이나 서버는 이 목록만 보고 같은 버전을 그대로 설치해요. 요즘은 **uv**나 poetry 같은 도구로 `pyproject.toml`에 관리하기도 해요.' },
+            { type: 'note', tone: 'warn', text: '설치했는데 VS Code에서 `from fastapi import FastAPI`에 노란 밑줄(Import could not be resolved)이 뜬다면? VS Code가 **가상 환경 밖의 파이썬**을 보고 있는 거예요. 명령 팔레트에서 **Python: Select Interpreter** → `.venv` 안의 파이썬을 고르세요.' },
+          ],
+        },
       ],
-      code: `python -m venv .venv
-.venv\\Scripts\\activate          # Windows
-pip install "fastapi[standard]"
-pip freeze > requirements.txt`,
     },
     {
       title: '가장 작은 FastAPI 앱',
       notionIds: ['3efdf951bf8081e09ef6d423f70984d2'],
-      points: [
-        'from fastapi import FastAPI → app = FastAPI() 로 앱 객체를 만든다. 이 app이 라우트를 등록받고 요청을 처리하는 중심이다.',
-        '@app.get("/") 는 "GET 메서드로 / 경로에 요청이 오면 아래 함수를 실행하라"는 등록이다. 함수 이름은 자유지만 문서(/docs)에 표시되므로 의미 있게 짓는다.',
-        '함수가 dict, list, str, int, Pydantic 모델 등을 리턴하면 FastAPI가 JSON으로 바꿔 응답한다. 기본 상태 코드는 200이다.',
-        '같은 경로와 메서드로 라우트를 두 번 등록하면 먼저 등록된 것이 쓰인다. 라우트는 위에서부터 순서대로 비교된다.',
-      ],
-      code: `from fastapi import FastAPI
+      slides: [
+        {
+          title: '열 줄짜리 API 서버',
+          blocks: [
+            { type: 'code', code: `from fastapi import FastAPI
 
 app = FastAPI(title="My API", version="0.1.0")
 
@@ -39,28 +49,84 @@ def root():
 
 @app.get("/health")
 def health():
-    return {"status": "ok"}`,
+    return {"status": "ok"}` },
+            { type: 'list', items: ['`app = FastAPI()` — 라우트를 등록받고 요청을 처리하는 **중심 객체**', '`@app.get("/")` — "GET 메서드로 `/`에 요청이 오면 아래 함수를 실행해" (지난 수업의 데코레이터!)', '`return {...}` — dict, list, str, Pydantic 모델을 돌려주면 FastAPI가 **JSON으로** 바꿔 줘요. 기본 상태 코드는 **200**'] },
+          ],
+        },
+        {
+          title: '함수 이름과 라우트 순서',
+          blocks: [
+            { type: 'say', text: '함수 이름은 자유지만, `/docs` 문서에 **설명(summary)으로 표시**돼요. `root`, `health`처럼 의미 있게 지어요.\n\n그리고 라우트는 **위에서부터 순서대로** 비교해요. 같은 경로·메서드를 두 번 등록하면 **먼저 등록된 것**이 쓰이고, 뒤의 것은 영영 실행되지 않아요.' },
+            { type: 'ask', q: '`@app.get("/users/me")`를 두 번 등록했어요. 첫 번째는 "A", 두 번째는 "B"를 돌려줘요. 요청하면?', a: '**"A"** 예요. 요청이 오면 위에서부터 맞는 라우트를 찾다가 첫 번째에서 멈춰요. 두 번째 함수는 등록만 되고 실행될 일이 없어요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'uvicorn으로 실행하기',
-      points: [
-        'uvicorn main:app --reload : main.py 모듈의 app 객체를 실행한다. --reload는 코드를 저장할 때마다 서버를 자동 재시작한다(개발용).',
-        '기본 주소는 http://127.0.0.1:8000 이다. --host 0.0.0.0 을 주면 같은 네트워크의 다른 기기에서도 접속할 수 있고, --port 로 포트를 바꾼다.',
-        'fastapi dev main.py 는 개발용 실행 명령(자동 reload), fastapi run main.py 는 운영용 실행 명령이다. 둘 다 내부적으로 uvicorn을 쓴다.',
-        '파이썬 파일 안에서 실행하고 싶다면 if __name__ == "__main__": uvicorn.run("main:app", reload=True) 처럼 쓴다. reload를 쓰려면 앱을 "모듈:변수" 문자열로 넘겨야 한다.',
-        '"Address already in use" 에러는 이미 그 포트로 서버가 떠 있다는 뜻이다. 이전 터미널의 서버를 끄거나 다른 포트를 쓴다.',
-      ],
-      code: `uvicorn main:app --reload
+      slides: [
+        {
+          title: '서버 켜기',
+          blocks: [
+            { type: 'code', code: `uvicorn main:app --reload
 uvicorn main:app --host 0.0.0.0 --port 8080
-fastapi dev main.py`,
+fastapi dev main.py     # 개발용 (자동 reload)
+fastapi run main.py     # 운영용` },
+            {
+              type: 'table',
+              head: ['부분', '뜻'],
+              rows: [
+                ['`main:app`', '`main.py` 모듈 안의 `app` 변수. 파일이 `app.py`, 변수가 `api`면 `app:api`'],
+                ['`--reload`', '코드를 **저장할 때마다 자동 재시작** (개발용, 운영에선 끔)'],
+                ['기본 주소', '`http://127.0.0.1:8000`'],
+                ['`--host 0.0.0.0`', '**같은 네트워크의 다른 기기**(휴대폰)에서도 접속 가능'],
+                ['`--port`', '포트 바꾸기'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '자주 만나는 두 가지',
+          blocks: [
+            { type: 'say', text: '**① 휴대폰에서 노트북 서버에 접속이 안 돼요**\n기본 주소 `127.0.0.1`은 "**나 자신**(이 컴퓨터)"만 뜻해요. 다른 기기에서 들어오려면 `--host 0.0.0.0`으로 "모든 네트워크 입구에서 받기"로 열어야 해요.\n\n**② Address already in use**\n그 포트로 서버가 **이미 떠 있어요.** 예전 터미널의 서버를 끄거나 다른 포트를 써요.' },
+            { type: 'code', code: `if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("main:app", reload=True)   # 문자열로 넘겨야 reload 동작` },
+            { type: 'note', tone: 'warn', text: '파이썬 파일 안에서 실행할 때 `uvicorn.run(app, reload=True)`처럼 **객체를 직접** 넘기면 reload가 동작하지 않아요. 재시작할 때 모듈을 새로 불러와야 해서 `"모듈:변수"` **문자열**이 필요해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '요청이 처리되는 순서와 로그 읽기',
-      points: [
-        '터미널에 INFO: 127.0.0.1:54321 - "GET /health HTTP/1.1" 200 OK 같은 접근 로그가 찍힌다. 메서드·경로·상태 코드를 한 줄에서 확인할 수 있다.',
-        '등록되지 않은 경로로 요청하면 404 {"detail": "Not Found"}, 경로는 있는데 메서드가 다르면 405 {"detail": "Method Not Allowed"}가 자동으로 나온다.',
-        '함수 안에서 처리하지 않은 예외가 나면 500 Internal Server Error가 응답되고, 터미널에 Traceback이 찍힌다. 원인은 브라우저가 아니라 터미널에서 찾는다.',
-        'print()는 터미널에 찍히지만, 운영에서는 logging 모듈로 수준(INFO, WARNING, ERROR)을 나눠 남기는 것이 좋다.',
+      slides: [
+        {
+          title: '터미널 로그 한 줄 읽기',
+          blocks: [
+            { type: 'code', code: `INFO:  127.0.0.1:54321 - "GET /health HTTP/1.1" 200 OK
+
+127.0.0.1:54321   → 누가 보냈나
+GET /health       → 메서드와 경로
+200 OK            → 상태 코드` },
+            { type: 'say', text: '요청이 올 때마다 uvicorn 터미널에 이런 **접근 로그**가 찍혀요. 메서드·경로·상태 코드를 한 줄에서 확인할 수 있어요. `/docs`에서 보낸 요청도 똑같이 찍혀요.' },
+            {
+              type: 'table',
+              head: ['상황', '자동 응답'],
+              rows: [
+                ['등록 안 된 경로', '**404** `{"detail": "Not Found"}`'],
+                ['경로는 있는데 메서드가 다름', '**405** `{"detail": "Method Not Allowed"}`'],
+                ['함수 안에서 처리 안 된 예외', '**500** Internal Server Error'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '500이 나면 터미널을 보세요',
+          blocks: [
+            { type: 'say', text: '브라우저에는 "Internal Server Error" 한 줄만 보여요. 보안상 서버 내부 사정을 손님에게 보여 주지 않거든요. **진짜 원인(Traceback)은 서버 터미널에** 찍혀 있어요. 맨 아래 줄부터 읽으면 어느 파일 몇 번째 줄에서 무슨 에러가 났는지 나와요.' },
+            { type: 'note', tone: 'tip', text: '`print()`도 터미널에 찍히지만, 운영에서는 `logging` 모듈로 수준(INFO, WARNING, ERROR)을 나눠서 남겨요. 나중에 "에러만 모아 보기"가 가능해져요.' },
+          ],
+        },
       ],
     },
   ],

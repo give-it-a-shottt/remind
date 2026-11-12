@@ -9,13 +9,12 @@ const topic: Topic = {
   sections: [
     {
       title: 'HTTPException',
-      points: [
-        'raise HTTPException(status_code=404, detail="Post not found") 는 함수를 즉시 중단하고 해당 상태 코드와 {"detail": ...} 본문을 응답한다.',
-        'return이 아니라 raise인 이유: 예외는 호출 스택을 거슬러 올라가므로, 라우트 함수가 부른 서비스 함수나 의존성 깊은 곳에서 raise해도 그대로 응답이 된다.',
-        'detail에는 문자열뿐 아니라 dict·list도 넣을 수 있다. detail={"code": "POST_NOT_FOUND", "message": "..."} 처럼 프론트가 분기하기 좋은 코드를 함께 주는 팀도 많다.',
-        'headers={"WWW-Authenticate": "Bearer"} 처럼 에러 응답에 헤더를 붙일 수 있다(인증 실패 시 표준).',
-      ],
-      code: `from fastapi import HTTPException, status
+      slides: [
+        {
+          title: '깊은 곳에서 던져도 응답이 돼요',
+          blocks: [
+            { type: 'say', text: '이번 수업은 **일이 잘못됐을 때** 어떻게 응답하고 기록하는지예요. 먼저 이미 써 본 `HTTPException`을 다시 정리해요.\n\n`raise HTTPException(status_code=404, detail="...")`는 함수를 **즉시 중단**하고 그 상태 코드와 `{"detail": ...}` 본문을 응답해요.' },
+            { type: 'code', code: `from fastapi import HTTPException, status
 
 def get_post_or_404(db, post_id: int) -> Post:
     post = db.get(Post, post_id)
@@ -24,18 +23,33 @@ def get_post_or_404(db, post_id: int) -> Post:
             status_code=status.HTTP_404_NOT_FOUND,
             detail={"code": "POST_NOT_FOUND", "message": f"{post_id}번 글이 없습니다"},
         )
-    return post`,
+    return post` },
+            { type: 'say', text: 'return이 아니라 raise인 이유: 예외는 **호출 스택을 거슬러 올라가요.** 라우트가 부른 서비스 함수, 그 함수가 부른 도우미 함수 **깊은 곳에서 raise해도** 그대로 응답이 돼요. 중간 함수들이 일일이 에러를 전달할 필요가 없어요.' },
+          ],
+        },
+        {
+          title: 'detail과 headers, 그리고 함정',
+          blocks: [
+            { type: 'list', items: ['`detail`에는 문자열뿐 아니라 **dict**도 넣을 수 있어요. `{"code": "POST_NOT_FOUND", ...}`처럼 프론트가 분기하기 좋은 코드를 함께 주는 팀이 많아요', '`headers={"WWW-Authenticate": "Bearer"}`처럼 에러 응답에 헤더도 붙일 수 있어요 (인증 실패의 표준)'] },
+            { type: 'code', code: `try:
+    post = get_post_or_404(db, post_id)
+    ...
+except Exception:              # ← HTTPException 도 Exception 이라 여기서 잡힘!
+    raise HTTPException(500)   # 404 가 500 으로 바뀌어 버림` },
+            { type: 'note', tone: 'warn', text: '`HTTPException`도 `Exception`의 한 종류예요. 중간에 `except Exception:`이 있으면 **404를 삼켜 버리고** 500으로 바꿔요. 넓은 except는 꼭 필요할 때만, 그리고 `except HTTPException: raise`를 먼저 두세요.' },
+          ],
+        },
+      ],
     },
     {
       title: '사용자 정의 예외와 exception_handler',
       notionIds: ['3efdf951bf8081e6bf73ca497056d696'],
-      points: [
-        '비즈니스 로직(서비스 계층)에서 HTTP를 몰라도 되도록 도메인 예외를 만든다. class PostNotFound(Exception): ...',
-        '@app.exception_handler(PostNotFound) 로 "이 예외가 나면 이런 응답을 보내라"를 한 곳에 등록한다. Flask의 @app.errorhandler(404)와 비슷한 역할이다.',
-        '예외 클래스를 상속 구조로 만들면(AppError → NotFoundError → PostNotFound) 부모 예외 하나에 핸들러를 걸어 일관된 응답 형식을 강제할 수 있다.',
-        '핸들러 함수는 (request, exc)를 받아 Response를 리턴한다.',
-      ],
-      code: `class AppError(Exception):
+      slides: [
+        {
+          title: '서비스 코드는 HTTP를 몰라도 돼요',
+          blocks: [
+            { type: 'say', text: '비즈니스 로직(서비스 계층)에서 `HTTPException`을 던지면, 그 코드는 **HTTP에 묶여요.** 같은 로직을 배치 작업이나 CLI에서 쓰려 해도 "404"는 어색하죠.\n\n그래서 **도메인 예외**를 만들어요. 서비스는 "글이 없다"는 사실만 말하고, **HTTP로 어떻게 응답할지는 한 곳**에서 정해요.' },
+            { type: 'code', code: `class AppError(Exception):
     status_code = 400
     code = "APP_ERROR"
     def __init__(self, message: str):
@@ -52,35 +66,69 @@ async def app_error_handler(request: Request, exc: AppError):
         content={"code": exc.code, "message": exc.message},
     )
 
-# 서비스 코드: raise NotFoundError("글이 없습니다")  ← HTTP 를 몰라도 됨`,
+# 서비스 코드: raise NotFoundError("글이 없습니다")  ← HTTP 를 몰라도 됨` },
+          ],
+        },
+        {
+          title: '부모에 하나만 걸면',
+          blocks: [
+            { type: 'say', text: '`@app.exception_handler(예외클래스)`는 "이 예외가 나면 이렇게 응답해"를 등록해요. Flask의 `@app.errorhandler`와 비슷해요. 핸들러는 `(request, exc)`를 받아 Response를 돌려줘요.\n\n예외를 **상속 구조**(AppError → NotFoundError → PostNotFound)로 만들면, **부모 하나에만** 핸들러를 걸어도 자식 예외들이 전부 거기로 와요. 모든 에러 응답이 `{code, message}` 한 가지 형식으로 통일되죠.' },
+          ],
+        },
+      ],
     },
     {
       title: '기본 예외 핸들러 바꾸기',
-      points: [
-        '요청 검증 실패는 RequestValidationError로 발생하고 기본 응답은 422다. @app.exception_handler(RequestValidationError) 로 형식(예: 400, 한국어 메시지)을 바꿀 수 있다.',
-        'HTTPException 응답 형식도 바꿀 수 있다. 이때는 starlette.exceptions.HTTPException 에 등록해야 FastAPI 내부(404 라우트 없음 등)에서 나는 예외까지 잡힌다.',
-        '처리되지 않은 일반 Exception에 핸들러를 걸면 500 응답의 본문을 통일할 수 있다. 단, 원인 정보(스택트레이스)는 응답에 넣지 말고 로그에만 남긴다.',
-      ],
-      code: `from fastapi.exceptions import RequestValidationError
+      slides: [
+        {
+          title: '422 형식도 바꿀 수 있어요',
+          blocks: [
+            { type: 'code', code: `from fastapi.exceptions import RequestValidationError
 
 @app.exception_handler(RequestValidationError)
 async def validation_handler(request: Request, exc: RequestValidationError):
     return JSONResponse(
         status_code=400,
         content={"code": "INVALID_INPUT", "errors": exc.errors()},
-    )`,
+    )` },
+            { type: 'say', text: '입력 검증 실패는 `RequestValidationError`로 발생하고 기본 응답이 422예요. 프론트 팀이 "검증 실패도 400으로, 우리 형식으로 달라"고 하면 이 예외에 핸들러를 걸면 돼요.\n\n`HTTPException` 형식을 바꾸고 싶다면 **`starlette.exceptions.HTTPException`** 에 등록해요. 그래야 "라우트 없음 404"처럼 FastAPI **내부**에서 나는 예외까지 잡혀요.' },
+          ],
+        },
+        {
+          title: '500 응답에 넣지 말 것',
+          blocks: [
+            { type: 'say', text: '처리되지 않은 일반 `Exception`에 핸들러를 걸면 500 응답 본문을 통일할 수 있어요.' },
+            { type: 'note', tone: 'warn', text: '500 응답에 **스택트레이스를 넣으면 안 돼요.** 파일 경로, 라이브러리 버전, 쿼리 모양 같은 내부 정보가 공격자에게 지도가 돼요. 응답엔 "서버 오류가 발생했습니다" + 요청 ID 정도만, **원인은 로그에만** 남겨요.' },
+          ],
+        },
+      ],
     },
     {
       title: '로깅',
       notionIds: ['3efdf951bf8081e6bf73ca497056d696'],
-      points: [
-        '서버는 24시간 돌아가므로 문제가 생긴 순간을 나중에 재구성할 수 있게 기록(로그)을 남긴다. print는 수준 구분·파일 저장·형식 지정이 어려워 운영에 맞지 않는다.',
-        '로그 수준: DEBUG < INFO < WARNING < ERROR < CRITICAL. 설정한 수준 이상만 기록된다. 운영은 보통 INFO, 개발은 DEBUG.',
-        'logger = logging.getLogger(__name__) 로 모듈별 로거를 만들고, logger.info("주문 생성 id=%s", order.id) 처럼 쓴다. 예외 블록 안에서는 logger.exception("...")이 스택트레이스까지 남긴다.',
-        '파일에 쓸 때는 RotatingFileHandler(maxBytes, backupCount)로 크기가 넘으면 새 파일로 돌려 디스크가 가득 차는 것을 막는다. 클라우드에서는 보통 표준 출력에 찍고 플랫폼이 수집한다.',
-        '로그에 비밀번호·토큰·주민번호 같은 민감 정보를 남기지 않는다.',
-      ],
-      code: `import logging
+      slides: [
+        {
+          title: 'print 대신 logging',
+          blocks: [
+            { type: 'say', text: '서버는 24시간 돌아가요. 새벽 3시에 생긴 문제를 아침에 **재구성**하려면 기록, 즉 **로그**가 있어야 해요. `print`는 수준 구분도, 파일 저장도, 형식 지정도 어려워서 운영에 맞지 않아요.' },
+            {
+              type: 'table',
+              head: ['수준', '언제'],
+              rows: [
+                ['DEBUG', '개발 중 세세한 정보'],
+                ['INFO', '정상 흐름 기록 (주문 생성됨)'],
+                ['WARNING', '이상하지만 동작은 함'],
+                ['ERROR', '요청 하나가 실패함'],
+                ['CRITICAL', '서비스 전체가 위험'],
+              ],
+            },
+            { type: 'say', text: '설정한 수준 **이상만** 기록돼요. WARNING으로 설정하면 WARNING, ERROR, CRITICAL만 남고 INFO는 버려져요. 운영은 보통 INFO, 개발은 DEBUG예요.' },
+          ],
+        },
+        {
+          title: '실제로 쓰는 모습',
+          blocks: [
+            { type: 'code', code: `import logging
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger(__name__)
@@ -93,7 +141,12 @@ def create_order(order_in: OrderCreate):
         logger.exception("결제 실패 user=%s", order_in.user_id)   # 스택트레이스 포함
         raise HTTPException(402, "결제에 실패했습니다")
     logger.info("주문 생성 id=%s", order.id)
-    return order`,
+    return order` },
+            { type: 'list', items: ['`getLogger(__name__)` — 모듈별 로거. 로그에 **어느 파일**에서 찍혔는지 남아요', '`logger.exception(...)` — except 블록 안에서 메시지 + **스택트레이스**까지', '`RotatingFileHandler(maxBytes, backupCount)` — 파일이 커지면 새 파일로 돌려서 **디스크가 가득 차는 걸** 막아요. 클라우드에선 보통 표준 출력에 찍고 플랫폼이 수집해요'] },
+            { type: 'note', tone: 'warn', text: '로그에 **비밀번호·토큰·주민번호**를 남기지 마세요. 로그는 여러 사람이 보고 오래 보관돼요. "디버깅용으로 입력한 비밀번호도 남기자"는 절대 안 돼요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

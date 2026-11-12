@@ -10,13 +10,18 @@ const topic: Topic = {
     {
       title: '서버에서 HTML을 만드는 이유와 설정',
       notionIds: ['3efdf951bf8081d0a7cacadcbe6e2608'],
-      points: [
-        '서버 사이드 렌더링(SSR): 서버가 데이터를 넣은 완성된 HTML을 보낸다. 관리자 페이지, 이메일 본문, 간단한 서비스, 검색 노출이 중요한 페이지에 쓴다.',
-        'Jinja2는 HTML 안에 변수·반복·조건을 넣는 템플릿 엔진이다. Flask에서 쓰던 것과 문법이 같다. pip install jinja2.',
-        'templates = Jinja2Templates(directory="templates") 로 템플릿 폴더를 정하고, 라우트에서 templates.TemplateResponse(request, "index.html", {"posts": posts}) 로 응답한다.',
-        'TemplateResponse에는 request 객체를 반드시 넘긴다. 템플릿 안에서 url_for 같은 기능이 요청 정보를 쓰기 때문이다. 라우트에는 response_class=HTMLResponse 를 붙이면 문서에 HTML 응답으로 표시된다.',
-      ],
-      code: `from fastapi import Request
+      slides: [
+        {
+          title: '서버가 완성된 HTML을 보내요',
+          blocks: [
+            { type: 'say', text: '지금까지 FastAPI는 JSON만 돌려줬어요. 화면은 React 같은 프론트가 그린다고 했죠. 그런데 **서버가 직접 데이터를 넣은 완성된 HTML**을 보낼 수도 있어요. 이걸 **서버 사이드 렌더링(SSR)** 이라고 해요.\n\n관리자 페이지, 이메일 본문, 간단한 서비스, 검색 노출이 중요한 페이지에 잘 맞아요. React 없이도 사용자마다 다른 페이지를 만들 수 있어요.' },
+            { type: 'say', text: '**Jinja2**는 HTML 안에 변수·반복·조건을 넣는 **템플릿 엔진**이에요. Flask에서 쓰던 것과 문법이 같아요. `pip install jinja2`.' },
+          ],
+        },
+        {
+          title: 'TemplateResponse',
+          blocks: [
+            { type: 'code', code: `from fastapi import Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -25,54 +30,118 @@ templates = Jinja2Templates(directory="templates")
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
     posts = [{"id": 1, "title": "첫 글"}, {"id": 2, "title": "둘째 글"}]
-    return templates.TemplateResponse(request, "index.html", {"posts": posts, "user": "kim"})`,
+    return templates.TemplateResponse(request, "index.html", {"posts": posts, "user": "kim"})` },
+            { type: 'list', items: ['`Jinja2Templates(directory="templates")` — 템플릿 폴더 지정', '`TemplateResponse(request, "파일", {컨텍스트})` — **request를 꼭** 넘겨요. 템플릿 안의 `url_for` 같은 기능이 요청 정보를 쓰거든요', '`response_class=HTMLResponse` — 문서에 HTML 응답으로 표시'] },
+          ],
+        },
+      ],
     },
     {
       title: '변수 출력과 필터',
       notionIds: ['3efdf951bf80815a82bddec479d5ce62'],
-      points: [
-        '{{ 변수 }} 는 값을 출력한다. {{ user }}, {{ post.title }}, {{ post["title"] }}. 점(.)으로 dict 키와 객체 속성 모두 읽을 수 있다.',
-        '컨텍스트 dict에 넘기지 않은 변수는 기본적으로 에러 없이 빈 문자열로 출력된다. 오타가 조용히 묻히니 주의한다.',
-        '필터는 | 로 값을 가공한다. {{ name | upper }}, {{ items | length }}, {{ text | truncate(20) }}, {{ value | default("없음") }}, {{ price | round }}, {{ tags | join(", ") }}.',
-        '자동 이스케이프: FastAPI의 Jinja2Templates는 .html 템플릿에서 < > & 같은 문자를 &lt; 처럼 바꿔 출력한다. 사용자가 쓴 <script>가 실행되지 않게 막는 XSS 방어다. | safe 필터는 이 보호를 끄므로 믿을 수 있는 HTML에만 쓴다.',
-      ],
-      code: `<h1>{{ user | upper }}님 환영합니다</h1>
+      slides: [
+        {
+          title: '{{ }}로 값 출력',
+          blocks: [
+            { type: 'code', code: `<h1>{{ user | upper }}님 환영합니다</h1>
+<p>{{ post.title }}</p>            {# dict 키도, 객체 속성도 점으로 #}
 <p>글 {{ posts | length }}개</p>
-<p>{{ bio | default("소개가 없습니다") }}</p>
-<p>{{ comment }}</p>   {# "<script>..." 도 글자로만 보임 #}`,
+<p>{{ bio | default("소개가 없습니다") }}</p>` },
+            { type: 'say', text: '`{{ 변수 }}`는 값을 출력해요. 점(`.`)으로 **dict 키와 객체 속성 모두** 읽을 수 있어요. `post`가 `{"title": "hi"}`여도 `{{ post.title }}`은 "hi"예요.' },
+            { type: 'note', tone: 'warn', text: '컨텍스트로 **넘기지 않은 변수**는 에러 없이 **빈 문자열**로 출력돼요. `{{ usre }}`처럼 오타를 내도 조용히 빈칸이라 찾기 어려워요.' },
+          ],
+        },
+        {
+          title: '필터와 자동 이스케이프',
+          blocks: [
+            {
+              type: 'table',
+              head: ['필터', '결과'],
+              rows: [
+                ['`upper`', '대문자'],
+                ['`length`', '개수'],
+                ['`truncate(20)`', '20자에서 자르기'],
+                ['`default("없음")`', '값이 없을 때 대신'],
+                ['`join(", ")`', '리스트를 이어 붙이기'],
+                ['`round`', '반올림'],
+              ],
+            },
+            { type: 'say', text: '중요한 보안 기능이 하나 있어요. **자동 이스케이프**. 사용자가 댓글에 `<script>alert(1)</script>`를 쓰면, `{{ comment }}`는 `<`, `>`를 `&lt;`, `&gt;`로 바꿔서 **글자로만** 보여 줘요. 스크립트가 실행되지 않아요(**XSS 방어**).' },
+            { type: 'note', tone: 'warn', text: '`| safe` 필터는 이 보호를 **꺼요.** 내가 직접 만든 믿을 수 있는 HTML에만 쓰고, **사용자가 쓴 내용에는 절대** 쓰지 마세요.' },
+          ],
+        },
+      ],
     },
     {
       title: '반복문',
       notionIds: ['3efdf951bf80815a82bddec479d5ce62'],
-      points: [
-        '{% for post in posts %} ... {% endfor %}. 블록 문법은 {% %}, 출력은 {{ }} 다.',
-        'loop 변수: loop.index(1부터), loop.index0(0부터), loop.first, loop.last, loop.length.',
-        '{% else %} 를 for 안에 쓰면 목록이 비었을 때 보여 줄 내용을 정할 수 있다.',
-        'dict는 {% for key, value in data.items() %} 로 돈다. range(5)도 쓸 수 있다.',
-      ],
-      code: `<ul>
+      slides: [
+        {
+          title: '{% for %}',
+          blocks: [
+            { type: 'code', code: `<ul>
 {% for post in posts %}
   <li class="{{ 'first' if loop.first }}">{{ loop.index }}. {{ post.title }}</li>
 {% else %}
   <li>아직 글이 없습니다</li>
 {% endfor %}
-</ul>`,
+</ul>` },
+            { type: 'say', text: '`{% %}`는 **블록 문법**(반복, 조건), `{{ }}`는 **출력**이에요. 파이썬과 달리 들여쓰기로 범위를 정하지 않아서 `{% endfor %}`로 **꼭 닫아야** 해요.\n\n`{% else %}`를 for 안에 쓰면 **목록이 비었을 때** 보여 줄 내용이 돼요. "아직 글이 없습니다" 같은 빈 화면 처리가 한 번에 끝나요.' },
+          ],
+        },
+        {
+          title: 'loop 변수',
+          blocks: [
+            {
+              type: 'table',
+              head: ['변수', '값'],
+              rows: [
+                ['`loop.index`', '**1부터** 세는 번호'],
+                ['`loop.index0`', '0부터 세는 번호'],
+                ['`loop.first` / `loop.last`', '첫째 / 마지막이면 True'],
+                ['`loop.length`', '전체 개수'],
+              ],
+            },
+            { type: 'say', text: 'dict는 `{% for key, value in data.items() %}`로 돌고, `range(5)`도 쓸 수 있어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '조건문과 주석',
       notionIds: ['3efdf951bf80818fafb6d7a70eaf38ac'],
-      points: [
-        '{% if 조건 %} ... {% elif 조건 %} ... {% else %} ... {% endif %}. endif는 필수다.',
-        '비교·논리 연산은 파이썬과 비슷하다: ==, !=, and, or, not, in. {% if user and user.is_admin %}.',
-        '한 줄 조건 표현식: {{ "로그아웃" if user else "로그인" }}.',
-        '{# 주석 #} 은 렌더링 결과 HTML에 남지 않는다. HTML 주석 <!-- --> 은 결과에 남아 사용자가 소스 보기로 볼 수 있다.',
-      ],
-      code: `{% if user %}
+      slides: [
+        {
+          title: '{% if %}',
+          blocks: [
+            { type: 'code', code: `{% if user and user.is_admin %}
+  <button>삭제</button>
+{% elif user %}
   <a href="/logout">로그아웃</a>
 {% else %}
   <a href="/login">로그인</a>
 {% endif %}
-{# 이 주석은 브라우저로 전송되지 않음 #}`,
+
+{{ "로그아웃" if user else "로그인" }}     {# 한 줄 조건 #}` },
+            { type: 'say', text: '`{% if %} … {% elif %} … {% else %} … {% endif %}`. **endif는 필수**예요. 비교·논리 연산(`==`, `!=`, `and`, `or`, `not`, `in`)은 파이썬과 같아요.' },
+            { type: 'note', tone: 'warn', text: '관리자에게만 삭제 버튼을 **보여 주는 것**은 화면 처리일 뿐이에요. 누군가 삭제 요청을 직접 보내면? **서버 라우트에서도 권한을 검사**해야 해요. 버튼 숨기기는 보안이 아니에요.' },
+          ],
+        },
+        {
+          title: '두 가지 주석',
+          blocks: [
+            {
+              type: 'table',
+              head: ['주석', '결과 HTML에'],
+              rows: [
+                ['`{# 메모 #}`', '**남지 않음** — 서버에서 지워짐'],
+                ['`<!-- 메모 -->`', '**남음** — 사용자가 "소스 보기"로 볼 수 있음'],
+              ],
+            },
+            { type: 'say', text: '"여기 관리자 비밀번호 임시로 1234" 같은 메모를 HTML 주석으로 남기면 전 세계가 볼 수 있어요. 개발자용 메모는 `{# #}`로 써요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

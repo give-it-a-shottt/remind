@@ -9,13 +9,12 @@ const topic: Topic = {
   sections: [
     {
       title: 'BaseModel로 요청 본문 받기',
-      points: [
-        'class PostCreate(BaseModel): 로 필드와 타입을 선언하면, 라우트 파라미터 post: PostCreate 는 "요청 본문 JSON을 이 구조로 검증해서 받아라"는 뜻이 된다.',
-        'FastAPI가 하는 일: 본문 JSON 읽기 → 필드별 타입 변환·검증 → 실패하면 422(어떤 필드가 왜 틀렸는지) → 성공하면 PostCreate 객체로 함수에 전달.',
-        '함수 안에서는 post.title 처럼 속성으로 접근한다. 에디터 자동 완성이 되고 오타가 바로 보인다.',
-        '모델 → dict는 post.model_dump(), 모델 → JSON 문자열은 post.model_dump_json(). (Pydantic v1의 .dict(), .json()이 v2에서 이름이 바뀌었다.)',
-      ],
-      code: `from pydantic import BaseModel
+      slides: [
+        {
+          title: '본문의 모양을 클래스로',
+          blocks: [
+            { type: 'say', text: '이번 수업은 FastAPI의 단짝, **Pydantic**이에요. 클라이언트가 보내는 JSON 본문을 **검사하고 파이썬 객체로 바꿔 주는** 도구예요.' },
+            { type: 'code', code: `from pydantic import BaseModel
 
 class PostCreate(BaseModel):
     title: str
@@ -26,35 +25,93 @@ class PostCreate(BaseModel):
 @app.post("/posts", status_code=201)
 def create_post(post: PostCreate):
     print(post.title, post.model_dump())
-    return post`,
+    return post` },
+            { type: 'say', text: '파라미터 `post: PostCreate`는 "**요청 본문 JSON을 이 구조로 검증해서 받아라**"는 뜻이에요. FastAPI가 하는 일은\n① 본문 JSON 읽기 → ② 필드별 타입 변환·검증 → ③ 실패하면 **422**(어떤 필드가 왜 틀렸는지까지) → ④ 성공하면 `PostCreate` 객체로 함수에 전달.' },
+          ],
+        },
+        {
+          title: '객체로 쓰고, dict로 바꾸고',
+          blocks: [
+            { type: 'say', text: '함수 안에서는 `post.title`처럼 **속성**으로 접근해요. 에디터 자동 완성이 되고 오타가 바로 보여요.\n\n`{"title": "hi"}`만 보내면? `content`는 기본값이 없으니 **필수**라서 422가 나고, 응답에 "content: Field required"라고 알려 줘요.' },
+            {
+              type: 'table',
+              head: ['바꾸기', 'Pydantic v2', 'v1 (옛 코드)'],
+              rows: [
+                ['모델 → dict', '`post.model_dump()`', '`.dict()`'],
+                ['모델 → JSON 문자열', '`post.model_dump_json()`', '`.json()`'],
+              ],
+            },
+            { type: 'say', text: 'dict로 바꾸면 `Post(**post.model_dump())`처럼 다른 클래스(DB 모델)에 **필드를 한꺼번에 풀어 넣을** 수 있어요. 필드를 하나하나 옮겨 적지 않아도 돼요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'Field로 규칙과 문서 붙이기',
-      points: [
-        'Field(...)로 필드마다 검증 규칙을 붙인다. 문자열: min_length, max_length, pattern. 숫자: gt, ge, lt, le, multiple_of. 리스트: min_length, max_length(원소 개수).',
-        'Field(default=..., description="...", examples=[...]) 로 기본값과 문서 설명·예시를 함께 적는다. /docs의 Schemas에 그대로 나온다.',
-        'Field(alias="userName") 을 주면 JSON에서는 userName, 파이썬에서는 user_name 으로 쓸 수 있다. 프론트(camelCase)와 파이썬(snake_case) 이름 규칙이 다를 때 쓴다.',
-        '가변 기본값은 Field(default_factory=list) 처럼 함수로 주는 방법도 있다. 현재 시각처럼 "만들 때마다 새로 계산할 값"은 default_factory=datetime.now 로 준다.',
-      ],
-      code: `from datetime import datetime
+      slides: [
+        {
+          title: '필드마다 규칙 달기',
+          blocks: [
+            { type: 'code', code: `from datetime import datetime
 from pydantic import BaseModel, Field
 
 class ProductCreate(BaseModel):
     name: str = Field(min_length=1, max_length=50, examples=["무선 키보드"])
     price: int = Field(gt=0, le=10_000_000, description="원 단위 가격")
     stock: int = Field(default=0, ge=0)
-    created_at: datetime = Field(default_factory=datetime.now)`,
+    created_at: datetime = Field(default_factory=datetime.now)` },
+            {
+              type: 'table',
+              head: ['대상', '규칙'],
+              rows: [
+                ['문자열', '`min_length`, `max_length`, `pattern`'],
+                ['숫자', '`gt`, `ge`, `lt`, `le`, `multiple_of`'],
+                ['리스트', '`min_length`, `max_length` (원소 개수)'],
+                ['문서', '`description`, `examples` → `/docs` Schemas에 그대로'],
+              ],
+            },
+          ],
+        },
+        {
+          title: 'default_factory와 alias',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '`created_at: datetime = datetime.now()`라고 쓰면 **클래스를 정의하는 순간 딱 한 번** 시각이 계산돼서, 모든 객체가 **서버가 켜진 시각**을 갖게 돼요. "만들 때마다 새로 계산할 값"은 `default_factory=datetime.now`(괄호 없이 **함수**를 넘김)로 줘요. 데코레이터 수업의 "괄호 없으면 함수 자체"가 여기서 또 나왔죠.' },
+            { type: 'code', code: `class Profile(BaseModel):
+    user_name: str = Field(alias="userName")
+
+Profile.model_validate({"userName": "kim"}).user_name   # "kim"` },
+            { type: 'say', text: '프론트는 `userName`(camelCase), 파이썬은 `user_name`(snake_case)을 쓰고 싶을 때 `alias`를 줘요. JSON에서는 alias 이름으로 받고, 파이썬 코드에서는 원래 이름으로 써요.' },
+          ],
+        },
+      ],
     },
     {
       title: '변환 규칙과 엄격 모드',
-      points: [
-        'Pydantic은 기본적으로 "합리적인 변환"을 한다(lax 모드). "3" → 3(int), 3 → 3.0(float), "true" → True(bool), "2026-10-20" → date.',
-        '하지만 손실이나 모호함이 있으면 거절한다. 3.5 → int 는 422, "abc" → int 는 422.',
-        '숫자 3을 str 필드에 넣으면 v2에서는 기본적으로 거절된다(문자열로 자동 변환하지 않음).',
-        '변환을 아예 막고 싶으면 Field(strict=True) 또는 model_config = ConfigDict(strict=True). 금액·ID처럼 타입이 엄격해야 하는 곳에 쓴다.',
-        '모델에 정의하지 않은 필드가 들어오면 기본은 조용히 무시한다. model_config = ConfigDict(extra="forbid") 로 바꾸면 422로 거절한다. 오타 필드를 잡는 데 유용하다.',
-      ],
-      code: `from pydantic import BaseModel, ConfigDict
+      slides: [
+        {
+          title: '합리적인 변환은 해 줘요',
+          blocks: [
+            { type: 'say', text: 'Pydantic은 기본적으로 **합리적인 변환**을 해요(lax 모드).' },
+            {
+              type: 'table',
+              head: ['필드 타입', '들어온 값', '결과'],
+              rows: [
+                ['int', '`"3"`', '**3** (변환)'],
+                ['float', '`3`', '**3.0**'],
+                ['bool', '`"true"`', '**True**'],
+                ['date', '`"2026-10-20"`', '**date 객체**'],
+                ['int', '`3.5`', '**422** — 소수점을 버리면 손실'],
+                ['int', '`"abc"`', '**422**'],
+                ['str', '`3` (숫자)', '**422** — v2는 숫자를 문자열로 자동 변환하지 않음'],
+              ],
+            },
+            { type: 'say', text: '금액·ID처럼 타입이 엄격해야 하는 곳은 `Field(strict=True)`나 `model_config = ConfigDict(strict=True)`로 **변환 자체를 막을** 수 있어요.' },
+          ],
+        },
+        {
+          title: '모르는 필드는 어떻게?',
+          blocks: [
+            { type: 'code', code: `from pydantic import BaseModel, ConfigDict
 
 class Login(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
@@ -62,17 +119,19 @@ class Login(BaseModel):
     password: str
 
 # {"email": " a@b.com ", "password": "x", "admin": true}
-# → extra="forbid" 때문에 422 (admin 은 허용되지 않은 필드)`,
+# → extra="forbid" 때문에 422 (admin 은 허용되지 않은 필드)` },
+            { type: 'say', text: '모델에 **정의하지 않은 필드**가 들어오면 기본은 **조용히 무시**해요. 그래서 공격자가 `"is_admin": true`를 끼워 보내도 모델에는 안 들어가요. 이것만으로도 꽤 안전해요.\n\n`extra="forbid"`로 바꾸면 아예 **422로 거절**해요. 프론트가 필드 이름을 오타 냈을 때(`titel`) 조용히 무시되지 않고 바로 드러나서 좋아요.' },
+          ],
+        },
+      ],
     },
     {
       title: '사용자 정의 검증: field_validator와 model_validator',
-      points: [
-        '타입과 Field로 표현할 수 없는 규칙은 @field_validator("필드명") 으로 쓴다. 값을 검사해 문제가 있으면 ValueError를 raise하고, 통과하면 (필요하면 다듬은) 값을 return 한다.',
-        '여러 필드를 함께 봐야 하는 규칙(비밀번호 확인 일치, 시작일 < 종료일)은 @model_validator(mode="after") 로 모델 전체를 검사한다.',
-        'validator 안에서 raise한 ValueError는 FastAPI에서 422 응답의 detail로 바뀐다. HTTPException을 raise하지 않는다.',
-        'validator에서 값을 return 하지 않으면 그 필드가 None이 된다. 항상 마지막에 return value 를 잊지 않는다.',
-      ],
-      code: `from pydantic import BaseModel, field_validator, model_validator
+      slides: [
+        {
+          title: '내 규칙 직접 쓰기',
+          blocks: [
+            { type: 'code', code: `from pydantic import BaseModel, field_validator, model_validator
 
 class SignUp(BaseModel):
     username: str
@@ -90,7 +149,25 @@ class SignUp(BaseModel):
     def passwords_match(self):
         if self.password != self.password_confirm:
             raise ValueError("비밀번호 확인이 일치하지 않습니다")
-        return self`,
+        return self` },
+            {
+              type: 'table',
+              head: ['도구', '언제'],
+              rows: [
+                ['`@field_validator("필드")`', '**필드 하나**의 규칙 (공백 금지, 소문자로 다듬기)'],
+                ['`@model_validator(mode="after")`', '**여러 필드를 함께** 보는 규칙 (비밀번호 확인 일치, 시작일 < 종료일)'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '검증기의 두 가지 약속',
+          blocks: [
+            { type: 'list', ordered: true, items: ['실패는 **`ValueError`를 raise** — FastAPI가 알아서 **422** 응답의 detail로 바꿔 줘요. `HTTPException`을 쓰지 않아요 (Pydantic은 FastAPI 밖에서도 쓰이는 도구라서)', '통과하면 **값을 return** — 빼먹으면 그 필드가 **None**이 돼요. model_validator는 `return self`'] },
+            { type: 'ask', q: 'field_validator를 붙였더니 username이 항상 None이 돼요. 가장 먼저 볼 곳은?', a: '검증기 마지막에 **`return v`** 가 있는지예요. 검증기의 리턴값이 그 필드의 최종 값이 되는데, return이 없으면 파이썬 함수는 None을 돌려주거든요. 데코레이터 wrapper에서 return을 빼먹었던 실수와 같은 모양이에요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

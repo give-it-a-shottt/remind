@@ -9,75 +9,131 @@ const topic: Topic = {
   sections: [
     {
       title: 'Union: 여러 타입 중 하나',
-      points: [
-        'int | str 또는 Union[int, str] 은 "int이거나 str"이다. 여러 형태의 값을 받을 수 있을 때 쓴다.',
-        'Pydantic은 Union 값을 검증할 때 들어온 값과 가장 잘 맞는 타입을 고른다(smart 모드). 예를 들어 int | str 에 "5"가 오면 문자열 그대로 "5"로 둔다. 정확히 맞는 타입이 우선이기 때문이다.',
-        'Union이 많아지면 "이 값이 무엇인지" 매번 확인해야 하므로 코드가 복잡해진다. 가능하면 타입 하나로 좁히는 설계가 좋다.',
-        '응답 모델에서 성공/실패 등 구조가 다른 모델을 Union으로 묶을 수도 있다. 이때 공통 필드(예: type: Literal["card"])로 구분하면 Pydantic이 정확히 고른다(구분된 유니언, discriminated union).',
-      ],
-      code: `from typing import Literal
+      slides: [
+        {
+          title: 'int이거나 str이거나',
+          blocks: [
+            { type: 'say', text: '`int | str`(또는 `Union[int, str]`)은 "int **이거나** str"이에요. 여러 형태의 값을 받아야 할 때 써요.\n\nPydantic은 Union 값이 들어오면 **가장 잘 맞는 타입**을 골라요(smart 모드). `int | str` 필드에 문자열 `"10"`이 오면? 문자열이 **정확히 맞는** 타입이니 `"10"` 그대로 둬요. 억지로 int로 바꾸지 않아요.' },
+            { type: 'note', tone: 'tip', text: 'Union이 많아지면 코드 곳곳에서 "이 값이 지금 int야 str이야?"를 매번 확인해야 해요. 가능하면 **타입 하나로 좁히는** 설계가 좋아요. 그리고 `Any`는 "아무거나"라서 **검증을 포기**하는 거예요. 꼭 필요할 때만 써요.' },
+          ],
+        },
+        {
+          title: '구분된 유니언: 꼬리표로 고르기',
+          blocks: [
+            { type: 'code', code: `from typing import Literal
 from pydantic import BaseModel, Field
 
 class Card(BaseModel):
-    type: Literal["card"]
+    type: Literal["card"]      # 꼬리표
     card_no: str
 
 class Bank(BaseModel):
-    type: Literal["bank"]
+    type: Literal["bank"]      # 꼬리표
     account: str
 
 class Payment(BaseModel):
-    method: Card | Bank = Field(discriminator="type")`,
+    method: Card | Bank = Field(discriminator="type")` },
+            { type: 'say', text: '결제 수단이 카드 **또는** 계좌라면, 들어온 JSON이 어느 쪽인지 Pydantic이 헷갈릴 수 있어요. 그래서 모델마다 **공통 필드 `type`에 고정된 값**(꼬리표)을 두고, `discriminator="type"`으로 "이 필드를 보고 골라"라고 알려 줘요. 이걸 **구분된 유니언**(discriminated union)이라고 해요.\n\n`{"type": "bank", ...}`가 오면 바로 Bank로 검증하니 빠르고, 에러 메시지도 정확해요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'Literal: 정해진 값만 허용',
-      points: [
-        'Literal["asc", "desc"] 는 "asc" 또는 "desc"라는 값 자체만 허용한다. 그 밖의 값은 422로 거절된다.',
-        'Enum보다 가볍다. 별도 클래스를 만들 필요 없이 함수 시그니처에 바로 쓴다. 값 목록을 여러 곳에서 재사용하거나 값마다 동작을 붙이려면 Enum이 낫다.',
-        '/docs에 허용 값 목록이 표시된다.',
-      ],
-      code: `from typing import Literal
+      slides: [
+        {
+          title: '값 자체를 타입으로',
+          blocks: [
+            { type: 'code', code: `from typing import Literal
 
 @app.get("/posts")
 def list_posts(order: Literal["asc", "desc"] = "desc"):
     ...
-# ?order=random → 422`,
+# ?order=random → 422
+# ?order=DESC   → 422 (대소문자도 정확히 같아야 해요)` },
+            { type: 'say', text: '`Literal["asc", "desc"]`는 **"asc" 또는 "desc"라는 값 자체만** 허용해요. 그 밖의 값은 422로 거절되고, `/docs`에 허용 값 목록이 표시돼요.\n\nfa-03에서 배운 **Enum**과 비슷한데 더 가벼워요. 클래스를 따로 만들 필요 없이 시그니처에 바로 써요.' },
+            {
+              type: 'table',
+              head: ['', 'Literal', 'Enum'],
+              rows: [
+                ['만들기', '한 줄, 바로 사용', '클래스 정의 필요'],
+                ['어울리는 곳', '한두 곳에서 쓰는 간단한 선택지', '여러 곳에서 **재사용**, 값마다 동작을 붙일 때'],
+              ],
+            },
+          ],
+        },
+      ],
     },
     {
       title: 'Annotated: 타입에 메타데이터 붙이기',
-      points: [
-        'Annotated[타입, 추가정보...] 는 "타입은 이것이고, 덧붙여 이런 정보도 있다"는 표현이다. 파이썬은 첫 번째 칸(타입)만 보고, FastAPI·Pydantic은 나머지 칸의 정보를 읽는다.',
-        'FastAPI 권장 문법: q: Annotated[str | None, Query(max_length=50)] = None. 기본값은 = 오른쪽에, 검증 규칙은 Annotated 안에 둔다.',
-        '예전 문법 q: str | None = Query(default=None, max_length=50) 도 동작하지만, Annotated 문법은 기본값이 진짜 파이썬 기본값이라 함수를 FastAPI 밖에서 직접 호출해도 자연스럽다.',
-        '반복되는 선언은 별칭으로 만들어 재사용한다. PageSize = Annotated[int, Query(ge=1, le=100)]. 의존성도 SessionDep = Annotated[Session, Depends(get_session)] 처럼 만든다.',
-      ],
-      code: `from typing import Annotated
+      slides: [
+        {
+          title: '타입 + 덧붙인 정보',
+          blocks: [
+            { type: 'say', text: '`Annotated[타입, 추가정보...]`는 "타입은 이거고, 덧붙여 이런 정보도 있어"라는 표현이에요. **파이썬은 첫 칸(타입)만** 보고, FastAPI·Pydantic은 **나머지 칸의 정보**를 읽어요.' },
+            { type: 'code', code: `# A: 예전 문법
+def f(q: str | None = Query(default=None, max_length=50)): ...
+
+# B: Annotated 문법 (권장)
+def f(q: Annotated[str | None, Query(max_length=50)] = None): ...` },
+            { type: 'say', text: '둘 다 FastAPI에서는 똑같이 동작해요. B가 나은 이유는 `= None`이 **진짜 파이썬 기본값**이라서예요. 이 함수를 테스트 코드 등 FastAPI **밖에서 직접 호출**해도 자연스럽게 동작해요. A는 기본값 자리에 `Query(...)` 객체가 들어가 있어서 직접 호출하면 이상해져요.' },
+          ],
+        },
+        {
+          title: '반복되는 선언은 별칭으로',
+          blocks: [
+            { type: 'code', code: `from typing import Annotated
 from fastapi import Query, Depends
 
 PageSize = Annotated[int, Query(ge=1, le=100)]
 SessionDep = Annotated[Session, Depends(get_session)]
 
 @app.get("/posts")
-def list_posts(db: SessionDep, size: PageSize = 10, q: Annotated[str | None, Query(max_length=50)] = None):
-    ...`,
+def list_posts(db: SessionDep, size: PageSize = 10):
+    ...` },
+            { type: 'say', text: 'Annotated의 진짜 힘은 **이름을 붙여 재사용**할 수 있다는 거예요. 모든 라우트에서 반복하던 `db: Session = Depends(get_session)`가 `db: SessionDep` 한마디로 줄어요. 규칙을 바꿀 때도 별칭 한 곳만 고치면 돼요. 의존성 수업에서 계속 쓸 모양이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '문자열 검증과 그 밖의 유용한 타입',
-      points: [
-        '문자열 규칙: min_length, max_length, pattern(정규식). 예: Query(pattern="^[a-z0-9_]+$").',
-        '날짜·시간: datetime, date, time. "2026-10-20" 같은 ISO 문자열이 자동으로 date로 변환된다. 응답에서는 다시 ISO 문자열이 된다.',
-        'UUID: 추측하기 어려운 ID. 잘못된 형식이면 422.',
-        'Pydantic 특수 타입: EmailStr(이메일 형식, email-validator 패키지 필요), HttpUrl(URL 형식), PositiveInt(양의 정수), SecretStr(출력할 때 ****로 가려지는 문자열).',
-        'Any는 "아무 타입이나"로 검증을 포기하는 것이다. 꼭 필요한 곳 외에는 쓰지 않는다.',
-      ],
-      code: `from datetime import date
+      slides: [
+        {
+          title: '문자열 규칙과 날짜',
+          blocks: [
+            { type: 'code', code: `from datetime import date
 from uuid import UUID
-from pydantic import EmailStr
 
 @app.get("/reports/{report_id}")
-def report(report_id: UUID, start: date, end: date):
+def report(
+    report_id: UUID,
+    start: date,
+    end: date,
+    code: Annotated[str, Query(min_length=2, max_length=10, pattern="^[a-z0-9_]+$")] = "all",
+):
     ...
-# /reports/123e4567-e89b-12d3-a456-426614174000?start=2026-10-01&end=2026-10-20`,
+# /reports/123e4567-e89b-12d3-a456-426614174000?start=2026-10-01&end=2026-10-20` },
+            { type: 'list', items: ['문자열: `min_length`, `max_length`, `pattern`(정규식)', '`date`, `datetime`: `"2026-10-20"` 같은 ISO 문자열을 **자동 변환**. `2026-02-30`처럼 **없는 날짜는 422**', '`UUID`: 추측하기 어려운 ID. 형식이 틀리면 422'] },
+          ],
+        },
+        {
+          title: 'Pydantic 특수 타입',
+          blocks: [
+            {
+              type: 'table',
+              head: ['타입', '검사하는 것'],
+              rows: [
+                ['`EmailStr`', '이메일 형식 (`email-validator` 패키지 필요)'],
+                ['`HttpUrl`', 'URL 형식'],
+                ['`PositiveInt`', '양의 정수'],
+                ['`SecretStr`', 'print·로그에 `**********`로 **가려져** 나오는 문자열'],
+              ],
+            },
+            { type: 'say', text: '회원가입 이메일 검사를 정규식으로 직접 짜는 대신 `email: EmailStr` 한 줄이면 돼요. 비밀번호는 `SecretStr`로 받으면 실수로 로그에 찍혀도 값이 드러나지 않아요. 진짜 값이 필요할 땐 `.get_secret_value()`로 꺼내요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -10,28 +10,49 @@ const topic: Topic = {
     {
       title: '쿼리 파라미터 기본',
       notionIds: ['3efdf951bf8081d0a7cacadcbe6e2608'],
-      points: [
-        'URL의 ? 뒤에 이름=값 을 &로 이어 붙인 것이 쿼리 파라미터다. /posts?page=2&size=10.',
-        'FastAPI에서는 함수 파라미터 중 경로에 없는 단순 타입(int, str, bool 등)이 자동으로 쿼리 파라미터가 된다. Flask의 request.args.get("page") 를 직접 쓸 필요가 없다.',
-        '기본값이 있으면 선택, 없으면 필수다. page: int = 1 은 선택(없으면 1), keyword: str 은 필수(없으면 422).',
-        '"없어도 되는데 기본값도 없는" 값은 keyword: str | None = None 으로 쓴다. 함수 안에서 if keyword: 로 들어왔는지 확인한다.',
-      ],
-      code: `@app.get("/posts")
+      slides: [
+        {
+          title: '주소 뒤 ? 다음의 조건들',
+          blocks: [
+            { type: 'say', text: '`/posts?page=2&size=10`처럼 `?` 뒤에 `이름=값`을 `&`로 이어 붙인 게 **쿼리 파라미터**예요. 목록을 거르고, 정렬하고, 페이지를 나누는 **조건**을 담아요.\n\nFastAPI에서는 따로 할 게 없어요. 함수 파라미터 중 **경로에 없는 단순 타입**(int, str, bool…)이 자동으로 쿼리 파라미터가 돼요. Flask의 `request.args.get("page")`를 쓸 필요가 없어요.' },
+            { type: 'code', code: `@app.get("/posts")
 def list_posts(page: int = 1, size: int = 10, keyword: str | None = None):
     return {"page": page, "size": size, "keyword": keyword}
 
-# GET /posts                 → {"page": 1, "size": 10, "keyword": null}
-# GET /posts?page=3&keyword=fastapi
-#                            → {"page": 3, "size": 10, "keyword": "fastapi"}`,
+# GET /posts                        → {"page": 1, "size": 10, "keyword": null}
+# GET /posts?page=3&keyword=fastapi → {"page": 3, "size": 10, "keyword": "fastapi"}` },
+          ],
+        },
+        {
+          title: '필수냐 선택이냐는 기본값이 정해요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['선언', '뜻'],
+              rows: [
+                ['`keyword: str`', '**필수** — 없으면 422'],
+                ['`page: int = 1`', '**선택** — 없으면 1'],
+                ['`keyword: str | None = None`', '**선택**, 없으면 None — 함수 안에서 `if keyword:`로 확인'],
+              ],
+            },
+            { type: 'ask', q: '`?keyword=`처럼 값 없이 이름만 보내면 `keyword: str | None = None`에는 무엇이 들어올까요?', a: '`None`이 아니라 **빈 문자열 `""`** 이에요. 이름은 왔으니까요. 그래서 `if keyword is not None:`보다 `if keyword:`로 검사하면 빈 문자열도 "없음"처럼 걸러져서 편해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '타입 변환: bool과 list',
-      points: [
-        'bool 쿼리는 true/1/yes/on 은 True, false/0/no/off 는 False로 바뀐다(대소문자 무시). 그 밖의 값은 422.',
-        '같은 이름을 여러 번 보내 목록을 받으려면 Query를 명시해야 한다. tags: list[str] = Query(default=[]) → ?tags=a&tags=b 는 ["a", "b"].',
-        'Query를 쓰지 않고 tags: list[str] 이라고만 쓰면 FastAPI는 이를 요청 본문(body)으로 해석한다. list 같은 복합 타입은 기본이 본문이기 때문이다.',
-      ],
-      code: `from fastapi import Query
+      slides: [
+        {
+          title: 'bool은 꽤 너그러워요',
+          blocks: [
+            { type: 'say', text: '`published: bool` 쿼리는 이렇게 바뀌어요 (대소문자 무시).\n• `true`, `1`, `yes`, `on` → **True**\n• `false`, `0`, `no`, `off` → **False**\n• 그 밖의 값(`hello`) → **422**' },
+          ],
+        },
+        {
+          title: '목록은 Query가 꼭 필요해요',
+          blocks: [
+            { type: 'code', code: `from fastapi import Query
 
 @app.get("/search")
 def search(
@@ -42,41 +63,75 @@ def search(
     return {"q": q, "published": published, "tags": tags}
 
 # /search?q=api&published=no&tags=py&tags=web
-# → {"q": "api", "published": false, "tags": ["py", "web"]}`,
+# → {"q": "api", "published": false, "tags": ["py", "web"]}` },
+            { type: 'say', text: '같은 이름을 여러 번 보내서(`?tags=py&tags=web`) **목록**으로 받으려면 `Query(...)`를 꼭 붙여야 해요.' },
+            { type: 'note', tone: 'warn', text: '`tags: list[str]`이라고만 쓰면 FastAPI는 이걸 **요청 본문(body)** 으로 해석해요. list 같은 복합 타입은 기본이 본문이거든요. "쿼리로 받을 거야"를 `Query`로 분명히 말해 줘야 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '경로 + 쿼리 + 페이지네이션',
-      points: [
-        '경로 파라미터와 쿼리 파라미터는 함께 쓸 수 있고, 함수 파라미터 순서는 상관없다. FastAPI는 이름으로 구분한다.',
-        '목록 API의 기본은 페이지네이션이다. 데이터가 10만 개인데 한 번에 다 주면 서버·네트워크·브라우저 모두 느려진다.',
-        'offset 방식: skip(건너뛸 개수)과 limit(가져올 개수). page와 size로 받는다면 offset = (page - 1) * size.',
-        'limit에는 반드시 상한을 둔다. size: int = Query(10, ge=1, le=100). 상한이 없으면 ?size=1000000 한 번으로 서버가 힘들어진다.',
-      ],
-      code: `@app.get("/users/{user_id}/posts")
+      slides: [
+        {
+          title: '목록은 나눠서 줘요',
+          blocks: [
+            { type: 'say', text: '글이 10만 개인데 목록 API가 한 번에 다 주면 서버도, 네트워크도, 브라우저도 다 느려져요. 그래서 목록 API의 기본은 **페이지네이션**(나눠 주기)이에요.' },
+            { type: 'code', code: `@app.get("/users/{user_id}/posts")
 def user_posts(
-    user_id: int,
-    page: int = Query(1, ge=1),
-    size: int = Query(10, ge=1, le=100),
+    user_id: int,                          # 경로
+    page: int = Query(1, ge=1),            # 쿼리
+    size: int = Query(10, ge=1, le=100),   # 쿼리 (상한 100!)
 ):
     offset = (page - 1) * size
-    return {"user_id": user_id, "offset": offset, "limit": size}`,
+    return {"user_id": user_id, "offset": offset, "limit": size}` },
+            { type: 'say', text: '경로와 쿼리는 함께 쓸 수 있고, FastAPI는 **이름으로** 구분해서 순서는 상관없어요.\n\n**offset 방식**: 건너뛸 개수(offset)와 가져올 개수(limit). page, size로 받으면 **offset = (page - 1) × size**. 3페이지, 20개씩이면 앞의 40개를 건너뛰어요.' },
+          ],
+        },
+        {
+          title: 'size에는 꼭 상한을',
+          blocks: [
+            { type: 'say', text: '`le=100` 같은 **상한**이 없으면 누군가 `?size=1000000` 한 번만 보내도 서버가 DB에서 백만 개를 꺼내느라 힘들어져요. 실수든 공격이든 막아야 해요.' },
+            { type: 'note', tone: 'tip', text: '파이썬 문법 주의: `def f(page: int = 1, user_id: int)`처럼 **기본값 있는 파라미터 뒤에 기본값 없는 파라미터**를 두면 문법 에러예요. 경로 파라미터처럼 기본값 없는 걸 앞에 두거나, 위 코드처럼 `Query(...)`를 써서 해결해요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'cURL로 API 테스트하기',
-      points: [
-        'curl은 터미널에서 HTTP 요청을 보내는 도구다. 브라우저 없이 API를 빠르게 확인하고, 스크립트로 자동화할 수 있다. 브라우저가 아니라서 CORS 제한이 없다.',
-        'curl URL 은 GET 요청이다. -X 로 메서드를 지정한다(-X POST, -X DELETE).',
-        '-H 로 헤더를 붙인다. JSON을 보낼 때는 -H "Content-Type: application/json" 이 필요하다. -d 로 본문을 보낸다. -d를 쓰면 메서드를 안 적어도 POST가 된다.',
-        '-i 는 응답 헤더와 상태 코드까지 보여 주고, -v 는 요청 헤더까지 자세히 보여 준다.',
-        '쿼리 스트링에 &가 있으면 셸이 이를 "백그라운드 실행"으로 해석하므로 URL 전체를 따옴표로 감싼다.',
-        'Windows PowerShell에서는 curl이 Invoke-WebRequest의 별칭일 수 있으므로 curl.exe 로 실행하는 것이 안전하다. JSON 따옴표 이스케이프도 셸마다 다르다.',
-      ],
-      code: `curl "http://127.0.0.1:8000/posts?page=2&size=5"
+      slides: [
+        {
+          title: '터미널에서 요청 보내기',
+          blocks: [
+            { type: 'say', text: '**curl**은 터미널에서 HTTP 요청을 보내는 도구예요. 브라우저 없이 API를 빠르게 확인하고, 스크립트로 자동화할 수도 있어요. 브라우저가 아니라서 **CORS 제한도 없어요.**' },
+            { type: 'code', code: `curl "http://127.0.0.1:8000/posts?page=2&size=5"
 curl -i http://127.0.0.1:8000/health
 curl -X POST http://127.0.0.1:8000/posts \\
   -H "Content-Type: application/json" \\
   -d '{"title": "hi", "content": "first"}'
-curl -X DELETE http://127.0.0.1:8000/posts/3`,
+curl -X DELETE http://127.0.0.1:8000/posts/3` },
+            {
+              type: 'table',
+              head: ['옵션', '뜻'],
+              rows: [
+                ['(없음)', 'GET 요청'],
+                ['`-X POST`', '메서드 지정'],
+                ['`-H "..."`', '헤더 붙이기. JSON을 보낼 땐 `Content-Type: application/json` 필수'],
+                ['`-d \'...\'`', '본문 보내기. `-d`가 있으면 메서드를 안 써도 POST'],
+                ['`-i`', '응답 **상태 줄과 헤더**까지 출력'],
+                ['`-v`', '요청 헤더까지 자세히'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '셸에서 자주 걸리는 함정',
+          blocks: [
+            { type: 'say', text: '**① URL은 따옴표로 감싸요.** 따옴표 없이 `curl http://...?page=2&size=5`를 치면, 셸이 `&`를 "앞 명령을 백그라운드로 실행해"로 해석해요. 그래서 `size=5`는 서버에 가지도 않아요.\n\n**② Windows PowerShell에서는 `curl.exe`** 로 실행해요. PowerShell의 `curl`은 다른 명령(Invoke-WebRequest)의 별칭일 수 있어요. JSON 안의 따옴표 처리도 셸마다 달라서, 복잡한 본문은 `/docs`에서 테스트하는 게 편해요.' },
+            { type: 'ask', q: 'React에서는 CORS 에러가 나는데 curl로는 같은 요청이 성공해요. 가능한 일일까요?', a: '네, 아주 흔해요. CORS는 **브라우저**가 거는 제한이라 curl에는 없어요. 서버는 원래 요청을 잘 처리하고 있고, 서버의 CORS 설정에 프론트 주소를 추가하면 해결돼요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

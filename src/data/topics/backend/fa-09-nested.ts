@@ -9,62 +9,118 @@ const topic: Topic = {
   sections: [
     {
       title: '모델 안에 모델',
-      points: [
-        '필드의 타입으로 다른 Pydantic 모델을 쓰면 JSON의 중첩 구조를 그대로 표현할 수 있다. address: Address → {"address": {"city": "...", "zip": "..."}}.',
-        '검증도 안쪽까지 내려간다. address.zip이 규칙에 맞지 않으면 loc가 ["body", "address", "zip"]인 422가 난다.',
-        '안쪽 모델을 독립 클래스로 만들어 두면 여러 모델에서 재사용할 수 있고, /docs의 Schemas에도 따로 표시된다.',
-      ],
-      code: `class Address(BaseModel):
+      slides: [
+        {
+          title: 'JSON의 중첩을 그대로',
+          blocks: [
+            { type: 'say', text: 'JSON은 `{"address": {"city": "...", "zip": "..."}}`처럼 **상자 안에 상자**가 들어 있는 경우가 많아요. Pydantic에서는 필드 타입으로 **다른 모델**을 쓰면 이 구조를 그대로 표현할 수 있어요.' },
+            { type: 'code', code: `class Address(BaseModel):
     city: str
     zip: str = Field(pattern=r"^\\d{5}$")
 
 class UserCreate(BaseModel):
     name: str
-    address: Address
+    address: Address          # 모델 안에 모델
 
-# {"name": "kim", "address": {"city": "Seoul", "zip": "04524"}}`,
+# {"name": "kim", "address": {"city": "Seoul", "zip": "04524"}}` },
+            { type: 'say', text: '검증도 **안쪽까지** 내려가요. `zip`이 빠지거나 규칙에 안 맞으면 422가 나고, 에러 위치(`loc`)가 `["body", "address", "zip"]`처럼 **어느 상자의 어느 칸**인지 정확히 알려 줘요.' },
+          ],
+        },
+        {
+          title: '독립 클래스로 두는 이유',
+          blocks: [
+            { type: 'say', text: '`Address`를 따로 클래스로 만들어 두면\n• 회원·주문·매장 등 **여러 모델에서 재사용**할 수 있고\n• 규칙(우편번호 5자리)을 바꿀 때 **한 곳만** 고치면 되고\n• `/docs`의 Schemas에도 **따로 표시**돼서 프론트가 보기 좋아요.' },
+          ],
+        },
+      ],
     },
     {
       title: '모델의 리스트와 딕셔너리',
-      points: [
-        'items: list[OrderItem] 은 "OrderItem 객체들의 배열"이다. 배열의 각 원소가 각각 검증되고, 두 번째 원소가 틀리면 loc에 인덱스(1)가 들어간다.',
-        'dict[str, Item] 처럼 키는 문자열, 값은 모델인 구조도 표현할 수 있다.',
-        'Field(min_length=1)을 리스트 필드에 주면 "최소 1개 이상"이라는 규칙이 된다. 빈 주문을 막을 때 쓴다.',
-        '요청 본문 자체가 배열이어야 하면 파라미터를 items: list[Item] 으로 선언한다. 본문이 [ {...}, {...} ] 형태가 된다.',
-      ],
-      code: `class OrderItem(BaseModel):
+      slides: [
+        {
+          title: '모델들의 배열',
+          blocks: [
+            { type: 'code', code: `class OrderItem(BaseModel):
     product_id: int
     quantity: int = Field(ge=1)
 
 class OrderCreate(BaseModel):
-    items: list[OrderItem] = Field(min_length=1)
+    items: list[OrderItem] = Field(min_length=1)   # 최소 1개
     memo: str | None = None
 
-# 실패 예: {"items": [{"product_id": 1, "quantity": 2}, {"product_id": 2, "quantity": 0}]}
-# → loc: ["body", "items", 1, "quantity"]`,
+# {"items": [{"product_id": 1, "quantity": 2}, {"product_id": 2, "quantity": 0}]}
+# → 422, loc: ["body", "items", 1, "quantity"]` },
+            { type: 'say', text: '`list[OrderItem]`은 "OrderItem 객체들의 배열"이에요. **원소 하나하나가** 각각 검증되고, 두 번째 원소가 틀리면 `loc`에 **인덱스 1**이 들어가서 몇 번째가 틀렸는지 알려 줘요.\n\n리스트 필드에 `Field(min_length=1)`을 주면 "**최소 1개 이상**"이 돼요. 빈 주문을 막을 때 써요.' },
+          ],
+        },
+        {
+          title: '사전과 배열 본문',
+          blocks: [
+            { type: 'list', items: ['`dict[str, Item]` — 키는 문자열, 값은 모델', '`dict[str, int]` — `{"kim": "90"}`이 오면 lax 모드라 `{"kim": 90}`으로 변환', '본문 **자체가 배열**이어야 하면 파라미터를 `items: list[Item]`으로 → 본문이 `[ {...}, {...} ]`'] },
+            { type: 'code', code: `@app.post("/products/bulk")
+def bulk_create(items: list[ProductCreate]):   # 본문: [ {...}, {...} ]
+    ...` },
+          ],
+        },
+      ],
     },
     {
       title: '여러 본문 파라미터와 Body(embed)',
-      points: [
-        '함수에 Pydantic 모델 파라미터가 두 개 이상이면 FastAPI는 각 파라미터 이름을 키로 하는 JSON을 기대한다. def f(item: Item, user: User) → {"item": {...}, "user": {...}}.',
-        '모델이 하나뿐이면 기본적으로 모델 내용이 본문 최상위에 온다. 하나뿐인데도 {"item": {...}}처럼 감싸고 싶으면 item: Item = Body(embed=True).',
-        '모델이 아닌 단순 값을 본문에서 받고 싶으면 Body()를 명시한다. importance: int = Body(). 명시하지 않으면 쿼리 파라미터가 된다.',
-      ],
-      code: `from fastapi import Body
+      slides: [
+        {
+          title: '모델이 둘이면 이름으로 감싸요',
+          blocks: [
+            { type: 'code', code: `from fastapi import Body
 
 @app.put("/items/{item_id}")
 def update(item_id: int, item: Item, user: User, importance: Annotated[int, Body()]):
     ...
 # 기대하는 본문
-# {"item": {...}, "user": {...}, "importance": 5}`,
+# {"item": {...}, "user": {...}, "importance": 5}` },
+            { type: 'say', text: '모델 파라미터가 **하나뿐**이면 모델 내용이 본문 **최상위**에 와요(`{"name": ..., "price": ...}`).\n모델이 **둘 이상**이면 FastAPI는 **파라미터 이름을 키로** 감싼 JSON을 기대해요.' },
+          ],
+        },
+        {
+          title: 'embed와 단순 값',
+          blocks: [
+            { type: 'list', items: ['모델이 하나인데도 `{"item": {...}}`처럼 감싸고 싶다면 → `item: Item = Body(embed=True)`', '모델이 아닌 **단순 값**(int, str)을 본문에서 받으려면 → `Body()`를 **꼭** 명시. 없으면 **쿼리**로 해석돼요'] },
+            { type: 'ask', q: '`def f(item: Item, priority: int)`에서 priority는 어디서 읽을까요?', a: '**쿼리**예요. priority는 단순 타입이고 경로에도 없으니, `Body()`가 없으면 기본 규칙대로 쿼리 파라미터가 돼요. 본문 `{"priority": 1}`로 보내도 못 읽고 "priority 필수" 422가 나요.' },
+          ],
+        },
+      ],
     },
     {
       title: '중첩 모델 설계 요령',
-      points: [
-        '중첩은 "함께 만들고 함께 버리는 데이터"에 쓴다. 주문과 주문 항목처럼 한 요청으로 함께 생성되는 경우가 대표적이다.',
-        '이미 존재하는 다른 자원을 가리킬 때는 객체 전체가 아니라 ID만 받는다. 주문 생성에서 상품 정보 전체(이름·가격)를 받으면 클라이언트가 가격을 조작할 수 있다. product_id만 받고 가격은 서버가 DB에서 읽는다.',
-        '응답에서는 중첩을 적극적으로 쓴다. 게시글 응답에 작성자 요약(author: UserSummary)을 넣으면 프론트가 요청을 한 번 덜 보낸다.',
-        '너무 깊은 중첩(4~5단계)은 프론트와 백엔드 모두 다루기 어렵다. 2~3단계 안에서 끊는 것이 보통이다.',
+      slides: [
+        {
+          title: '받을 땐 ID, 줄 땐 중첩',
+          blocks: [
+            { type: 'say', text: '중첩은 **함께 만들고 함께 버리는 데이터**에 써요. 주문과 주문 항목처럼 한 요청으로 같이 생성되는 경우요.\n\n그런데 **이미 있는 다른 자원**을 가리킬 땐 다르게 해요.' },
+            { type: 'code', code: `# ❌ 상품 정보 전체를 받음
+class OrderItem(BaseModel):
+    product: Product        # {"name": "키보드", "price": 100}  ← 가격 조작 가능!
+
+# ✅ ID만 받음
+class OrderItem(BaseModel):
+    product_id: int         # 가격은 서버가 DB에서 읽음
+    quantity: int` },
+            { type: 'note', tone: 'warn', text: '주문할 때 상품 가격을 클라이언트에게서 받으면, 누군가 `"price": 1`로 바꿔 보낼 수 있어요. 클라이언트는 **무엇을**(ID) 사는지만 말하고, **얼마인지**는 서버가 DB에서 확인해요.' },
+          ],
+        },
+        {
+          title: '응답에서는 중첩을 적극적으로',
+          blocks: [
+            { type: 'code', code: `class UserSummary(BaseModel):
+    id: int
+    nickname: str
+
+class PostRead(BaseModel):
+    id: int
+    title: str
+    author: UserSummary      # 작성자 요약을 함께` },
+            { type: 'say', text: '응답에 작성자 요약을 넣어 주면, 프론트가 "이 글 작성자 이름은?" 하고 **요청을 한 번 더 보낼 필요가 없어요.**\n\n다만 너무 깊은 중첩(4~5단계)은 양쪽 다 다루기 어려워요. **2~3단계 안에서** 끊는 게 보통이에요.' },
+          ],
+        },
       ],
     },
   ],

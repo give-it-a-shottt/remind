@@ -9,31 +9,56 @@ const topic: Topic = {
   sections: [
     {
       title: '값의 출처를 명시하는 함수들',
-      points: [
-        'FastAPI는 기본 규칙(경로 이름 → 경로, 단순 타입 → 쿼리, 모델 → 본문)으로 값의 출처를 정한다. 규칙과 다르게 받거나 검증·문서 정보를 붙이려면 출처를 명시한다.',
-        'Path(): 경로, Query(): 쿼리 스트링, Body(): JSON 본문, Header(): 요청 헤더, Cookie(): 쿠키, Form(): HTML 폼 데이터, File()/UploadFile: 업로드 파일.',
-        '모두 같은 검증 인자를 받는다: 숫자(gt, ge, lt, le), 문자열(min_length, max_length, pattern), 문서(title, description, examples, deprecated), 이름(alias).',
-        '권장 문법: name: Annotated[타입, Query(...)] = 기본값.',
-      ],
-      code: `from typing import Annotated
+      slides: [
+        {
+          title: '이 값은 어디서 오나요?',
+          blocks: [
+            { type: 'say', text: 'FastAPI는 기본 규칙(경로 이름 → 경로, 단순 타입 → 쿼리, 모델 → 본문)으로 값의 출처를 정해요. 규칙과 **다르게** 받거나, 검증·문서 정보를 붙이려면 출처를 **직접 적어** 줘요.' },
+            {
+              type: 'table',
+              head: ['함수', '값의 출처'],
+              rows: [
+                ['`Path()`', '경로'],
+                ['`Query()`', '쿼리 스트링'],
+                ['`Body()`', 'JSON 본문'],
+                ['`Header()`', '요청 헤더'],
+                ['`Cookie()`', '쿠키'],
+                ['`Form()`', 'HTML 폼 데이터'],
+                ['`File()` / `UploadFile`', '업로드 파일'],
+              ],
+            },
+            { type: 'say', text: '모두 같은 검증 인자(`gt`, `min_length`, `pattern`…)와 문서 인자(`description`, `examples`, `alias`)를 받아요. 하나를 익히면 나머지도 똑같아요.' },
+          ],
+        },
+        {
+          title: '함께 쓰는 모습',
+          blocks: [
+            { type: 'code', code: `from typing import Annotated
 from fastapi import Query, Header, Cookie
 
 @app.get("/items")
 def items(
     q: Annotated[str | None, Query(min_length=2, max_length=50)] = None,
     user_agent: Annotated[str | None, Header()] = None,
+    x_request_id: Annotated[str | None, Header()] = None,
     ads_id: Annotated[str | None, Cookie()] = None,
 ):
-    return {"q": q, "ua": user_agent, "ads_id": ads_id}`,
+    return {"q": q, "ua": user_agent, "ads_id": ads_id}` },
+          ],
+        },
+      ],
     },
     {
       title: 'Query 심화',
-      points: [
-        'Query(alias="item-query"): 파이썬 변수 이름으로 쓸 수 없는 쿼리 이름(하이픈 포함)을 받는다.',
-        '필수 쿼리에 검증을 붙이려면 기본값 없이 Annotated[str, Query(min_length=3)] 로 쓴다.',
-        '여러 쿼리 파라미터를 Pydantic 모델 하나로 묶어 받을 수도 있다(최신 FastAPI). filters: Annotated[FilterParams, Query()]. 목록 API의 필터·정렬·페이지 값을 재사용하기 좋다.',
-      ],
-      code: `class FilterParams(BaseModel):
+      slides: [
+        {
+          title: '이상한 이름과 묶어 받기',
+          blocks: [
+            { type: 'code', code: `# 하이픈이 든 쿼리 이름: ?item-query=abc
+def f(item_query: Annotated[str | None, Query(alias="item-query")] = None): ...
+
+# 여러 쿼리를 모델 하나로 묶기 (최신 FastAPI)
+class FilterParams(BaseModel):
     model_config = {"extra": "forbid"}
     limit: int = Field(10, gt=0, le=100)
     offset: int = Field(0, ge=0)
@@ -41,62 +66,98 @@ def items(
 
 @app.get("/posts")
 def list_posts(filters: Annotated[FilterParams, Query()]):
-    return filters`,
+    return filters` },
+            { type: 'list', items: ['`item-query`처럼 **파이썬 변수 이름이 될 수 없는** 쿼리는 `alias`로 받아요', '필수 쿼리에 검증을 붙이려면 **기본값 없이** `Annotated[str, Query(min_length=3)]`', '여러 목록 API가 같은 limit·offset·order_by를 받는다면 **모델 하나로 묶어** 재사용해요'] },
+          ],
+        },
+      ],
     },
     {
       title: 'Body 심화',
-      points: [
-        '모델이 아닌 단순 값을 본문에서 받으려면 Body()가 필요하다. 없으면 쿼리로 해석된다.',
-        'Body(examples=[...]) 로 /docs의 요청 예시를 채울 수 있다. 모델의 model_config = {"json_schema_extra": {"examples": [...]}} 로도 가능하다.',
-        '요청 본문이 매우 자유로운 형식이면 data: dict[str, Any] = Body() 로 받을 수 있지만, 검증이 사라지므로 마지막 수단이다.',
+      slides: [
+        {
+          title: '단순 값도 본문에서',
+          blocks: [
+            { type: 'say', text: 'fa-09에서 봤듯이 모델이 아닌 단순 값(`importance: int`)을 본문에서 받으려면 **`Body()`가 꼭** 필요해요. 없으면 쿼리로 해석돼요.' },
+            { type: 'list', items: ['`Body(examples=[...])` → `/docs`의 요청 예시 채우기 (모델에서는 `model_config = {"json_schema_extra": {"examples": [...]}}`)', '`data: dict[str, Any] = Body()` → 아무 모양이나 받기. 하지만 **검증이 사라지니** 마지막 수단이에요'] },
+          ],
+        },
       ],
     },
     {
       title: 'Header와 Cookie',
-      points: [
-        'Header()는 파이썬 이름의 밑줄(_)을 하이픈(-)으로 자동 변환한다. user_agent → User-Agent 헤더. HTTP 헤더는 대소문자를 구분하지 않는다.',
-        '같은 헤더가 여러 번 오는 경우 x_token: list[str] | None = Header(default=None) 로 모두 받는다.',
-        '인증 토큰은 보통 Authorization: Bearer <토큰> 헤더로 온다. 직접 Header로 파싱할 수도 있지만 FastAPI의 보안 도구(HTTPBearer, OAuth2PasswordBearer)를 쓰면 /docs의 Authorize 버튼까지 연결된다.',
-        'Cookie()는 이름이 같은 쿠키 값을 읽는다. 세션 ID 쿠키 같은 값은 보안 토픽에서 미들웨어나 의존성으로 다룬다.',
+      slides: [
+        {
+          title: '밑줄은 하이픈으로',
+          blocks: [
+            { type: 'say', text: '`Header()`는 파이썬 이름의 **밑줄(`_`)을 하이픈(`-`)으로** 자동으로 바꿔요. `user_agent` → `User-Agent`, `x_request_id` → `X-Request-Id`. HTTP 헤더 이름은 **대소문자를 구분하지 않아서** `user-agent`도 같은 헤더예요.\n\n같은 헤더가 여러 번 오면 `x_token: list[str] | None = Header(default=None)`로 모두 받아요.' },
+          ],
+        },
+        {
+          title: '인증 토큰은 보안 도구로',
+          blocks: [
+            { type: 'say', text: '인증 토큰은 보통 `Authorization: Bearer <토큰>` 헤더로 와요. `Header()`로 직접 꺼내서 "Bearer " 떼어 내기를 할 수도 있지만, FastAPI의 **보안 도구**(`HTTPBearer`, `OAuth2PasswordBearer`)를 쓰는 게 나아요.\n• 형식 검사와 401 응답을 알아서 해 주고\n• `/docs`의 **Authorize 버튼**과 연결돼서 문서에서 바로 로그인해 테스트할 수 있어요' },
+            { type: 'say', text: '`Cookie()`는 같은 이름의 쿠키 값을 읽어요. 세션 쿠키 같은 값은 인증 수업에서 의존성으로 다뤄요.' },
+          ],
+        },
       ],
     },
     {
       title: 'Form과 파일 업로드',
-      points: [
-        'HTML <form method="post">은 JSON이 아니라 application/x-www-form-urlencoded(또는 파일이 있으면 multipart/form-data)로 보낸다. 이를 받으려면 Form()을 쓴다. python-multipart 패키지가 필요하다.',
-        '같은 엔드포인트에서 JSON 본문(Body/모델)과 Form을 함께 받을 수 없다. 요청 하나는 Content-Type이 하나이기 때문이다.',
-        '파일은 file: UploadFile 로 받는다. file.filename, file.content_type, await file.read() 또는 file.file(파일 객체)로 내용을 읽는다. UploadFile은 큰 파일을 디스크 임시 파일에 두어 메모리를 아낀다.',
-        '업로드 파일은 크기와 확장자·MIME 타입을 반드시 검사한다. 사용자 파일 이름을 그대로 저장 경로로 쓰지 말고 UUID 같은 새 이름을 붙인다.',
-      ],
-      code: `from fastapi import Form, UploadFile, File
+      slides: [
+        {
+          title: '폼은 JSON이 아니에요',
+          blocks: [
+            { type: 'say', text: 'HTML `<form method="post">`은 **JSON이 아니라** `application/x-www-form-urlencoded`(파일이 있으면 `multipart/form-data`)로 보내요. 그래서 Pydantic 모델(JSON 본문)로 받으면 **422**가 나요. 폼은 `Form()`으로 받아요. **`python-multipart`** 패키지가 필요해요.' },
+            { type: 'code', code: `from fastapi import Form, UploadFile
 
 @app.post("/login-form")
 def login_form(username: Annotated[str, Form()], password: Annotated[str, Form()]):
-    ...
-
-@app.post("/avatar")
+    ...` },
+            { type: 'note', tone: 'warn', text: '한 엔드포인트에서 **JSON 본문과 Form을 동시에** 받을 수는 없어요. 요청 하나의 Content-Type은 하나뿐이니까요.' },
+          ],
+        },
+        {
+          title: '파일 받기와 꼭 할 검사',
+          blocks: [
+            { type: 'code', code: `@app.post("/avatar")
 async def upload_avatar(file: UploadFile):
     if file.content_type not in {"image/png", "image/jpeg"}:
         raise HTTPException(400, "PNG/JPEG만 가능합니다")
     data = await file.read()
-    ...`,
+    ...` },
+            { type: 'say', text: '`UploadFile`은 `file.filename`, `file.content_type`, `await file.read()`를 제공해요. 큰 파일은 **디스크 임시 파일**에 둬서 메모리를 아껴요.' },
+            { type: 'list', items: ['**크기** 검사 — 10GB 파일을 올리면?', '**확장자·MIME 타입** 검사 — 이미지 자리에 실행 파일이 오면?', '저장할 때 **새 이름**(UUID) 붙이기 — 사용자 파일 이름을 그대로 경로로 쓰면 덮어쓰기·경로 조작 위험'] },
+          ],
+        },
+      ],
     },
     {
       title: 'Request 객체를 직접 쓰기',
-      points: [
-        'request: Request 파라미터를 선언하면 원본 요청 객체를 받는다. request.method, request.url, request.headers, request.query_params, request.client.host(클라이언트 IP), request.cookies.',
-        '원본 본문이 필요하면 await request.json() 이나 await request.body(). 이 값들은 검증되지 않은 날것이므로 FastAPI의 자동 검증·문서화 혜택이 없다.',
-        'Request는 로그·감사 기록(IP, User-Agent), 웹훅 서명 검증(원본 바이트 필요), 템플릿 렌더링(TemplateResponse에 request 전달)처럼 특별한 경우에 쓴다. 일반적인 입력은 선언형 파라미터로 받는다.',
-        '프록시(Nginx, 클라우드 로드밸런서) 뒤에서는 request.client.host가 프록시 IP가 될 수 있다. 실제 IP는 X-Forwarded-For 헤더에 있고, uvicorn --proxy-headers 옵션으로 반영한다.',
-      ],
-      code: `from fastapi import Request
+      slides: [
+        {
+          title: '날것의 요청 객체',
+          blocks: [
+            { type: 'code', code: `from fastapi import Request
 
 @app.post("/webhook")
 async def webhook(request: Request):
     raw = await request.body()                     # 서명 검증용 원본 바이트
     sig = request.headers.get("X-Signature")
     ip = request.client.host if request.client else None
-    ...`,
+    ...` },
+            { type: 'say', text: '`request: Request`를 선언하면 **원본 요청 객체**를 받아요. `request.method`, `request.url`, `request.headers`, `request.query_params`, `request.client.host`(IP), `request.cookies`, 그리고 `await request.json()`, `await request.body()`.' },
+            { type: 'note', tone: 'warn', text: '`await request.json()`으로 받은 값은 **검증되지 않은 날것**이에요. 자동 검증도, `/docs` 표시도 없어요. 일반적인 입력은 지금까지처럼 **선언형 파라미터**로 받아요.' },
+          ],
+        },
+        {
+          title: '언제 Request를 쓸까',
+          blocks: [
+            { type: 'list', items: ['**웹훅 서명 검증** — 결제사가 보낸 "받은 그대로의 바이트"가 필요해서 `await request.body()`', '**로그·감사 기록** — IP, User-Agent 남기기', '**템플릿 렌더링** — `TemplateResponse`에 request 넘기기 (Jinja 수업)'] },
+            { type: 'say', text: '클라우드에 배포하면 `request.client.host`가 항상 같은 내부 IP일 수 있어요. 요청이 **프록시(로드밸런서)를 거쳐서** 오기 때문이에요. 진짜 사용자 IP는 `X-Forwarded-For` 헤더에 있고, `uvicorn --proxy-headers` 옵션으로 반영해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
