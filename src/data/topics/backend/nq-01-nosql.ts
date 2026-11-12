@@ -10,24 +10,57 @@ const topic: Topic = {
     {
       title: '다양한 데이터베이스와 NoSQL',
       notionIds: ['3efdf951bf808194831ef91ab5254c23', '3efdf951bf808154afacd2a64ca5c595'],
-      points: [
-        'NoSQL(Not only SQL)은 관계형 DB의 한계(고정 스키마, 수평 확장의 어려움)를 보완하려고 나온 저장소들의 총칭이다.',
-        '종류: 문서형(MongoDB, JSON 같은 문서 저장), 키-값(Redis, DynamoDB, 아주 빠른 조회·캐시), 컬럼 패밀리(Cassandra, 대량 쓰기), 그래프(Neo4j, 관계 탐색).',
-        'RDB가 잘 맞는 곳: 구조가 정해져 있고 정합성이 중요한 데이터(회원, 주문, 결제). 트랜잭션·JOIN·제약 조건이 강점이다.',
-        'NoSQL(문서형)이 잘 맞는 곳: 형식이 자주 바뀌는 데이터(로그, 크롤링 결과, 이벤트), 문서 단위로 통째로 읽고 쓰는 데이터, 매우 많은 쓰기. 노션의 "블로그 접속 로그를 MongoDB에" 사례가 이 경우다.',
-        '"둘 중 하나"가 아니라 함께 쓰는 경우가 많다(Polyglot Persistence): 주문은 PostgreSQL, 세션·캐시는 Redis, 로그는 MongoDB.',
+      slides: [
+        {
+          title: 'Not only SQL',
+          blocks: [
+            { type: 'say', text: '백엔드 트랙 마지막 묶음, **MongoDB**예요. 지금까지 관계형 DB를 깊게 배웠으니 이제 다른 세계를 볼 차례예요.\n\n**NoSQL**(Not only SQL)은 관계형 DB의 한계(고정 스키마, 수평 확장의 어려움)를 보완하려고 나온 저장소들의 **총칭**이에요. "SQL은 안 돼"가 아니라 "SQL**만**이 아니다"예요.' },
+            {
+              type: 'table',
+              head: ['종류', '대표', '잘하는 것'],
+              rows: [
+                ['**문서형**', 'MongoDB', 'JSON 같은 문서 저장'],
+                ['**키-값**', 'Redis, DynamoDB', '**아주 빠른 조회·캐시** (세션, 자주 보는 상품)'],
+                ['**컬럼 패밀리**', 'Cassandra', '대량 쓰기'],
+                ['**그래프**', 'Neo4j', '관계 탐색'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '언제 무엇을',
+          blocks: [
+            {
+              type: 'table',
+              head: ['RDB가 잘 맞음', '문서형 NoSQL이 잘 맞음'],
+              rows: [
+                ['구조가 정해져 있고 **정합성**이 중요 (회원, **주문, 결제**)', '**형식이 자주 바뀜** (로그, 크롤링 결과, 이벤트)'],
+                ['트랜잭션·JOIN·제약이 강점', '문서 단위로 **통째로** 읽고 씀, 매우 많은 쓰기'],
+              ],
+            },
+            { type: 'say', text: '"둘 중 하나"가 아니라 **함께** 쓰는 경우가 많아요(**Polyglot Persistence**). 주문은 PostgreSQL, 세션·캐시는 Redis, 블로그 접속 로그는 MongoDB.' },
+            { type: 'note', tone: 'warn', text: '"NoSQL이 항상 빠르니 무조건 NoSQL"은 틀려요. 특정 접근 패턴에 빠른 대신 **정합성이나 조인을 내려놓은** 거예요(dbd-01). 선택 기준은 유행이 아니라 **데이터의 성격**이에요.' },
+          ],
+        },
       ],
     },
     {
       title: 'MongoDB의 구조',
       notionIds: ['3efdf951bf808194831ef91ab5254c23'],
-      points: [
-        'RDB: Database → Table → Row. MongoDB: Database → Collection → Document.',
-        '문서(Document)는 JSON 같은 키-값 구조이고, 내부적으로 BSON(Binary JSON)으로 저장된다. BSON은 Date, ObjectId, 정수/실수 구분 등 JSON보다 많은 타입을 지원한다.',
-        '모든 문서는 고유한 _id를 가진다. 넣지 않으면 ObjectId가 자동 생성된다. ObjectId 안에는 생성 시각(초 단위)이 들어 있어 대략적인 생성 순서로 정렬할 수 있다.',
-        '컬렉션은 스키마가 고정돼 있지 않다. 같은 컬렉션의 문서끼리 필드가 달라도 된다. 하지만 앱 코드는 대부분 일정한 모양을 기대하므로, 스키마 검증($jsonSchema)이나 앱의 Pydantic 모델로 형식을 지키는 것이 좋다.',
-      ],
-      code: `// 한 문서 (users 컬렉션)
+      slides: [
+        {
+          title: '테이블 대신 컬렉션, 행 대신 문서',
+          blocks: [
+            {
+              type: 'table',
+              head: ['RDB', 'MongoDB'],
+              rows: [
+                ['Database', 'Database'],
+                ['**Table**', '**Collection**'],
+                ['**Row**', '**Document**'],
+              ],
+            },
+            { type: 'code', code: `// 한 문서 (users 컬렉션)
 {
   "_id": ObjectId("6712f0c2a1b2c3d4e5f60718"),
   "name": "kim",
@@ -35,26 +68,69 @@ const topic: Topic = {
   "tags": ["python", "fastapi"],          // 배열
   "address": { "city": "Seoul" },        // 임베디드 문서
   "joined_at": ISODate("2026-10-20T00:00:00Z")
-}`,
+}` },
+            { type: 'say', text: '**문서**는 JSON 같은 키-값 구조이고, 내부적으로는 **BSON**(Binary JSON)으로 저장돼요. BSON은 Date, ObjectId, 정수/실수 구분 등 JSON보다 많은 타입을 지원해요. 문서 안에 **배열**도, 또 다른 문서(**임베디드 문서**)도 넣을 수 있어요. RDB라면 user_tags, addresses 테이블로 나눴을 걸 한 문서에 담는 거예요.' },
+          ],
+        },
+        {
+          title: '_id와 스키마',
+          blocks: [
+            { type: 'say', text: '모든 문서는 고유한 **`_id`** 를 가져요. 안 넣으면 **ObjectId**가 자동 생성돼요. ObjectId 안에는 **생성 시각**(초 단위)이 들어 있어서 대략적인 생성 순서로 정렬할 수 있어요.\n\n컬렉션은 **스키마가 고정돼 있지 않아요.** 같은 컬렉션의 문서끼리 필드가 달라도 돼요.' },
+            { type: 'note', tone: 'warn', text: '"스키마가 없으니 검증도 필요 없다"는 위험해요. 앱 코드는 대부분 **일정한 모양**을 기대하거든요. 스키마 검증(`$jsonSchema`)이나 앱의 **Pydantic 모델**로 형식을 지켜요. 스키마가 없다는 건 "DB가 안 지켜 준다"는 뜻이지 "지킬 필요가 없다"가 아니에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '기본 명령과 데이터 타입',
       notionIds: ['3efdf951bf808194831ef91ab5254c23'],
-      points: [
-        'show dbs, use library(없으면 처음 데이터를 넣을 때 자동 생성), show collections, db.stats().',
-        'db.createCollection("books"), db.books.renameCollection("novels"), db.books.drop(), db.dropDatabase().',
-        '타입: String, Int32/Int64, Double, Decimal128(정확한 소수), Boolean, Null, Array, Object(임베디드 문서), ObjectId, Date.',
-        'Capped Collection: 크기가 고정되고 가득 차면 가장 오래된 문서부터 자동 삭제된다. 최근 로그만 유지할 때 유용하다. createCollection("access_log", { capped: true, size: 바이트, max: 개수 }).',
-        '오래된 문서를 시간 기준으로 자동 삭제하려면 TTL 인덱스(createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 }))를 쓴다.',
+      slides: [
+        {
+          title: '셸 기본 명령',
+          blocks: [
+            { type: 'code', code: `show dbs
+use library                          // 없으면 "처음 데이터를 넣을 때" 생성
+show collections
+db.stats()
+
+db.createCollection("books")
+db.books.renameCollection("novels")
+db.books.drop()
+db.dropDatabase()` },
+            { type: 'say', text: '`use shop`을 했는데 `show dbs`에 shop이 안 보인다면? 정상이에요. DB는 **처음 데이터를 넣을 때** 실제로 만들어져요. 그전까지는 "이 이름을 쓸게요"라고만 한 상태예요.\n\n타입: String, Int32/Int64, Double, **Decimal128**(정확한 소수, 돈), Boolean, Null, Array, Object, ObjectId, Date.' },
+          ],
+        },
+        {
+          title: '오래된 데이터 자동으로 지우기',
+          blocks: [
+            {
+              type: 'table',
+              head: ['기능', '동작', '용도'],
+              rows: [
+                ['**Capped Collection**', '크기 고정, 가득 차면 **가장 오래된 것부터** 자동 삭제', '최근 로그만 일정 용량으로'],
+                ['**TTL 인덱스**', '날짜 필드 기준 **일정 시간이 지나면** 자동 삭제', '세션, 인증 코드, 오래된 로그'],
+              ],
+            },
+            { type: 'code', code: `db.createCollection("access_log", { capped: true, size: 10485760, max: 100000 })
+db.sessions.createIndex({ createdAt: 1 }, { expireAfterSeconds: 86400 })   // 하루 뒤 삭제` },
+          ],
+        },
       ],
     },
     {
       title: '보안 설정',
       notionIds: ['3efdf951bf808194831ef91ab5254c23'],
-      points: [
-        '외부 접속을 열려면 bindIp를 바꾸고 27017 포트를 연다. 이때 반드시 계정을 만들고 security.authorization: enabled 를 켜야 한다. 인증 없이 열린 MongoDB가 랜섬웨어 공격을 대량으로 당한 사례가 많다.',
-        '접속 문자열: mongodb://아이디:비밀번호@호스트:27017/?authSource=admin. 클라우드(MongoDB Atlas)는 mongodb+srv:// 형식을 쓰고 IP 허용 목록을 설정한다.',
-        'GUI 도구: MongoDB Compass(공식), Studio 3T.',
+      slides: [
+        {
+          title: '인증 없이 열면 털려요',
+          blocks: [
+            { type: 'say', text: '외부 접속을 열려면 `bindIp`를 바꾸고 27017 포트를 열어요. 이때 **반드시** 계정을 만들고 `security.authorization: enabled`를 켜야 해요.' },
+            { type: 'note', tone: 'warn', text: '**인증 없이 열린 MongoDB**가 랜섬웨어 공격을 대량으로 당한 사례가 정말 많아요. 봇이 인터넷 전체를 훑으며 27017 포트를 찾아서, 데이터를 지우고 "돈을 보내면 돌려준다"는 문서만 남겨요. sql-07의 "DB 포트를 인터넷 전체에 열지 않는다"와 같은 이야기예요.' },
+            { type: 'code', code: `mongodb://아이디:비밀번호@호스트:27017/?authSource=admin
+mongodb+srv://...                       // 클라우드 MongoDB Atlas (IP 허용 목록 설정)` },
+            { type: 'say', text: 'GUI 도구로는 **MongoDB Compass**(공식), Studio 3T가 있어요.' },
+          ],
+        },
       ],
     },
   ],
