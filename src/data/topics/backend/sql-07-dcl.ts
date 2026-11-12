@@ -10,46 +10,95 @@ const topic: Topic = {
     {
       title: '접속과 사용자 만들기',
       notionIds: ['3efdf951bf80813d8ad4de8af1bdd7f7'],
-      points: [
-        '터미널 접속: mysql -u 사용자 -p (비밀번호는 프롬프트로 입력. -p비밀번호 처럼 명령줄에 쓰면 셸 기록에 남는다).',
-        'MySQL 사용자는 "이름@호스트" 조합으로 구분된다. \'app\'@\'localhost\' 는 같은 서버에서만, \'app\'@\'%\' 는 어디서든 접속 가능. 같은 이름이라도 호스트가 다르면 다른 계정이다.',
-        'CREATE USER \'app\'@\'%\' IDENTIFIED BY \'강력한비밀번호\'; / 비밀번호 변경: ALTER USER ... IDENTIFIED BY ...(MySQL 8) / 삭제: DROP USER.',
-        'PostgreSQL에서는 사용자와 그룹을 모두 ROLE로 다룬다: CREATE ROLE app LOGIN PASSWORD \'...\'.',
+      slides: [
+        {
+          title: 'DB의 출입증 만들기',
+          blocks: [
+            { type: 'say', text: 'SQL 마지막 수업은 **누가 DB에서 무엇을 할 수 있는지** 정하는 DCL이에요. 지금까지 root 같은 관리자 계정으로 다 했다면, 이제는 **용도별 계정**을 만들 차례예요.' },
+            { type: 'code', code: `mysql -u app -p          # 비밀번호는 프롬프트로 입력
+# mysql -u root -pMyPassword  ← 셸 기록·프로세스 목록에 비밀번호가 남음
+
+CREATE USER 'app'@'%' IDENTIFIED BY 'S3cure-Long-Password!';
+CREATE USER 'report'@'10.0.0.%' IDENTIFIED BY '...';   -- 사내망 대역만
+ALTER USER 'app'@'%' IDENTIFIED BY '새비밀번호';         -- 비밀번호 변경 (MySQL 8)
+DROP USER 'report'@'10.0.0.%';` },
+          ],
+        },
+        {
+          title: '이름@호스트가 한 계정',
+          blocks: [
+            { type: 'say', text: 'MySQL 사용자는 **"이름@호스트"** 조합으로 구분돼요.\n• `\'app\'@\'localhost\'` → **같은 서버에서만** 접속 가능\n• `\'app\'@\'%\'` → **어디서든** 접속 가능\n• 같은 이름이라도 호스트가 다르면 **다른 계정**이에요\n\n그래서 `app@localhost`로 만든 계정으로 **다른 서버(앱 서버)에서** 접속하면 거부돼요.' },
+            { type: 'note', tone: 'tip', text: 'PostgreSQL은 사용자와 그룹을 모두 **ROLE**로 다뤄요. `CREATE ROLE app LOGIN PASSWORD \'...\';`' },
+          ],
+        },
       ],
-      code: `CREATE USER 'app'@'%' IDENTIFIED BY 'S3cure-Long-Password!';
-CREATE USER 'report'@'10.0.0.%' IDENTIFIED BY '...';   -- 사내망 대역만`,
     },
     {
       title: 'GRANT와 REVOKE',
       notionIds: ['3efdf951bf80813d8ad4de8af1bdd7f7'],
-      points: [
-        'GRANT 권한 ON 대상 TO 사용자; 권한: ALL PRIVILEGES 또는 SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX 등. 대상: db.table, db.*(DB 전체), *.*(모든 DB).',
-        'REVOKE 권한 ON 대상 FROM 사용자; 로 권한을 회수한다. SHOW GRANTS FOR 사용자; 로 확인한다.',
-        'GRANT/REVOKE로 바꾼 권한은 즉시 반영된다. FLUSH PRIVILEGES는 권한 테이블을 직접 UPDATE로 고쳤을 때 필요하다(옛 강의에서 습관처럼 붙이는 경우가 많다).',
-        'WITH GRANT OPTION을 주면 그 사용자가 다른 사람에게 권한을 나눠 줄 수 있다. 꼭 필요할 때만 준다.',
-      ],
-      code: `GRANT SELECT, INSERT, UPDATE, DELETE ON shop.* TO 'app'@'%';
+      slides: [
+        {
+          title: '권한 주고 뺏기',
+          blocks: [
+            { type: 'code', code: `GRANT SELECT, INSERT, UPDATE, DELETE ON shop.* TO 'app'@'%';
 GRANT SELECT ON shop.* TO 'report'@'10.0.0.%';
-SHOW GRANTS FOR 'app'@'%';
-REVOKE DELETE ON shop.* FROM 'app'@'%';`,
+SHOW GRANTS FOR 'app'@'%';                 -- 확인
+REVOKE DELETE ON shop.* FROM 'app'@'%';    -- 회수` },
+            { type: 'list', items: ['권한: `ALL PRIVILEGES`, 또는 `SELECT`, `INSERT`, `UPDATE`, `DELETE`, `CREATE`, `ALTER`, `DROP`, `INDEX`…', '대상: `db.table`, `db.*`(DB 전체), `*.*`(모든 DB)', '`WITH GRANT OPTION`을 주면 그 사용자가 **남에게 권한을 나눠 줄** 수 있어요. 꼭 필요할 때만'] },
+            { type: 'note', tone: 'tip', text: 'GRANT/REVOKE로 바꾼 권한은 **즉시 반영**돼요. 옛 강의에서 습관처럼 붙이는 `FLUSH PRIVILEGES`는 권한 테이블을 **UPDATE로 직접** 고쳤을 때만 필요해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '최소 권한 원칙',
       notionIds: ['3efdf951bf80813d8ad4de8af1bdd7f7'],
-      points: [
-        '각 계정에는 그 일을 하는 데 필요한 최소한의 권한만 준다. 앱 계정이 root나 ALL 권한이면, SQL 인젝션 한 번에 테이블 삭제·다른 DB 열람까지 가능해진다.',
-        '역할별 계정 분리: 앱 실행용(DML만), 마이그레이션용(DDL 포함, 배포 때만 사용), 분석·리포트용(SELECT만, 가능하면 읽기 전용 복제본에), 관리자용(사람만, 평소에는 쓰지 않음).',
-        '계정을 사람마다 따로 만들면 "누가 무엇을 했는지" 감사 기록을 남기기 쉽다. 퇴사자 계정은 바로 삭제한다.',
-        '민감한 컬럼(주민번호, 연락처)은 뷰(VIEW)로 가린 뒤 뷰에만 SELECT 권한을 주는 방식으로 접근을 제한할 수 있다.',
+      slides: [
+        {
+          title: '필요한 만큼만',
+          blocks: [
+            { type: 'say', text: '보안의 기본 원칙, **최소 권한 원칙**이에요. 각 계정에는 그 일을 하는 데 **필요한 최소한의 권한만** 줘요.\n\n앱 계정이 root나 ALL 권한이면, SQL 인젝션 한 번에 **테이블 삭제, 다른 DB 열람**까지 가능해져요. 앱 계정이 DML만 할 수 있다면 피해는 그 범위에서 멈춰요.' },
+            {
+              type: 'table',
+              head: ['계정', '권한', '언제'],
+              rows: [
+                ['앱 실행용', '**DML만** (SELECT·INSERT·UPDATE·DELETE)', '항상'],
+                ['마이그레이션용', 'DDL 포함 (ALTER 등)', '**배포 때만**'],
+                ['분석·리포트용', '**SELECT만**, 가능하면 **읽기 전용 복제본**에', '분석할 때'],
+                ['관리자용', '전부', '**사람만**, 평소엔 안 씀'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '사람별 계정과 뷰로 가리기',
+          blocks: [
+            { type: 'say', text: '분석 담당자가 운영 DB에서 무거운 집계를 돌려 서비스가 느려졌다면? 권한을 SELECT로 줄이고, **읽기 전용 복제본**으로 보내요. 운영 DB는 서비스만 받게요.\n\n계정을 **사람마다 따로** 만들면 "누가 무엇을 했는지" 감사 기록을 남기기 쉬워요. 퇴사자 계정은 바로 삭제해요.' },
+            { type: 'code', code: `CREATE VIEW customer_safe AS
+  SELECT id, name, email FROM customers;          -- 주민번호·카드번호 컬럼은 빼고
+
+GRANT SELECT ON shop.customer_safe TO 'cs_tool'@'%';   -- 원본 테이블 권한은 안 줌` },
+            { type: 'say', text: '상담 도구가 고객 이름은 보되 **주민번호는 못 보게** 하려면, 민감한 컬럼을 뺀 **뷰(VIEW)** 를 만들고 그 뷰에만 SELECT 권한을 줘요.' },
+          ],
+        },
       ],
     },
     {
       title: '네트워크와 비밀 관리',
-      points: [
-        'DB 포트(3306, 5432)를 인터넷 전체에 열지 않는다. 앱 서버나 사내망 IP만 허용하는 방화벽(보안 그룹)을 건다.',
-        '접속 정보(DB URL, 비밀번호)는 코드가 아닌 환경 변수·비밀 관리 서비스에 둔다. 유출되면 비밀번호를 즉시 교체한다.',
-        '전송 구간 암호화(TLS/SSL 접속)를 켜서 네트워크 도청을 막는다. 클라우드 관리형 DB는 대부분 이를 지원·권장한다.',
-        '클라우드 관리형 DB(RDS, Cloud SQL, Supabase)는 루트 권한 대신 관리용 마스터 계정을 주고, 콘솔에서 네트워크 접근을 설정한다.',
+      slides: [
+        {
+          title: 'DB 문은 아무에게나 열지 않아요',
+          blocks: [
+            { type: 'list', items: ['**DB 포트(3306, 5432)를 인터넷 전체에 열지 않아요.** 보안 그룹에서 `0.0.0.0/0`으로 열면 전 세계 봇이 비밀번호를 무작위로 대입해요. 앱 서버나 사내망 IP만 허용', '**전송 구간 암호화(TLS/SSL)** 를 켜서 네트워크 도청을 막아요', '클라우드 관리형 DB(RDS, Cloud SQL, Supabase)는 root 대신 **마스터 계정**을 주고, 콘솔에서 네트워크 접근을 설정해요'] },
+          ],
+        },
+        {
+          title: '비밀번호는 코드 밖에',
+          blocks: [
+            { type: 'say', text: '접속 정보(DB URL, 비밀번호)는 코드가 아니라 **환경 변수**나 **비밀 관리 서비스**에 둬요.' },
+            { type: 'note', tone: 'warn', text: '`.env`를 실수로 GitHub에 올렸다면, 지우는 커밋만으로는 **부족해요.** git 기록에 그대로 남아 있고, 공개 저장소는 봇이 몇 분 안에 긁어 가요. **비밀번호를 즉시 교체**하는 게 먼저예요. 그리고 `.gitignore`에 `.env`를 넣어요.' },
+          ],
+        },
       ],
     },
   ],

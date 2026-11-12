@@ -10,61 +10,118 @@ const topic: Topic = {
     {
       title: 'INSERT',
       notionIds: ['3efdf951bf80815f9a40d4819038b9ca'],
-      points: [
-        'INSERT INTO 테이블 (컬럼1, 컬럼2) VALUES (값1, 값2); 컬럼 목록을 적는 것이 안전하다. 나중에 컬럼이 추가되거나 순서가 바뀌어도 깨지지 않는다.',
-        '생략한 컬럼은 DEFAULT 값이나 NULL이 된다. NOT NULL인데 기본값도 없으면 에러.',
-        '여러 행: VALUES (..), (..), (..) 로 한 문장에 넣으면 행마다 INSERT 하는 것보다 훨씬 빠르다.',
-        'INSERT INTO t2 (a, b) SELECT x, y FROM t1 WHERE ... 로 조회 결과를 그대로 넣을 수도 있다.',
-        '문자열은 작은따옴표로 감싼다. 값에 작은따옴표가 들어 있으면 문자열이 깨진다. 앱에서는 항상 파라미터 바인딩(%s, :name)을 쓴다.',
-      ],
-      code: `INSERT INTO students (name, age, grade) VALUES ('김철수', 17, 2);
+      slides: [
+        {
+          title: '데이터 넣기',
+          blocks: [
+            { type: 'say', text: '테이블을 만들었으니 이제 데이터를 **넣고, 읽고, 고치고, 지울** 차례예요. DML 네 명령이에요. 먼저 넣기부터.' },
+            { type: 'code', code: `INSERT INTO students (name, age, grade) VALUES ('김철수', 17, 2);
 
 INSERT INTO students (name, age, grade) VALUES
   ('이영희', 18, 3),
-  ('박민수', 16, 1);`,
+  ('박민수', 16, 1);       -- 여러 행을 한 문장에 → 훨씬 빠름
+
+INSERT INTO archive (name, age) SELECT name, age FROM students WHERE grade = 3;` },
+            { type: 'list', items: ['**컬럼 목록을 적어요.** `INSERT INTO students VALUES (...)`처럼 생략하면, 나중에 컬럼이 추가되거나 순서가 바뀔 때 **엉뚱한 칸에 들어가거나** 깨져요', '생략한 컬럼은 **DEFAULT 값이나 NULL**. NOT NULL인데 기본값도 없으면 에러', '1만 행은 행마다 INSERT 하지 말고 **여러 행을 한 문장에** (또는 묶어서) 넣어요'] },
+          ],
+        },
+        {
+          title: '사용자 입력은 바인딩으로',
+          blocks: [
+            { type: 'code', code: `# ❌ 문자열 이어 붙이기
+sql = f"INSERT INTO users (name) VALUES ('{name}')"
+# name 이 "O'Brien" 이면 따옴표가 깨지고,
+# "'); DROP TABLE users; --" 면 테이블이 사라짐 (SQL 인젝션)
+
+# ✅ 파라미터 바인딩
+cursor.execute("INSERT INTO users (name) VALUES (%s)", (name,))` },
+            { type: 'say', text: '문자열은 작은따옴표로 감싸는데, 값 안에 작은따옴표가 들어 있으면 SQL 문장이 깨져요. 이걸 악용하는 공격이 **SQL 인젝션**이에요.\n\n앱에서는 **항상 파라미터 바인딩**(`%s`, `:name`)을 써요. 값을 SQL 문장과 **따로** 보내서, DB가 값을 절대 명령으로 해석하지 않아요. SQLAlchemy는 이걸 기본으로 해 줘요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'SELECT와 WHERE',
       notionIds: ['3efdf951bf80815f9a40d4819038b9ca'],
-      points: [
-        'SELECT 컬럼들 FROM 테이블 WHERE 조건; SELECT * 는 모든 컬럼. 실제 코드에서는 필요한 컬럼만 고르는 것이 네트워크·메모리에 유리하다.',
-        '비교: =, != (또는 <>), <, >, <=, >=. 논리: AND, OR, NOT. 범위: BETWEEN a AND b(양 끝 포함). 목록: IN (..). 패턴: LIKE.',
-        'AND가 OR보다 먼저 계산된다. 섞을 때는 괄호로 의도를 명확히 한다.',
-        'NULL은 "모르는 값"이라 = NULL 비교는 참이 되지 않는다. IS NULL / IS NOT NULL을 쓴다.',
-        'LIKE 패턴: % 는 0글자 이상, _ 는 정확히 한 글자. LIKE \'박%\'(박으로 시작), \'%영%\'(영 포함), \'__\'(두 글자).',
-      ],
-      code: `SELECT name, age FROM students
-WHERE grade = 2 AND (age >= 17 OR name LIKE '김%');
+      slides: [
+        {
+          title: '원하는 행만 골라 읽기',
+          blocks: [
+            { type: 'code', code: `SELECT name, age FROM students
+WHERE grade = 2 AND (age >= 17 OR name LIKE '김%');` },
+            {
+              type: 'table',
+              head: ['종류', '연산자'],
+              rows: [
+                ['비교', '`=`, `!=`(`<>`), `<`, `>`, `<=`, `>=`'],
+                ['논리', '`AND`, `OR`, `NOT`'],
+                ['범위', '`BETWEEN 15 AND 17` (**양 끝 포함** = `>= 15 AND <= 17`)'],
+                ['목록', '`IN (1, 2, 3)`'],
+                ['패턴', '`LIKE`'],
+              ],
+            },
+            { type: 'say', text: '`SELECT *`는 모든 컬럼이에요. 실제 코드에서는 **필요한 컬럼만** 고르는 게 네트워크와 메모리에 좋아요.\n\n**AND가 OR보다 먼저** 계산돼요. 섞어 쓸 땐 괄호로 의도를 분명히 하세요. 위 예시에서 괄호를 빼면 뜻이 완전히 달라져요.' },
+          ],
+        },
+        {
+          title: 'NULL과 LIKE',
+          blocks: [
+            { type: 'say', text: 'NULL은 "**모르는 값**"이에요. "모르는 값 = 모르는 값"은 참일까요? 알 수 없죠. 그래서 `phone = NULL`은 **절대 참이 되지 않아요.** `IS NULL` / `IS NOT NULL`을 써요.' },
+            { type: 'code', code: `SELECT * FROM students WHERE phone IS NULL;     -- ✅
+SELECT * FROM students WHERE phone = NULL;      -- ❌ 항상 0건
 
-SELECT * FROM students WHERE phone IS NULL;`,
+WHERE name LIKE '박%'     -- 박으로 시작 (% = 0글자 이상)
+WHERE name LIKE '%영%'    -- 영 포함
+WHERE name LIKE '__'      -- 정확히 두 글자 (_ = 정확히 한 글자)` },
+          ],
+        },
+      ],
     },
     {
       title: 'UPDATE',
       notionIds: ['3efdf951bf80815f9a40d4819038b9ca'],
-      points: [
-        'UPDATE 테이블 SET 컬럼1 = 값1, 컬럼2 = 값2 WHERE 조건;',
-        'WHERE를 빼면 모든 행이 바뀐다. 실행 전에 같은 WHERE로 SELECT 해서 대상이 맞는지 확인하는 습관을 들인다. MySQL Workbench의 safe update 모드는 키 조건 없는 UPDATE/DELETE를 막아 준다.',
-        '현재 값을 이용한 갱신: SET stock = stock - 1 WHERE id = 3 AND stock > 0. DB가 원자적으로 계산하므로 동시 요청에도 안전하다. 영향받은 행 수(affected rows)가 0이면 재고가 없었다는 뜻이다.',
-        '중요한 데이터는 트랜잭션 안에서 UPDATE 후 결과를 확인하고 COMMIT, 이상하면 ROLLBACK 한다.',
+      slides: [
+        {
+          title: 'WHERE 없는 UPDATE는 재앙',
+          blocks: [
+            { type: 'code', code: `UPDATE students SET age = 18 WHERE name = '박민수';
+UPDATE students SET age = age + 1;          -- 모든 학생 나이 +1 (의도했다면 OK)
+UPDATE students SET grade = 3;              -- 😱 WHERE 를 깜빡하면 전원 3학년` },
+            { type: 'say', text: '`UPDATE 테이블 SET 컬럼 = 값 WHERE 조건;` **WHERE를 빼면 모든 행**이 바뀌어요. 그래서 실행 전에 **같은 WHERE로 SELECT** 해서 대상이 맞는지 먼저 보는 습관을 들여요. MySQL Workbench의 safe update 모드는 키 조건 없는 UPDATE/DELETE를 막아 줘요.\n\n중요한 데이터는 트랜잭션 안에서 UPDATE → 결과 확인 → COMMIT, 이상하면 ROLLBACK.' },
+          ],
+        },
+        {
+          title: '현재 값으로 안전하게 갱신하기',
+          blocks: [
+            { type: 'code', code: `-- 재고 차감: 남아 있을 때만
+UPDATE products SET stock = stock - 1 WHERE id = 3 AND stock > 0;
+-- affected rows = 1 → 성공, 0 → 재고 없음` },
+            { type: 'say', text: '재고가 1개 남았는데 두 사람이 동시에 주문하면? 앱에서 "읽고 → 계산하고 → 쓰기"를 하면 둘 다 1을 읽고 둘 다 0으로 써서 **두 개가 팔려요.**\n\n`SET stock = stock - 1 WHERE stock > 0`처럼 **DB가 한 번에 계산**하게 하면, 두 번째 요청은 조건에 안 맞아 **영향받은 행 수가 0**이 돼요. 그걸 보고 "품절"이라고 응답하면 돼요.' },
+          ],
+        },
       ],
-      code: `UPDATE students SET age = 18 WHERE name = '박민수';
-
--- 재고 차감: 남아 있을 때만
-UPDATE products SET stock = stock - 1 WHERE id = 3 AND stock > 0;`,
     },
     {
       title: 'DELETE',
       notionIds: ['3efdf951bf80815f9a40d4819038b9ca'],
-      points: [
-        'DELETE FROM 테이블 WHERE 조건; WHERE가 없으면 전체 삭제.',
-        'FK로 참조되는 부모 행은 자식이 남아 있으면 지울 수 없다(기본 RESTRICT). 자식을 먼저 지우거나 ON DELETE CASCADE를 설계한다.',
-        '대량 삭제(수백만 행)는 한 번에 하면 잠금과 로그가 커져 서비스에 영향을 준다. LIMIT으로 나눠 반복하거나, 오래된 데이터 정리는 파티션을 통째로 지우는 방식을 쓴다.',
-        '삭제 대신 deleted_at을 기록하는 소프트 삭제를 선택할 수도 있다.',
-      ],
-      code: `-- 먼저 확인
+      slides: [
+        {
+          title: '지우기와 FK 에러',
+          blocks: [
+            { type: 'say', text: '`DELETE FROM 테이블 WHERE 조건;` 역시 **WHERE가 없으면 전체 삭제**예요.\n\n"Cannot delete or update a parent row: a foreign key constraint fails" 에러는 **이 행을 참조하는 자식 행이 아직 남아 있다**는 뜻이에요. 회원을 지우려는데 그 회원의 주문이 있는 거죠. 자식을 먼저 지우거나, `ON DELETE CASCADE`를 설계해요.' },
+          ],
+        },
+        {
+          title: '대량 삭제는 나눠서',
+          blocks: [
+            { type: 'code', code: `-- 먼저 확인
 SELECT COUNT(*) FROM logs WHERE created_at < '2026-01-01';
 -- 나눠서 삭제 (MySQL)
-DELETE FROM logs WHERE created_at < '2026-01-01' LIMIT 10000;`,
+DELETE FROM logs WHERE created_at < '2026-01-01' LIMIT 10000;   -- 0건 될 때까지 반복` },
+            { type: 'say', text: '수천만 행을 한 문장으로 지우면 **잠금과 로그가 거대해져서** 그동안 서비스가 느려지거나 멈출 수 있어요. `LIMIT`으로 **나눠서 반복**하거나, 오래된 데이터는 파티션을 통째로 떼어 내는 방식을 써요.\n\n아예 지우지 않고 `deleted_at`에 시각을 기록하는 **소프트 삭제**를 고를 수도 있어요. 실수로 지워도 되살릴 수 있죠.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

@@ -10,78 +10,140 @@ const topic: Topic = {
     {
       title: 'INNER JOIN',
       notionIds: ['3efdf951bf808121b05edb966958d9e4'],
-      points: [
-        'JOIN은 두 테이블을 공통 컬럼(보통 FK = PK)으로 이어 하나의 결과로 만든다. FROM a JOIN b ON a.id = b.a_id.',
-        'INNER JOIN(INNER 생략 가능)은 양쪽에 짝이 있는 행만 남긴다.',
-        '테이블 별칭(u, o)을 붙이면 짧아지고, 같은 이름의 컬럼(id)이 어느 테이블 것인지 명확해진다. 두 테이블에 같은 이름이 있는데 테이블을 안 적으면 "ambiguous" 에러가 난다.',
-        '일대다 JOIN은 "다" 쪽 수만큼 행이 늘어난다. 사용자 1명이 주문 5개면 결과에 그 사용자가 5번 나온다.',
-      ],
-      code: `SELECT u.nickname, o.id AS order_id, o.total
+      slides: [
+        {
+          title: '두 테이블을 이어 붙이기',
+          blocks: [
+            { type: 'say', text: '회원은 users에, 주문은 orders에 따로 있어요. "누가 무엇을 주문했나"를 보려면 두 테이블을 **이어 붙여야** 해요. 그게 **JOIN**이에요. 보통 **FK = PK**로 이어요.' },
+            { type: 'code', code: `SELECT u.nickname, o.id AS order_id, o.total
 FROM users AS u
 JOIN orders AS o ON o.user_id = u.id
-WHERE o.status = 'paid';`,
+WHERE o.status = 'paid';` },
+            { type: 'say', text: '`INNER JOIN`(INNER는 생략 가능)은 **양쪽에 짝이 있는 행만** 남겨요. 주문이 없는 회원은 결과에 안 나와요.\n\n테이블 별칭(`u`, `o`)을 붙이면 짧아지고, **같은 이름의 컬럼**(id)이 어느 테이블 것인지 분명해져요. 두 테이블에 다 있는 `id`를 테이블 없이 쓰면 **"ambiguous"**(모호하다) 에러가 나요.' },
+          ],
+        },
+        {
+          title: 'JOIN하면 행이 늘어나요',
+          blocks: [
+            { type: 'code', code: `users: A, B, C
+orders: A의 주문 2개, B의 주문 1개, C는 0개
+
+users JOIN orders → 3행  (A, A, B)` },
+            { type: 'say', text: '**일대다** JOIN은 "다" 쪽 수만큼 행이 늘어나요. A는 주문이 2개라 결과에 **두 번** 나와요. C는 짝이 없어 빠지고요.' },
+            { type: 'note', tone: 'warn', text: '그래서 JOIN한 뒤 `SUM(u.point)`를 하면, 주문이 많은 회원의 포인트가 **주문 수만큼 여러 번** 더해져요. "한" 쪽 값을 집계할 땐 JOIN 전에 집계하거나 다른 방법을 써야 해요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'OUTER JOIN',
       notionIds: ['3efdf951bf808121b05edb966958d9e4'],
-      points: [
-        'LEFT (OUTER) JOIN: 왼쪽 테이블의 모든 행 + 오른쪽은 짝이 있으면 채우고 없으면 NULL.',
-        'RIGHT JOIN은 반대 방향이다. 보통 테이블 순서를 바꿔 LEFT JOIN으로 통일해 읽기 쉽게 쓴다. FULL OUTER JOIN은 양쪽 모두(MySQL은 미지원, UNION으로 흉내).',
-        '"한쪽에만 있는 데이터 찾기": LEFT JOIN 후 WHERE 오른쪽.id IS NULL → 주문한 적 없는 사용자.',
-        '함정: LEFT JOIN한 오른쪽 테이블 조건을 WHERE에 쓰면(WHERE o.status = \'paid\') NULL 행이 걸러져 사실상 INNER JOIN이 된다. 오른쪽 조건은 ON 절에 넣는다.',
-      ],
-      code: `-- 주문한 적 없는 사용자
+      slides: [
+        {
+          title: 'LEFT JOIN: 왼쪽은 전부 남겨요',
+          blocks: [
+            { type: 'say', text: '"**모든** 회원과 각자의 주문 수(0건 포함)"를 보고 싶다면? INNER JOIN은 주문 없는 회원을 빼 버리죠. **LEFT JOIN**은 **왼쪽 테이블의 모든 행**을 남기고, 오른쪽은 짝이 있으면 채우고 **없으면 NULL**로 둬요.' },
+            { type: 'code', code: `-- 주문한 적 없는 사용자
 SELECT u.id, u.nickname
 FROM users u
 LEFT JOIN orders o ON o.user_id = u.id
-WHERE o.id IS NULL;
+WHERE o.id IS NULL;` },
+            { type: 'say', text: '"**한쪽에만** 있는 데이터"를 찾는 공식이에요. LEFT JOIN 후 오른쪽이 NULL인 행 = 짝이 없는 행 = 주문한 적 없는 회원.\n\n`RIGHT JOIN`은 방향만 반대예요. 보통 테이블 순서를 바꿔 **LEFT JOIN으로 통일**해서 읽기 쉽게 써요. `FULL OUTER JOIN`(양쪽 다)은 MySQL에 없어서 UNION으로 흉내 내요.' },
+          ],
+        },
+        {
+          title: '오른쪽 조건은 ON에',
+          blocks: [
+            { type: 'code', code: `-- ❌ 주문 없는 회원이 사라짐
+SELECT u.id, COUNT(o.id) FROM users u
+LEFT JOIN orders o ON o.user_id = u.id
+WHERE o.status = 'paid'          -- NULL 행은 여기서 탈락 → 사실상 INNER JOIN
+GROUP BY u.id;
 
--- 사용자별 결제 완료 주문 수 (0건 포함)
-SELECT u.id, COUNT(o.id) AS paid_orders
-FROM users u
-LEFT JOIN orders o ON o.user_id = u.id AND o.status = 'paid'   -- 조건은 ON 에
-GROUP BY u.id;`,
+-- ✅ 조건을 ON 으로
+SELECT u.id, COUNT(o.id) AS paid_orders FROM users u
+LEFT JOIN orders o ON o.user_id = u.id AND o.status = 'paid'
+GROUP BY u.id;` },
+            { type: 'note', tone: 'warn', text: '아주 흔한 함정이에요. LEFT JOIN으로 살려 둔 "짝 없는 행"은 오른쪽이 **NULL**이에요. 그런데 WHERE에 `o.status = \'paid\'`를 쓰면 NULL은 조건을 통과 못 해서 **다시 사라져요.** 오른쪽 테이블 조건은 **ON 절**에 넣어야 "짝을 찾을 때의 조건"이 돼요.' },
+          ],
+        },
+      ],
     },
     {
       title: '여러 테이블과 셀프 조인',
       notionIds: ['3efdf951bf808121b05edb966958d9e4'],
-      points: [
-        'JOIN을 이어서 세 개 이상 연결할 수 있다: orders → order_items → products.',
-        'JOIN + WHERE + GROUP BY + HAVING + ORDER BY 조합이 분석 쿼리의 기본 뼈대다.',
-        '셀프 조인: 같은 테이블을 다른 별칭으로 두 번 쓰기. 직원 테이블의 manager_id → 같은 테이블의 id(상사 이름 붙이기). 트리 구조 토픽과 연결된다.',
-        '조인 조건을 빠뜨리면 모든 조합(카티션 곱)이 만들어진다. 1만 × 1만 = 1억 행. 결과 행 수가 이상하게 많으면 ON 절부터 확인한다.',
-      ],
-      code: `SELECT p.name, SUM(oi.quantity) AS sold
+      slides: [
+        {
+          title: '세 개 이상 잇기',
+          blocks: [
+            { type: 'code', code: `SELECT p.name, SUM(oi.quantity) AS sold
 FROM orders o
 JOIN order_items oi ON oi.order_id = o.id
 JOIN products p     ON p.id = oi.product_id
 WHERE o.status = 'paid'
 GROUP BY p.id, p.name
 HAVING SUM(oi.quantity) >= 10
-ORDER BY sold DESC;`,
+ORDER BY sold DESC;` },
+            { type: 'say', text: 'JOIN은 이어서 계속 붙일 수 있어요. 주문 → 주문 항목 → 상품. 그리고 **JOIN + WHERE + GROUP BY + HAVING + ORDER BY**, 이 조합이 분석 쿼리의 기본 뼈대예요. 지금까지 배운 게 전부 한 문장에 들어 있죠.' },
+            { type: 'note', tone: 'warn', text: 'ON 조건을 빠뜨리면(`FROM a, b`만 쓰면) **모든 조합**(카티션 곱)이 만들어져요. 1만 × 1만 = **1억 행**. 결과 행 수가 이상하게 많으면 ON 절부터 확인해요.' },
+          ],
+        },
+        {
+          title: '셀프 조인',
+          blocks: [
+            { type: 'code', code: `-- employees(id, name, manager_id)
+SELECT e.name AS employee, m.name AS manager
+FROM employees e
+LEFT JOIN employees m ON m.id = e.manager_id;` },
+            { type: 'say', text: '같은 테이블을 **다른 별칭으로 두 번** 쓰는 것도 JOIN이에요. 직원의 `manager_id`가 같은 테이블의 `id`를 가리킬 때, `e`(직원)와 `m`(상사)로 나눠 이으면 직원 옆에 상사 이름을 붙일 수 있어요. 사장님은 상사가 없으니 LEFT JOIN으로 남겨요. 트리 구조 수업과 이어지는 내용이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '서브쿼리',
       notionIds: ['3efdf951bf808121b05edb966958d9e4'],
-      points: [
-        '괄호 안의 또 다른 SELECT. 위치에 따라 역할이 다르다.',
-        'WHERE 컬럼 IN (서브쿼리): 목록에 포함되는지. WHERE 컬럼 > (서브쿼리): 값 하나와 비교(스칼라 서브쿼리, 결과가 2행 이상이면 에러).',
-        'FROM (서브쿼리) AS 별칭: 결과를 임시 테이블처럼 쓴다(파생 테이블, MySQL은 별칭 필수).',
-        'EXISTS (서브쿼리): 하나라도 있으면 참. 상관 서브쿼리(바깥 쿼리의 컬럼을 참조)와 자주 쓴다.',
-        'NOT IN 함정: 서브쿼리 결과에 NULL이 섞이면 NOT IN은 아무 행도 돌려주지 않는다. NOT EXISTS가 안전하다.',
-        '여러 테이블의 컬럼이 결과에 필요하면 JOIN, 한 테이블 컬럼만 필요하고 다른 테이블은 조건으로만 쓰면 서브쿼리가 읽기 쉽다. 대부분은 서로 바꿔 쓸 수 있다.',
-      ],
-      code: `-- JOIN 버전
+      slides: [
+        {
+          title: '괄호 안의 또 다른 SELECT',
+          blocks: [
+            {
+              type: 'table',
+              head: ['위치', '역할', '예'],
+              rows: [
+                ['`WHERE x IN (서브쿼리)`', '**목록**에 포함되나', '여성신발 랭킹에 있는 상품'],
+                ['`WHERE x > (서브쿼리)`', '**값 하나**와 비교 (스칼라)', '평균보다 비싼 상품'],
+                ['`FROM (서브쿼리) AS t`', '결과를 **임시 테이블**처럼 (MySQL은 **별칭 필수**)', '윈도우 함수 결과 거르기'],
+                ['`WHERE EXISTS (서브쿼리)`', '**하나라도 있으면** 참', '댓글이 있는 글'],
+              ],
+            },
+            { type: 'note', tone: 'warn', text: '스칼라 서브쿼리 `WHERE price > (SELECT price FROM products WHERE category = \'TV\')`는 TV가 **2개 이상**이면 에러예요. "값 하나"와 비교해야 하는데 여러 개가 왔으니까요. `MAX(price)` 등으로 하나로 만들어요.' },
+          ],
+        },
+        {
+          title: 'EXISTS와 NOT IN 함정',
+          blocks: [
+            { type: 'code', code: `-- 상관 서브쿼리 + EXISTS: 댓글이 있는 글
+SELECT p.* FROM posts p
+WHERE EXISTS (SELECT 1 FROM comments c WHERE c.post_id = p.id);` },
+            { type: 'say', text: '안쪽 쿼리가 바깥의 `p.id`를 참조하죠. 이런 걸 **상관 서브쿼리**라고 해요. EXISTS는 "있나 없나"만 보니 `SELECT 1`이면 충분해요.' },
+            { type: 'note', tone: 'warn', text: '`NOT IN (서브쿼리)`의 결과에 **NULL이 하나라도** 섞이면 아무 행도 안 나와요. "x는 NULL이 아니다"를 알 수 없으니 조건 전체가 "모름"이 되거든요. 부정 조건은 **`NOT EXISTS`** 가 안전해요.' },
+          ],
+        },
+        {
+          title: 'JOIN이냐 서브쿼리냐',
+          blocks: [
+            { type: 'code', code: `-- JOIN 버전
 SELECT i.* FROM items i JOIN ranking r ON r.item_code = i.item_code
 WHERE r.sub_category = '여성신발';
 
 -- 서브쿼리 버전
 SELECT * FROM items
-WHERE item_code IN (SELECT item_code FROM ranking WHERE sub_category = '여성신발');
-
--- 상관 서브쿼리 + EXISTS: 댓글이 있는 글
-SELECT p.* FROM posts p
-WHERE EXISTS (SELECT 1 FROM comments c WHERE c.post_id = p.id);`,
+WHERE item_code IN (SELECT item_code FROM ranking WHERE sub_category = '여성신발');` },
+            { type: 'say', text: '두 쿼리는 같은 상품을 찾아요. 대부분 서로 바꿔 쓸 수 있어요. 고르는 기준은 **결과에 어느 테이블 컬럼이 필요하냐**예요.\n• 여러 테이블의 컬럼이 결과에 필요 → **JOIN**\n• 한 테이블 컬럼만 필요하고 다른 테이블은 **조건으로만** 쓴다 → **서브쿼리**가 읽기 쉬움' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

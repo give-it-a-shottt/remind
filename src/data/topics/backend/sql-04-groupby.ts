@@ -10,63 +10,124 @@ const topic: Topic = {
     {
       title: '집계 함수',
       notionIds: ['3efdf951bf8081c3ab6dc3b5d4c0528d'],
-      points: [
-        'COUNT, SUM, AVG, MAX, MIN은 여러 행을 하나의 값으로 요약한다.',
-        'COUNT(*)는 행 수(NULL 포함), COUNT(컬럼)은 그 컬럼이 NULL이 아닌 행 수, COUNT(DISTINCT 컬럼)은 서로 다른 값의 개수.',
-        'SUM·AVG·MAX·MIN은 NULL을 건너뛴다. AVG(score)는 점수가 NULL인 사람을 분모에서 뺀다. NULL을 0으로 보고 싶으면 AVG(COALESCE(score, 0)).',
-        '행이 하나도 없으면 COUNT는 0, SUM·AVG·MAX는 NULL을 돌려준다.',
-      ],
-      code: `SELECT COUNT(*)            AS total_films,
+      slides: [
+        {
+          title: '여러 행을 하나로 요약',
+          blocks: [
+            { type: 'say', text: '"영화가 몇 편이야?", "평균 상영 시간은?" 같은 질문에는 행 하나하나가 아니라 **요약값**이 필요해요. **집계 함수**는 여러 행을 하나의 값으로 줄여요.' },
+            { type: 'code', code: `SELECT COUNT(*)               AS total_films,
        COUNT(DISTINCT rating) AS rating_kinds,
-       AVG(length)          AS avg_len,
-       MAX(rental_rate)     AS max_rate
-FROM film;`,
+       AVG(length)            AS avg_len,
+       MAX(rental_rate)       AS max_rate
+FROM film;` },
+            {
+              type: 'table',
+              head: ['함수', '세는 것'],
+              rows: [
+                ['`COUNT(*)`', '**행 수** (NULL 포함)'],
+                ['`COUNT(컬럼)`', '그 컬럼이 **NULL이 아닌** 행 수'],
+                ['`COUNT(DISTINCT 컬럼)`', '**서로 다른 값**의 개수 (주문한 적 있는 사용자 수)'],
+              ],
+            },
+          ],
+        },
+        {
+          title: 'NULL은 건너뛰어요',
+          blocks: [
+            { type: 'say', text: '`SUM`, `AVG`, `MAX`, `MIN`은 **NULL을 건너뛰어요.** 점수가 80, 90, NULL, 70이면 `AVG(score)`는 (80+90+70) ÷ **3** = **80**이에요. NULL인 사람은 **분모에서도** 빠져요.\n\nNULL을 0점으로 치고 싶다면 `AVG(COALESCE(score, 0))` → 240 ÷ 4 = 60.' },
+            { type: 'note', tone: 'warn', text: '행이 **하나도 없으면** `COUNT`는 **0**이지만 `SUM`, `AVG`, `MAX`는 **NULL**이에요. 주문이 없는 날의 매출 합계가 0이 아니라 NULL로 나와서 앱이 깨지는 일이 흔해요. `COALESCE(SUM(amount), 0)`으로 막아요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'GROUP BY',
       notionIds: ['3efdf951bf8081c3ab6dc3b5d4c0528d', '3efdf951bf8081c88fdcc74323cc24b7'],
-      points: [
-        'GROUP BY 컬럼 은 같은 값을 가진 행끼리 묶고, 묶음마다 집계 함수를 계산한다. 예: 등급별 영화 수, 카테고리별 상품 수.',
-        'SELECT에는 GROUP BY에 쓴 컬럼과 집계 함수만 올 수 있다. 묶음 안에서 값이 여러 개인 컬럼(title)을 그냥 쓰면 표준 SQL과 PostgreSQL은 에러, MySQL(ONLY_FULL_GROUP_BY 꺼짐)은 아무 값이나 골라 보여 준다. 후자는 버그의 원인이다.',
-        '여러 컬럼으로 묶기: GROUP BY main_category, sub_category → 조합별 집계.',
-        '노션 크롤링 실습처럼 "수집 → 저장 → GROUP BY로 분석"은 데이터 파이프라인의 기본 흐름이다.',
-      ],
-      code: `SELECT rating, COUNT(*) AS cnt, ROUND(AVG(length), 1) AS avg_len
+      slides: [
+        {
+          title: '같은 값끼리 묶어서 집계',
+          blocks: [
+            { type: 'code', code: `SELECT rating, COUNT(*) AS cnt, ROUND(AVG(length), 1) AS avg_len
 FROM film
 GROUP BY rating
-ORDER BY cnt DESC;`,
+ORDER BY cnt DESC;` },
+            { type: 'say', text: '`GROUP BY 컬럼`은 **같은 값을 가진 행끼리 묶고**, 묶음마다 집계를 계산해요. 등급별 영화 수, 카테고리별 상품 수 같은 질문이에요.\n\n여러 컬럼으로 묶으면 **조합별**로 집계돼요. `GROUP BY main_category, sub_category` → (가전, TV), (가전, 냉장고)… 조합마다 한 행.' },
+            { type: 'note', tone: 'analogy', text: '반 아이들을 **혈액형별로 줄 세우고**, 줄마다 "몇 명?", "평균 키?"를 묻는 거예요. 결과는 줄 하나당 한 행이에요.' },
+          ],
+        },
+        {
+          title: 'SELECT에 쓸 수 있는 것',
+          blocks: [
+            { type: 'code', code: `SELECT rating, title, COUNT(*)     -- title 은?
+FROM film
+GROUP BY rating;` },
+            { type: 'say', text: 'G 등급 묶음에는 영화가 수백 편 있어요. 그중 **어느 title**을 보여 줘야 할까요? 답이 없죠.\n\n그래서 SELECT에는 **GROUP BY에 쓴 컬럼과 집계 함수만** 올 수 있어요. 표준 SQL과 PostgreSQL은 에러를 내요. MySQL은 설정(ONLY_FULL_GROUP_BY)이 꺼져 있으면 **아무 값이나 골라** 보여 주는데, 이게 조용한 버그의 원인이 돼요.' },
+            { type: 'say', text: '크롤링 실습처럼 **수집 → 저장 → GROUP BY로 분석**은 데이터 파이프라인의 기본 흐름이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'WHERE와 HAVING',
       notionIds: ['3efdf951bf80815593d8ef50293c054f'],
-      points: [
-        'WHERE: 묶기 전에 개별 행을 거른다. 집계 함수를 쓸 수 없다.',
-        'HAVING: 묶은 뒤 그룹을 거른다. 집계 결과로 조건을 건다(HAVING COUNT(*) > 100).',
-        '같은 결과라면 WHERE로 미리 거르는 것이 효율적이다. 묶을 행 수 자체가 줄기 때문이다. 집계 값 조건만 HAVING에 둔다.',
-        '전체 조합 예: WHERE provider != \'\' → GROUP BY provider → HAVING COUNT(*) > 100 → ORDER BY COUNT(*) DESC.',
-      ],
-      code: `SELECT provider, COUNT(*) AS cnt
+      slides: [
+        {
+          title: '묶기 전에 거르기 vs 묶은 뒤 거르기',
+          blocks: [
+            { type: 'code', code: `SELECT provider, COUNT(*) AS cnt
 FROM items
 WHERE provider <> ''          -- 행 필터 (먼저)
 GROUP BY provider
 HAVING COUNT(*) > 100         -- 그룹 필터 (나중)
-ORDER BY cnt DESC;`,
+ORDER BY cnt DESC;` },
+            {
+              type: 'table',
+              head: ['', 'WHERE', 'HAVING'],
+              rows: [
+                ['언제', '묶기 **전**', '묶은 **뒤**'],
+                ['거르는 대상', '**개별 행**', '**그룹**'],
+                ['집계 함수', '못 씀', '**씀** (`COUNT(*) > 100`)'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '가능하면 WHERE로',
+          blocks: [
+            { type: 'say', text: '실행 순서를 다시 떠올려 봐요. FROM → **WHERE** → GROUP BY → **HAVING** → SELECT. WHERE가 묶기 전이라 집계 결과를 모르고, HAVING은 묶은 뒤라 알아요.\n\n결과가 같다면 **WHERE로 미리 거르는 게 효율적**이에요. 묶을 행 수 자체가 줄어드니까요. `HAVING provider <> \'\'`도 동작은 하지만, 다 묶어 놓고 버리는 셈이에요. **집계 값 조건만** HAVING에 둬요.' },
+          ],
+        },
+      ],
     },
     {
       title: '윈도우 함수 맛보기',
-      points: [
-        'GROUP BY는 행을 묶어 줄이지만, 윈도우 함수는 행을 유지한 채로 "그 행이 속한 그룹"의 집계를 옆에 붙인다. 함수(...) OVER (PARTITION BY ... ORDER BY ...).',
-        'ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC): 카테고리별 가격 순위. "카테고리별 상위 3개" 같은 문제를 풀 수 있다.',
-        'SUM(amount) OVER (ORDER BY day): 누적 합계. AVG(...) OVER (PARTITION BY user_id): 사용자별 평균을 각 행 옆에.',
-        'MySQL 8.0+, PostgreSQL, SQLite 3.25+에서 지원한다.',
-      ],
-      code: `SELECT *
+      slides: [
+        {
+          title: '행을 줄이지 않는 집계',
+          blocks: [
+            { type: 'say', text: 'GROUP BY는 행을 **묶어서 줄여요.** 그런데 "각 상품 옆에 그 카테고리 안에서의 가격 순위를 붙여 줘"처럼 **행은 그대로 두고** 그룹 정보만 옆에 붙이고 싶을 때가 있어요. 그게 **윈도우 함수**예요.' },
+            { type: 'code', code: `함수(...) OVER (PARTITION BY 묶을기준 ORDER BY 순서)
+
+ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC)  -- 카테고리별 가격 순위
+SUM(amount)  OVER (ORDER BY day)                                -- 누적 합계
+AVG(amount)  OVER (PARTITION BY user_id)                        -- 사용자별 평균을 각 행 옆에` },
+            { type: 'note', tone: 'warn', text: '`SUM(amount) OVER (PARTITION BY user_id)`는 GROUP BY처럼 사용자별로 **행을 하나로 줄이지 않아요.** 원래 행이 전부 남고, 각 행 옆에 그 사용자의 합계가 붙어요.' },
+          ],
+        },
+        {
+          title: '카테고리별 상위 3개',
+          blocks: [
+            { type: 'code', code: `SELECT *
 FROM (
   SELECT name, category, price,
          ROW_NUMBER() OVER (PARTITION BY category ORDER BY price DESC) AS rn
   FROM products
 ) ranked
-WHERE rn <= 3;      -- 카테고리별 비싼 상품 3개`,
+WHERE rn <= 3;      -- 카테고리별 비싼 상품 3개` },
+            { type: 'say', text: 'GROUP BY로는 "카테고리별 **최고가 하나**"는 쉽지만 "**상위 3개씩**"은 어려워요. 윈도우 함수로 카테고리 안 순위(rn)를 매긴 뒤, 바깥에서 `rn <= 3`으로 걸러요. 윈도우 함수 결과는 WHERE에서 바로 못 쓰니(실행 순서!) 서브쿼리로 한 번 감쌌어요.\n\nMySQL 8.0+, PostgreSQL, SQLite 3.25+에서 지원해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

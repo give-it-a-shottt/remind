@@ -10,71 +10,132 @@ const topic: Topic = {
     {
       title: '처음 보는 테이블 파악하기',
       notionIds: ['3efdf951bf8081c3ab6dc3b5d4c0528d'],
-      points: [
-        '현업 DB는 설명서가 부족한 경우가 많다. 구조(DESC 테이블)와 실제 값(SELECT * ... LIMIT 10)을 직접 보며 의미를 파악한다.',
-        'SELECT COUNT(*) 로 규모를 보고, SELECT DISTINCT 컬럼 으로 어떤 값들이 있는지 본다. 예: Sakila의 film.rating은 G, PG, PG-13, R, NC-17 같은 등급이다(도메인 지식 필요).',
-        '큰 테이블에서 LIMIT 없는 SELECT * 는 서버와 내 컴퓨터 모두를 힘들게 한다. 탐색할 때는 항상 LIMIT을 붙인다.',
+      slides: [
+        {
+          title: '낯선 테이블과 친해지는 네 줄',
+          blocks: [
+            { type: 'say', text: '현업에서 받는 DB는 **설명서가 부족한** 경우가 많아요. 그럴 땐 직접 들여다보며 의미를 파악해요. 이번 수업은 영화 대여점 예제 DB **Sakila**로 SELECT를 깊이 써 볼게요.' },
+            { type: 'code', code: `DESC film;                         -- 1) 컬럼 구조
+SELECT * FROM film LIMIT 5;        -- 2) 실제 값 생김새
+SELECT COUNT(*) FROM film;         -- 3) 규모
+SELECT DISTINCT rating FROM film;  -- 4) 어떤 값들이 있나 (중복 없이)` },
+            { type: 'say', text: '`DISTINCT`로 보니 rating에는 G, PG, PG-13, R, NC-17이 있어요. 미국 영화 **관람 등급**이죠. 이런 **도메인 지식**이 있어야 데이터를 제대로 해석할 수 있어요.' },
+            { type: 'note', tone: 'warn', text: '큰 테이블에서 `LIMIT` 없는 `SELECT *`는 서버와 내 컴퓨터 모두를 힘들게 해요. 탐색할 땐 **항상 LIMIT**을 붙여요.' },
+          ],
+        },
       ],
-      code: `DESC film;
-SELECT * FROM film LIMIT 5;
-SELECT COUNT(*) FROM film;
-SELECT DISTINCT rating FROM film;`,
     },
     {
       title: 'ORDER BY와 LIMIT/OFFSET',
       notionIds: ['3efdf951bf8081c3ab6dc3b5d4c0528d'],
-      points: [
-        'ORDER BY 컬럼 ASC(오름차순, 기본) / DESC(내림차순). 여러 기준: ORDER BY rating, length DESC.',
-        'ORDER BY가 없으면 결과 순서는 보장되지 않는다. "보통 id 순으로 나오던데"는 우연이다.',
-        'LIMIT n: n개만. LIMIT n OFFSET m: m개 건너뛰고 n개(MySQL은 LIMIT m, n 표기도 가능). 페이지네이션의 기본.',
-        'Top-N 질의: "가장 긴 영화 5개" → ORDER BY length DESC LIMIT 5.',
+      slides: [
+        {
+          title: '정렬하고 잘라 내기',
+          blocks: [
+            { type: 'code', code: `SELECT title, length FROM film
+ORDER BY length DESC        -- 긴 순서 (ASC 가 기본)
+LIMIT 3;                    -- Top-N: 가장 긴 영화 3개
+
+ORDER BY rating, length DESC     -- 등급 순, 같은 등급 안에서 긴 순
+LIMIT 10 OFFSET 20               -- 20개 건너뛰고 10개 (MySQL: LIMIT 20, 10)` },
+            { type: 'say', text: '`LIMIT n OFFSET m`은 FastAPI 수업에서 계산한 **offset 페이지네이션**의 SQL 쪽이에요.' },
+            { type: 'note', tone: 'warn', text: '**ORDER BY가 없으면 결과 순서는 보장되지 않아요.** "보통 id 순으로 나오던데요"는 **우연**이에요. 데이터가 늘거나 실행 계획이 바뀌면 순서가 달라져요. 순서가 중요하면 반드시 ORDER BY를 써요.' },
+          ],
+        },
       ],
     },
     {
       title: '별칭(AS)과 계산 컬럼',
       notionIds: ['3efdf951bf8081c3ab6dc3b5d4c0528d'],
-      points: [
-        'SELECT 식 AS 이름 으로 결과 컬럼 이름을 바꾼다. AS는 생략 가능하다. 테이블에도 별칭을 붙인다: FROM film AS f.',
-        'SELECT 안에서 계산할 수 있다: rental_rate * 1.1 AS price_with_tax, FLOOR(length / 60) AS hours.',
-        'SELECT에서 만든 별칭은 WHERE에서 쓸 수 없다. WHERE가 SELECT보다 먼저 실행되기 때문이다. ORDER BY에서는 쓸 수 있다.',
-        'SQL 작성 순서: SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT. 실행 순서: FROM → WHERE → GROUP BY → HAVING → SELECT → ORDER BY → LIMIT.',
-      ],
-      code: `SELECT title, length, FLOOR(length / 60) AS hours
-FROM film
+      slides: [
+        {
+          title: '결과에 이름 붙이기',
+          blocks: [
+            { type: 'code', code: `SELECT title, length, FLOOR(length / 60) AS hours
+FROM film AS f
 WHERE length > 120          -- WHERE hours >= 2  ← 에러 (별칭 아직 없음)
 ORDER BY hours DESC, title  -- ORDER BY 에서는 별칭 OK
-LIMIT 10;`,
+LIMIT 10;` },
+            { type: 'say', text: '`AS 이름`으로 결과 컬럼 이름을 바꿔요(AS는 생략 가능). SELECT 안에서 계산도 할 수 있어요(`rental_rate * 1.1 AS price_with_tax`). 테이블에도 별칭을 붙여요(`FROM film AS f`).\n\n그런데 왜 **WHERE에서는 별칭을 못 쓰고** ORDER BY에서는 쓸 수 있을까요?' },
+          ],
+        },
+        {
+          title: '쓰는 순서와 실행 순서는 달라요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '순서'],
+              rows: [
+                ['**작성** 순서', 'SELECT → FROM → WHERE → GROUP BY → HAVING → ORDER BY → LIMIT'],
+                ['**실행** 순서', '**FROM** → **WHERE** → GROUP BY → HAVING → **SELECT** → ORDER BY → LIMIT'],
+              ],
+            },
+            { type: 'say', text: 'SQL은 맨 앞에 SELECT를 쓰지만, 실제로는 **FROM**(어느 테이블) → **WHERE**(행 거르기)를 먼저 하고, 한참 뒤에야 **SELECT**(별칭 만들기)를 해요. WHERE가 실행될 땐 `hours`라는 별칭이 **아직 태어나지 않았어요.** ORDER BY는 SELECT 다음이라 쓸 수 있고요.' },
+            { type: 'note', tone: 'tip', text: '이 실행 순서는 GROUP BY·HAVING을 배울 때 다시 나와요. SQL이 이상하게 동작할 때 "이 시점에 무엇이 존재하나?"를 실행 순서로 따져 보면 대부분 풀려요.' },
+          ],
+        },
+      ],
     },
     {
       title: '자주 쓰는 함수',
-      points: [
-        '문자열: CONCAT(a, b), LENGTH(s)(바이트)/CHAR_LENGTH(s)(글자 수), UPPER/LOWER, SUBSTRING(s, 시작, 길이), TRIM, REPLACE.',
-        '숫자: ROUND(x, 자릿수), FLOOR(내림), CEIL(올림), ABS, MOD.',
-        '날짜: NOW(), CURDATE(), DATE(dt), YEAR(dt), DATE_FORMAT(dt, \'%Y-%m\')(MySQL), DATE_ADD(dt, INTERVAL 7 DAY), DATEDIFF(a, b).',
-        'NULL 처리: COALESCE(a, b, ...)(첫 번째 NULL이 아닌 값), IFNULL(a, 기본값)(MySQL). NULL과의 산술 결과는 NULL이다(5 + NULL = NULL).',
-        '주의: WHERE YEAR(created_at) = 2026 처럼 컬럼에 함수를 씌우면 그 컬럼의 인덱스를 쓰지 못한다. created_at >= \'2026-01-01\' AND created_at < \'2027-01-01\' 로 바꾼다.',
+      slides: [
+        {
+          title: '문자열·숫자·날짜 함수',
+          blocks: [
+            {
+              type: 'table',
+              head: ['종류', '함수'],
+              rows: [
+                ['문자열', '`CONCAT`, `LENGTH`(**바이트**)/`CHAR_LENGTH`(**글자 수**), `UPPER`/`LOWER`, `SUBSTRING`, `TRIM`, `REPLACE`'],
+                ['숫자', '`ROUND(x, 자릿수)`, `FLOOR`(내림), `CEIL`(올림), `ABS`, `MOD`'],
+                ['날짜', '`NOW()`, `CURDATE()`, `YEAR(dt)`, `DATE_FORMAT(dt, \'%Y-%m\')`, `DATE_ADD(dt, INTERVAL 7 DAY)`, `DATEDIFF`'],
+              ],
+            },
+            { type: 'say', text: '`LENGTH(\'가나다\')`는 utf8mb4에서 **9**(한글 한 글자 = 3바이트), `CHAR_LENGTH(\'가나다\')`는 **3**이에요. "닉네임 10자 제한"은 CHAR_LENGTH로 재요.' },
+          ],
+        },
+        {
+          title: 'NULL 처리와 인덱스 함정',
+          blocks: [
+            { type: 'code', code: `SELECT 5 + NULL;                               -- NULL (모르는 값 + 5 = 모르는 값)
+SELECT COALESCE(nickname, email, '익명');       -- 첫 번째로 NULL 아닌 값
+
+-- ❌ 컬럼에 함수를 씌우면 인덱스를 못 씀
+WHERE YEAR(created_at) = 2026
+-- ✅ 범위로 바꾸기
+WHERE created_at >= '2026-01-01' AND created_at < '2027-01-01'` },
+            { type: 'say', text: 'NULL과의 산술은 결과가 **NULL**이에요. 그래서 `COALESCE`(표준)나 `IFNULL`(MySQL)로 기본값을 채워요.\n\n`YEAR(created_at)`처럼 **컬럼에 함수를 씌우면** DB는 모든 행의 created_at을 하나하나 꺼내 계산해 봐야 해서 **인덱스를 못 써요.** 같은 뜻을 **범위 조건**으로 바꾸면 인덱스로 바로 찾아가요. 인덱스 수업에서 다시 만나요.' },
+          ],
+        },
       ],
-      code: `SELECT CONCAT(first_name, ' ', last_name) AS full_name,
-       COALESCE(email, '(없음)') AS email,
-       DATE_FORMAT(create_date, '%Y-%m') AS joined_month
-FROM customer
-LIMIT 5;`,
     },
     {
       title: 'CASE 식',
-      points: [
-        'CASE WHEN 조건1 THEN 값1 WHEN 조건2 THEN 값2 ELSE 기본값 END. SQL 안의 if/elif/else다.',
-        '구간 나누기: length < 60 → "짧음", < 120 → "보통", 그 외 → "긺".',
-        '조건부 집계: SUM(CASE WHEN status = \'paid\' THEN amount ELSE 0 END) 처럼 한 번의 조회로 여러 조건의 합계를 구할 수 있다(피벗).',
-        'ELSE가 없으면 해당하지 않는 경우 NULL이 된다.',
-      ],
-      code: `SELECT title,
+      slides: [
+        {
+          title: 'SQL 안의 if/elif/else',
+          blocks: [
+            { type: 'code', code: `SELECT title,
        CASE
          WHEN length < 60  THEN '짧음'
          WHEN length < 120 THEN '보통'
          ELSE '긺'
        END AS length_group
-FROM film;`,
+FROM film;` },
+            { type: 'say', text: '`CASE WHEN … THEN … ELSE … END`는 **위에서부터** 조건을 확인해서 처음 맞는 값을 돌려줘요. length가 120이면? `< 60` 아님, `< 120` 아님(120은 120보다 작지 않으니까) → **"긺"**.\n\nELSE가 없으면 어디에도 안 맞는 행은 **NULL**이 돼요.' },
+          ],
+        },
+        {
+          title: '조건부 집계',
+          blocks: [
+            { type: 'code', code: `SELECT
+  SUM(CASE WHEN status = 'paid'     THEN amount ELSE 0 END) AS paid_total,
+  SUM(CASE WHEN status = 'refunded' THEN amount ELSE 0 END) AS refund_total
+FROM orders;` },
+            { type: 'say', text: 'CASE를 집계 함수 안에 넣으면 **한 번의 조회로** 여러 조건의 합계를 각각 구할 수 있어요. 결제 완료 합계와 환불 합계를 쿼리 두 번 대신 한 번에! 이렇게 행을 열로 펼치는 걸 **피벗**이라고 해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
