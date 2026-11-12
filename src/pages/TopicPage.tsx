@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, Navigate, useParams, useSearchParams } from 'react-router-dom'
-import { isLessonTrack, topicById } from '../data'
+import { isLessonTopic, topicById } from '../data'
 import { notionUrl } from '../data/meta'
 import type { Topic } from '../data/types'
 import { buttonClass, LinkButton } from '../components/Button'
@@ -26,7 +26,7 @@ export default function TopicPage() {
   const all = quizUrl({ mode: 'topic', topicId: topic.id })
   const wrongUrl = quizUrl({ mode: 'wrong', topicId: topic.id })
   const changed = new Set(topic.changedSections ?? [])
-  const lesson = isLessonTrack(topic.track)
+  const lesson = isLessonTopic(topic)
   const ls = p.lessons?.[topic.id]
   const resumable = lesson && !!ls && ls.step > 0
   const lessonUrl = `/lesson/${topic.id}${resumable ? '?resume=1' : ''}`

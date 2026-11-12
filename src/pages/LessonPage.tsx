@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { isLessonTrack, questionIndex, topicById, topicsByTrack } from '../data'
+import { isLessonTopic, questionIndex, topicById, topicsByTrack } from '../data'
 import type { Topic } from '../data/types'
 import { Button, LinkButton } from '../components/Button'
 import { answerText, ConceptCard, TRACK_STYLE, WrongCard } from '../components/Cards'
@@ -18,7 +18,7 @@ import { getProgress, setProgress, type Grade, type SessionResult } from '../lib
 export default function LessonPage() {
   const { topicId } = useParams()
   const topic = topicId ? topicById(topicId) : undefined
-  if (!topic || !isLessonTrack(topic.track)) return <Navigate to="/" replace />
+  if (!topic || !isLessonTopic(topic)) return <Navigate to="/" replace />
   return <LessonRunner key={topic.id} topic={topic} />
 }
 
