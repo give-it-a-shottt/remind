@@ -9,13 +9,19 @@ const topic: Topic = {
   sections: [
     {
       title: '비밀번호는 해시로 저장한다',
-      points: [
-        '비밀번호 원문을 DB에 저장하면, DB가 유출되는 순간 모든 사용자의 비밀번호가 노출된다(다른 사이트에서도 같은 비밀번호를 쓰는 경우가 많다).',
-        '해시는 되돌릴 수 없는 변환이다. 로그인할 때는 입력한 비밀번호를 같은 방식으로 해시해 저장된 해시와 비교한다.',
-        'SHA-256 같은 빠른 해시는 비밀번호용으로 부적합하다. GPU로 초당 수십억 번 대입할 수 있다. 일부러 느리게 설계된 bcrypt, argon2를 쓴다.',
-        '솔트(salt): 사용자마다 다른 무작위 값을 섞어 해시한다. 같은 비밀번호라도 해시가 달라져, 미리 계산한 표(레인보우 테이블) 공격을 막는다. bcrypt·argon2는 솔트를 해시 문자열 안에 자동으로 포함한다.',
-      ],
-      code: `from pwdlib import PasswordHash      # 또는 passlib[bcrypt], argon2-cffi
+      slides: [
+        {
+          title: '원문 저장은 절대 안 돼요',
+          blocks: [
+            { type: 'say', text: '드디어 로그인을 직접 만들어요. 첫 번째 규칙은 **비밀번호 원문을 DB에 저장하지 않는다**예요.\n\nDB가 유출되는 순간 모든 사용자의 비밀번호가 드러나요. 게다가 사람들은 **여러 사이트에 같은 비밀번호**를 써서, 우리 사이트 유출이 남의 사이트 피해로 번져요.' },
+            { type: 'say', text: '그래서 **해시**로 저장해요. 해시는 **되돌릴 수 없는 변환**이에요. 로그인할 때는 입력한 비밀번호를 **같은 방식으로 해시해서** 저장된 해시와 비교해요.' },
+            { type: 'note', tone: 'analogy', text: '해시는 **믹서기**예요. 과일(비밀번호)을 갈아 주스(해시)를 만들 수는 있지만, 주스를 과일로 되돌릴 순 없어요. 대신 같은 과일을 넣으면 같은 주스가 나오니, 주스끼리 비교하면 같은 과일인지 알 수 있어요.' },
+          ],
+        },
+        {
+          title: '느린 해시와 솔트',
+          blocks: [
+            { type: 'code', code: `from pwdlib import PasswordHash      # 또는 passlib[bcrypt], argon2-cffi
 
 password_hash = PasswordHash.recommended()   # argon2
 
@@ -23,17 +29,19 @@ hashed = password_hash.hash("my-password")
 # '$argon2id$v=19$m=65536,t=3,p=4$...'  ← 알고리즘·설정·솔트·해시가 한 문자열에
 
 password_hash.verify("my-password", hashed)   # True
-password_hash.verify("wrong", hashed)         # False`,
+password_hash.verify("wrong", hashed)         # False` },
+            { type: 'list', items: ['**SHA-256 같은 빠른 해시는 부적합** — GPU로 초당 수십억 번 대입할 수 있어요. 일부러 **느리게** 설계된 **bcrypt, argon2**를 써요', '**솔트(salt)** — 사용자마다 다른 **무작위 값**을 섞어 해시해요. 같은 "1234"라도 해시가 **달라져서**, 미리 계산한 표(레인보우 테이블) 공격을 막아요. bcrypt·argon2는 솔트를 해시 문자열 안에 **자동으로** 넣어요'] },
+          ],
+        },
+      ],
     },
     {
       title: '회원가입과 로그인 API',
-      points: [
-        '회원가입: 이메일 정규화(.strip().lower()) → 비밀번호 규칙 검사(길이 등) → 해시 → User(email, hashed_password) 저장 → UNIQUE 위반이면 409.',
-        '로그인: 이메일로 사용자 조회 → 없거나 비밀번호가 틀리면 똑같은 메시지("이메일 또는 비밀번호가 올바르지 않습니다")로 401. 어느 쪽이 틀렸는지 알려 주면 가입된 이메일 목록을 수집당한다.',
-        '로그인 성공: 세션 방식이면 request.session.clear() 후 request.session["user_id"] = user.id. 토큰 방식이면 토큰을 발급해 응답한다.',
-        '로그인 시도에는 속도 제한(rate limit)을 건다. 같은 IP·계정의 연속 실패가 많으면 잠시 막는다(429).',
-      ],
-      code: `@router.post("/login")
+      slides: [
+        {
+          title: '로그인과 로그아웃',
+          blocks: [
+            { type: 'code', code: `@router.post("/login")
 def login(data: LoginIn, request: Request, db: SessionDep):
     user = db.scalar(select(User).where(User.email == data.email.strip().lower()))
     if user is None or not password_hash.verify(data.password, user.hashed_password):
@@ -44,18 +52,26 @@ def login(data: LoginIn, request: Request, db: SessionDep):
 
 @router.post("/logout", status_code=204)
 def logout(request: Request):
-    request.session.clear()`,
+    request.session.clear()` },
+            { type: 'say', text: '**회원가입**: 이메일 정규화(`.strip().lower()`) → 비밀번호 규칙 검사 → 해시 → 저장 → UNIQUE 위반이면 409.\n이메일을 정규화하는 이유: `" Kim@A.com"`과 `"kim@a.com"`이 **다른 계정**으로 가입되면 안 되니까요.' },
+          ],
+        },
+        {
+          title: '같은 실패 메시지와 속도 제한',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '"없는 이메일입니다" / "비밀번호가 틀렸습니다"처럼 **어느 쪽이 틀렸는지** 알려 주면, 공격자가 이메일 목록을 넣어 보며 **가입된 이메일을 수집**할 수 있어요. 둘 다 **똑같은 메시지**로 401을 줘요.' },
+            { type: 'say', text: '로그인 성공 직후 `request.session.clear()`를 **먼저** 하는 건 au-02의 **세션 고정 방어**예요. 공격자가 미리 심어 둔 세션을 그대로 이어 쓰지 못하게 새로 시작하는 거예요.\n\n로그인 시도에는 **속도 제한**(rate limit)을 걸어요. 같은 IP·계정의 연속 실패가 많으면 잠시 막고 **429**를 줘요. 비밀번호 무작위 대입을 막는 기본 장치예요.' },
+          ],
+        },
+      ],
     },
     {
       title: '토큰 방식(JWT)과 비교',
-      points: [
-        'JWT(JSON Web Token): {"sub": "3", "exp": 만료시각} 같은 정보를 서명해 문자열로 만든 토큰. 서버는 서명만 확인하면 되므로 세션 저장소가 필요 없다(무상태).',
-        '클라이언트는 Authorization: Bearer <토큰> 헤더로 보낸다. FastAPI에서는 OAuth2PasswordBearer(tokenUrl="token")로 꺼내고, jwt 라이브러리로 서명과 만료를 검증한다.',
-        'JWT도 서명일 뿐 암호화가 아니다. 내용은 누구나 디코딩해 읽을 수 있으니 민감 정보를 넣지 않는다.',
-        '단점: 만료 전에는 서버가 강제로 무효화하기 어렵다. 그래서 액세스 토큰은 짧게(15분 등), 리프레시 토큰으로 갱신하는 구조를 쓴다.',
-        '선택 기준: 같은 도메인의 웹 앱 → 세션 쿠키가 단순하고 안전하게 만들기 쉽다. 모바일 앱·여러 서비스가 같은 인증을 공유 → 토큰이 편하다.',
-      ],
-      code: `import jwt   # PyJWT
+      slides: [
+        {
+          title: '서버가 기억하지 않는 증표',
+          blocks: [
+            { type: 'code', code: `import jwt   # PyJWT
 from datetime import datetime, timedelta, timezone
 
 def create_access_token(user_id: int) -> str:
@@ -67,15 +83,44 @@ def decode_token(token: str) -> int:
         payload = jwt.decode(token, settings.secret_key, algorithms=["HS256"])
     except jwt.InvalidTokenError:
         raise HTTPException(401, "유효하지 않은 토큰", headers={"WWW-Authenticate": "Bearer"})
-    return int(payload["sub"])`,
+    return int(payload["sub"])` },
+            { type: 'say', text: '**JWT**(JSON Web Token)는 `{"sub": "3", "exp": 만료시각}` 같은 정보를 **서명해서** 문자열로 만든 토큰이에요. 서버는 **서명만 확인**하면 되니 **세션 저장소가 필요 없어요**(무상태).\n\n클라이언트는 `Authorization: Bearer <토큰>` 헤더로 보내요. FastAPI에서는 `OAuth2PasswordBearer`로 꺼내요(fa-12에서 말한 보안 도구).' },
+          ],
+        },
+        {
+          title: '세션이냐 토큰이냐',
+          blocks: [
+            { type: 'note', tone: 'warn', text: 'JWT도 **서명일 뿐 암호화가 아니에요.** 내용은 누구나 디코딩해서 읽을 수 있어요. 민감 정보는 넣지 마세요.' },
+            {
+              type: 'table',
+              head: ['', '세션 쿠키', 'JWT 토큰'],
+              rows: [
+                ['서버 저장소', '필요 (또는 서명 쿠키)', '**불필요**'],
+                ['강제 로그아웃', '**쉬움** — 세션 삭제', '**어려움** — 만료 전엔 유효'],
+                ['어울리는 곳', '**같은 도메인 웹 앱**, 서버가 화면도 만드는 서비스', '**모바일 앱**, 여러 서비스가 인증 공유'],
+              ],
+            },
+            { type: 'say', text: 'JWT는 만료 전에 서버가 강제로 무효화하기 어려워서, **액세스 토큰은 짧게**(15분) 두고 **리프레시 토큰**으로 갱신하는 구조를 써요. "비밀번호 바꿨으니 다른 기기 로그인 전부 끊어"가 필요하면 세션이 훨씬 쉬워요.' },
+          ],
+        },
+      ],
     },
     {
       title: '권한 검사와 보안 체크리스트',
-      points: [
-        '역할 기반 권한(RBAC): User.role("user", "admin")을 두고 require_role("admin") 의존성으로 검사한다.',
-        '소유권 검사: 수정·삭제는 "로그인했는가"가 아니라 "이 자원의 주인인가"를 확인한다. 이걸 빠뜨리는 IDOR가 가장 흔한 취약점이다.',
-        '응답에 hashed_password가 절대 나가지 않게 응답 모델로 막는다.',
-        '체크리스트: HTTPS, 해시 저장(argon2/bcrypt), 같은 실패 메시지, 로그인 속도 제한, HttpOnly·Secure·SameSite 쿠키, 비밀 키는 환경 변수, 로그에 비밀번호·토큰 금지, 비밀번호 변경 시 기존 세션 무효화.',
+      slides: [
+        {
+          title: '가장 흔한 취약점, IDOR',
+          blocks: [
+            { type: 'say', text: '**역할 기반 권한(RBAC)**: `User.role`("user", "admin")을 두고 `require_role("admin")` 의존성으로 검사해요.\n\n그런데 더 흔하게 뚫리는 건 **소유권 검사**예요. `DELETE /posts/{id}`에서 "로그인했는가"만 확인하면, 로그인한 아무나 **id만 바꿔서 남의 글을 지울** 수 있어요. 이걸 **IDOR**(Insecure Direct Object Reference)라고 하고, 실제 서비스에서 가장 자주 발견되는 취약점이에요. 수정·삭제는 항상 "**이 자원의 주인인가**"를 확인해요.' },
+            { type: 'note', tone: 'warn', text: 'User 모델을 응답 모델 없이 그대로 return 하면 `hashed_password`가 응답에 실려 나갈 수 있어요. fa-10의 **응답 모델**로 구조적으로 막아요.' },
+          ],
+        },
+        {
+          title: '로그인 보안 체크리스트',
+          blocks: [
+            { type: 'list', items: ['**HTTPS**', '비밀번호는 **argon2/bcrypt 해시**로 저장', '로그인 실패는 **같은 메시지**', '로그인 **속도 제한**(429)', '쿠키는 **HttpOnly · Secure · SameSite**', '비밀 키는 **환경 변수**', '로그에 **비밀번호·토큰 금지**', '비밀번호 변경 시 **기존 세션 무효화**', '수정·삭제는 **소유자 확인**', '응답은 **응답 모델**로'] },
+          ],
+        },
       ],
     },
   ],

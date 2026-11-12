@@ -9,46 +9,88 @@ const topic: Topic = {
   sections: [
     {
       title: '요구사항에서 엔티티 찾기',
-      points: [
-        '예제 서비스: "복습 기록 앱". 사용자는 가입·로그인한다. 문제 세트(덱)를 만들고, 덱에는 문제가 여러 개 있다. 사용자는 문제를 풀고, 풀 때마다 결과(정답 여부, 시각)가 남는다. 문제에는 태그를 여러 개 붙일 수 있다.',
-        '명사 → 엔티티 후보: 사용자(User), 덱(Deck), 문제(Question), 풀이 기록(Attempt), 태그(Tag).',
-        '관계 질문(양방향): 사용자 1 - 덱 N, 덱 1 - 문제 N, 사용자 1 - 풀이 N, 문제 1 - 풀이 N, 문제 N - 태그 M(→ question_tags 관계 엔터티).',
-        '"풀이 기록"은 사용자와 문제 사이의 관계이자 그 자체로 사실(정답 여부, 시각)을 가진 엔티티다. 같은 문제를 여러 번 풀 수 있으므로 (user_id, question_id)는 유일하지 않다. 대리키 id를 둔다.',
+      slides: [
+        {
+          title: '종합 실전: 복습 기록 앱',
+          blocks: [
+            { type: 'say', text: '드디어 지금까지 배운 걸 **하나로 묶는** 실전이에요. 만들 서비스는 지금 이 앱과 비슷한 **복습 기록 앱**이에요.\n\n> 사용자는 가입·로그인한다. 문제 세트(덱)를 만들고, 덱에는 문제가 여러 개 있다. 사용자는 문제를 풀고, 풀 때마다 결과(정답 여부, 시각)가 남는다. 문제에는 태그를 여러 개 붙일 수 있다.\n\n이 문장에서 **명사**를 뽑으면 엔티티(테이블) 후보가 나와요.' },
+            { type: 'list', items: ['사용자 → **User**', '덱 → **Deck**', '문제 → **Question**', '풀이 기록 → **Attempt**', '태그 → **Tag**'] },
+          ],
+        },
+        {
+          title: '관계는 양방향으로 물어요',
+          blocks: [
+            {
+              type: 'table',
+              head: ['관계', '질문', '결과'],
+              rows: [
+                ['사용자 - 덱', '사용자 1명은 덱 몇 개? 덱 1개는 사용자 몇 명?', '**1 : N** → `decks.owner_id`'],
+                ['덱 - 문제', '', '**1 : N** → `questions.deck_id`'],
+                ['사용자 - 풀이', '', '**1 : N**'],
+                ['문제 - 풀이', '', '**1 : N**'],
+                ['문제 - 태그', '문제 하나에 태그 여러 개, 태그 하나에 문제 여러 개', '**N : M** → 연결 테이블 `question_tags`'],
+              ],
+            },
+            { type: 'say', text: '**풀이 기록**은 사용자와 문제 사이의 관계이면서, 그 자체로 **사실**(정답 여부, 시각)을 가진 엔티티예요. 그리고 **같은 문제를 여러 번** 풀 수 있으니 `(user_id, question_id)`는 유일하지 않아요. 그래서 **대리키 id**를 기본키로 둬요.' },
+          ],
+        },
       ],
     },
     {
       title: '정규화와 키 결정',
-      points: [
-        '문제 테이블에 덱 이름을 복사하지 않는다(덱 이름은 덱에 대한 사실, 3NF). 문제에 태그를 "a,b"로 넣지 않는다(1NF) → question_tags.',
-        '키: 모든 엔티티에 대리키 id(BIGINT). 업무상 유일한 값에는 UNIQUE: users.email, tags.name, question_tags(question_id, tag_id).',
-        '필수 관계는 FK NOT NULL: questions.deck_id, attempts.user_id, attempts.question_id. 삭제 규칙: 덱 삭제 → 문제 CASCADE, 문제 삭제 → 풀이 기록 CASCADE(또는 기록 보존이 중요하면 소프트 삭제).',
-        '비정규화 후보: 사용자별 "문제 상태(복습 단계, 다음 복습일)"는 풀이 기록에서 계산할 수 있지만, 매번 계산하면 무거워 user_question_states(user_id, question_id, box, next_due) 테이블을 두고 풀이 저장과 같은 트랜잭션에서 갱신한다. (user_id, question_id) UNIQUE.',
-      ],
-      code: `users(id PK, email UNIQUE, hashed_password, created_at)
+      slides: [
+        {
+          title: '테이블 설계도',
+          blocks: [
+            { type: 'code', code: `users(id PK, email UNIQUE, hashed_password, created_at)
 decks(id PK, owner_id FK→users, title, created_at)
 questions(id PK, deck_id FK→decks CASCADE, prompt, answer)
 tags(id PK, name UNIQUE)
 question_tags(question_id FK, tag_id FK, PK(question_id, tag_id))
 attempts(id PK, user_id FK, question_id FK, is_correct, answered_at)
-user_question_states(user_id FK, question_id FK, box, next_due, UNIQUE(user_id, question_id))`,
+user_question_states(user_id FK, question_id FK, box, next_due, UNIQUE(user_id, question_id))` },
+            { type: 'list', items: ['문제 테이블에 **덱 이름을 복사하지 않아요** — 덱 이름은 덱에 대한 사실 (3NF). 화면에 필요하면 JOIN', '태그를 `"a,b"`로 한 칸에 넣지 않아요 (1NF) → `question_tags`', '모든 엔티티에 **대리키 id**. 그래도 업무상 유일한 값엔 **UNIQUE**: `users.email`, `tags.name` — 대리키는 중복 이메일을 막아 주지 않아요', '필수 관계는 **FK NOT NULL**. 덱 삭제 → 문제 CASCADE, 문제 삭제 → 풀이 CASCADE (기록 보존이 중요하면 소프트 삭제)'] },
+          ],
+        },
+        {
+          title: '의도한 비정규화',
+          blocks: [
+            { type: 'say', text: '사용자별 "문제 상태"(복습 단계 box, 다음 복습일 next_due)는 풀이 기록을 처음부터 훑으면 **계산할 수 있어요.** 하지만 "오늘 복습할 문제"를 볼 때마다 계산하면 무거워요.\n\n그래서 `user_question_states` 테이블에 **저장**해 둬요. 계산 가능한 값을 따로 저장하는 거니 **의도한 비정규화**예요.' },
+            { type: 'note', tone: 'warn', text: '비정규화의 대가는 **동기화 책임**이에요. 풀이 기록을 저장할 때 상태도 **같은 트랜잭션에서** 반드시 갱신해야 해요. 하나만 저장되면 기록과 상태가 어긋나요. 다음 수업에서 이걸 코드로 지켜요.' },
+          ],
+        },
+      ],
     },
     {
       title: '인덱스 설계',
-      points: [
-        '자주 실행될 쿼리를 먼저 적는다: ① 내 덱 목록(owner_id) ② 덱의 문제 목록(deck_id) ③ 오늘 복습할 문제(user_id, next_due <= 오늘) ④ 내 최근 풀이 기록(user_id, answered_at 최신순) ⑤ 태그로 문제 찾기(tag_id).',
-        '인덱스: decks(owner_id), questions(deck_id), user_question_states(user_id, next_due)(등호 → 범위 순), attempts(user_id, answered_at), question_tags(tag_id)(PK가 (question_id, tag_id)라 tag_id 단독 조회용).',
-        'FK 컬럼은 대부분 인덱스가 필요하다(JOIN과 부모 삭제 시 검사). MySQL InnoDB는 FK에 인덱스를 자동으로 만들지만 PostgreSQL은 만들지 않는다.',
+      slides: [
+        {
+          title: '쿼리를 먼저 적고, 인덱스를 고르기',
+          blocks: [
+            { type: 'say', text: '인덱스는 "**어떤 쿼리가 자주 실행되나**"에서 출발해요.' },
+            {
+              type: 'table',
+              head: ['자주 쓰는 쿼리', '인덱스'],
+              rows: [
+                ['① 내 덱 목록', '`decks(owner_id)`'],
+                ['② 덱의 문제 목록', '`questions(deck_id)`'],
+                ['③ **오늘 복습할 문제** `user_id = ? AND next_due <= ?`', '`user_question_states(user_id, next_due)` — **등호 먼저, 범위 나중**'],
+                ['④ 내 최근 풀이', '`attempts(user_id, answered_at)`'],
+                ['⑤ 태그로 문제 찾기 `tag_id = ?`', '`question_tags(tag_id)` — PK가 (question_id, tag_id)라 tag_id 단독으론 못 씀'],
+              ],
+            },
+            { type: 'note', tone: 'tip', text: 'FK 컬럼은 대부분 인덱스가 필요해요(JOIN할 때, 부모를 지울 때 자식을 찾느라). **MySQL InnoDB는 FK에 인덱스를 자동으로** 만들지만 **PostgreSQL은 안 만들어요.** 인덱스 원리는 DB 설계 수업(dbd-10)에서 자세히 다뤄요.' },
+          ],
+        },
       ],
     },
     {
       title: 'SQLAlchemy 모델로 옮기기',
-      points: [
-        'DeclarativeBase 상속, Mapped 타입 힌트로 NULL 여부 표현, mapped_column으로 제약, relationship + back_populates로 양방향 관계.',
-        'cascade="all, delete-orphan"은 생명 주기를 함께하는 관계(덱 → 문제)에만. FK의 ondelete="CASCADE"와 relationship의 passive_deletes=True를 함께 쓰면 DB가 삭제를 처리한다.',
-        '__table_args__로 복합 UNIQUE·인덱스를 선언한다.',
-        '다대다 태그는 secondary 테이블(Table 객체)로 간단히 표현할 수 있다. 연결에 추가 정보가 생기면 모델 클래스로 승격한다.',
-      ],
-      code: `question_tags = Table(
+      slides: [
+        {
+          title: '덱과 문제',
+          blocks: [
+            { type: 'code', code: `question_tags = Table(
     "question_tags", Base.metadata,
     Column("question_id", ForeignKey("questions.id", ondelete="CASCADE"), primary_key=True),
     Column("tag_id", ForeignKey("tags.id", ondelete="CASCADE"), primary_key=True, index=True),
@@ -70,9 +112,14 @@ class Question(Base):
     prompt: Mapped[str] = mapped_column(Text)
     answer: Mapped[str] = mapped_column(Text)
     deck: Mapped["Deck"] = relationship(back_populates="questions")
-    tags: Mapped[list["Tag"]] = relationship(secondary=question_tags)
-
-class UserQuestionState(Base):
+    tags: Mapped[list["Tag"]] = relationship(secondary=question_tags)` },
+            { type: 'say', text: '`cascade="all, delete-orphan"` + `passive_deletes=True` + FK의 `ondelete="CASCADE"` 조합이면, 덱을 `db.delete(deck)` 할 때 ORM이 문제들을 하나씩 불러와 지우는 대신 **DB가** CASCADE로 한 번에 지워요. 빠르고 깔끔해요.' },
+          ],
+        },
+        {
+          title: '복합 제약과 다대다',
+          blocks: [
+            { type: 'code', code: `class UserQuestionState(Base):
     __tablename__ = "user_question_states"
     __table_args__ = (
         UniqueConstraint("user_id", "question_id"),
@@ -82,7 +129,11 @@ class UserQuestionState(Base):
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
     question_id: Mapped[int] = mapped_column(ForeignKey("questions.id", ondelete="CASCADE"))
     box: Mapped[int] = mapped_column(default=0)
-    next_due: Mapped[date]`,
+    next_due: Mapped[date]` },
+            { type: 'say', text: '복합 UNIQUE와 복합 인덱스는 **`__table_args__`** 에 선언해요. NULL 허용 여부는 `Mapped[X]` / `Mapped[X | None]`으로 표현하고요.\n\n다대다 태그는 `secondary` Table로 간단히 표현했어요. 나중에 "**태그를 붙인 사람·시각**" 같은 정보가 필요해지면, 연결 테이블을 **모델 클래스로 승격**해요(sa-06).' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

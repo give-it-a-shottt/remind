@@ -9,73 +9,122 @@ const topic: Topic = {
   sections: [
     {
       title: '비동기 입력',
-      points: [
-        '동기와 순서는 같고 DB 통신에만 await가 붙는다: 객체 생성 → session.add(obj) → await session.commit() → await session.refresh(obj).',
-        'UNIQUE 위반은 await session.commit()에서 IntegrityError로 난다. except에서 await session.rollback() 후 409로 바꾼다.',
-        '대량 입력: await session.execute(insert(Model), rows) 후 await session.commit().',
-      ],
-      code: `@router.post("/", response_model=PostRead, status_code=201)
+      slides: [
+        {
+          title: '순서는 같고 await만 붙어요',
+          blocks: [
+            { type: 'code', code: `@router.post("/", response_model=PostRead, status_code=201)
 async def create_post(data: PostCreate, db: AsyncSessionDep, user: CurrentUser):
     post = Post(**data.model_dump(), author_id=user.id)
-    db.add(post)
-    await db.commit()
+    db.add(post)                 # 메모리 → await 없음
+    await db.commit()            # DB → await
     await db.refresh(post)
-    return post`,
+    return post` },
+            { type: 'say', text: '동기 CRUD를 배웠다면 비동기는 거의 공짜예요. **순서는 똑같고, DB와 통신하는 곳에만 await**가 붙어요.\n객체 생성 → `add` → `await commit` → `await refresh`.' },
+          ],
+        },
+        {
+          title: '중복 처리와 대량 입력',
+          blocks: [
+            { type: 'code', code: `db.add(user)
+try:
+    await db.commit()
+except IntegrityError:
+    await db.rollback()                          # rollback 도 await
+    raise HTTPException(409, "이미 가입된 이메일입니다")
+
+# 대량 입력
+await db.execute(insert(Post), rows)
+await db.commit()` },
+          ],
+        },
+      ],
     },
     {
       title: '비동기 검색',
-      points: [
-        '하나: await db.get(Post, post_id) → Post | None.',
-        '조건 하나: await db.scalar(select(User).where(User.email == email)).',
-        '여러 개: result = await db.scalars(stmt) → result.all(). 한 줄로 (await db.scalars(stmt)).all() 처럼 괄호로 감싸야 한다. await db.scalars(stmt).all() 은 .all()을 먼저 호출하려다 에러가 난다.',
-        '응답 모델에 들어갈 관계는 options(selectinload(...))로 반드시 미리 로딩한다.',
-        '개수: await db.scalar(select(func.count()).select_from(Post).where(*conds)).',
-      ],
-      code: `@router.get("/", response_model=Page)
+      slides: [
+        {
+          title: '괄호 위치에 주의',
+          blocks: [
+            { type: 'code', code: `post = await db.get(Post, post_id)                              # 하나 (또는 None)
+user = await db.scalar(select(User).where(User.email == email))  # 조건 하나
+posts = (await db.scalars(stmt)).all()                           # 여러 개 ✅
+
+posts = await db.scalars(stmt).all()                             # 💥 에러` },
+            { type: 'say', text: '마지막 줄이 왜 에러일까요? 파이썬은 `await db.scalars(stmt).all()`을 `await (db.scalars(stmt).all())`로 읽어요. 즉 **아직 실행 안 된 코루틴에 `.all()`을 먼저** 부르려다 에러가 나요.\n\n`(await db.scalars(stmt))`로 **괄호를 쳐서** 먼저 기다린 다음 `.all()`을 해요. 두 줄로 나눠 쓰는 것도 좋아요.' },
+          ],
+        },
+        {
+          title: '비동기 목록 API',
+          blocks: [
+            { type: 'code', code: `@router.get("/", response_model=Page)
 async def list_posts(db: AsyncSessionDep, page: int = 1, size: int = 10):
     conds = [Post.deleted_at.is_(None)]
     total = await db.scalar(select(func.count()).select_from(Post).where(*conds))
     stmt = (
         select(Post).where(*conds)
-        .options(selectinload(Post.author))
+        .options(selectinload(Post.author))     # 응답 모델의 관계는 반드시 미리!
         .order_by(Post.id.desc())
         .limit(size).offset((page - 1) * size)
     )
     items = (await db.scalars(stmt)).all()
-    return {"items": items, "total": total, "page": page, "size": size}`,
+    return {"items": items, "total": total, "page": page, "size": size}` },
+            { type: 'note', tone: 'warn', text: '응답 모델에 `comments: list[CommentRead]`가 있는데 `selectinload(Post.comments)`를 빼먹으면, 응답을 만들다 **MissingGreenlet**이 나요. 응답 모델에 들어가는 **모든 관계**를 options로 미리 불러와요.' },
+          ],
+        },
+      ],
     },
     {
       title: '비동기 수정과 삭제',
-      points: [
-        '객체 수정: obj = await db.get(...) → 속성 변경 → await db.commit(). 변경 추적 원리는 동기와 같다.',
-        '객체 삭제: await db.delete(obj) → await db.commit(). (비동기 세션에서는 delete가 코루틴이다. cascade 대상 자식을 불러와야 할 수 있기 때문.)',
-        '여러 행: await db.execute(update(Post).where(...).values(...)), await db.execute(delete(Post).where(...)) 후 commit.',
-        '트랜잭션 블록: async with db.begin(): ... (성공 시 commit, 예외 시 rollback).',
-      ],
-      code: `@router.delete("/{post_id}", status_code=204)
+      slides: [
+        {
+          title: '수정, 삭제, 여러 행',
+          blocks: [
+            { type: 'code', code: `@router.delete("/{post_id}", status_code=204)
 async def delete_post(post_id: int, db: AsyncSessionDep, user: CurrentUser):
     post = await db.get(Post, post_id)
     if post is None:
         raise HTTPException(404)
     if post.author_id != user.id:
         raise HTTPException(403)
-    await db.delete(post)
-    await db.commit()`,
+    await db.delete(post)          # 비동기에선 delete 도 await!
+    await db.commit()
+
+# 조회수 +1 (원자적)
+await db.execute(update(Post).where(Post.id == post_id).values(views=Post.views + 1))
+await db.commit()
+
+# 트랜잭션 블록
+async with db.begin():
+    ...` },
+            { type: 'list', items: ['**객체 수정**: `await get` → 속성 변경 → `await commit`. 변경 추적 원리는 동기와 같아요', '**객체 삭제**: `await db.delete(obj)`. 동기와 달리 **delete가 코루틴**이에요. cascade 대상 자식을 DB에서 불러와야 할 수도 있어서요', '**트랜잭션 블록**: `async with db.begin():` (성공 commit / 예외 rollback)'] },
+          ],
+        },
+      ],
     },
     {
       title: '비동기에서 자주 하는 실수',
-      points: [
-        '하나의 AsyncSession을 asyncio.gather로 여러 쿼리에 동시에 쓰면 안 된다. 세션은 한 번에 하나의 작업만 처리한다. 병렬 쿼리가 꼭 필요하면 쿼리마다 세션을 따로 만든다.',
-        '비동기 라우트 안에서 동기 함수(requests, 동기 세션)를 부르면 루프가 막힌다.',
-        'commit 후 관계 속성에 접근하면(지연 로딩) MissingGreenlet. 필요한 관계는 refresh(obj, ["관계명"]) 또는 다시 조회하며 options로 로딩한다.',
-        '백그라운드 작업(BackgroundTasks)에 요청의 세션을 넘기면 안 된다. 응답 후에는 그 세션이 닫힌다. 백그라운드 작업은 자기 세션을 새로 연다.',
-      ],
-      code: `# 잘못: 같은 세션으로 동시 실행
+      slides: [
+        {
+          title: '세션은 한 번에 하나만',
+          blocks: [
+            { type: 'code', code: `# 잘못: 같은 세션으로 동시 실행
 await asyncio.gather(db.scalars(q1), db.scalars(q2))   # 💥
 
 # 올바름: 순서대로
 r1 = (await db.scalars(q1)).all()
-r2 = (await db.scalars(q2)).all()`,
+r2 = (await db.scalars(q2)).all()` },
+            { type: 'say', text: '대시보드 쿼리 3개를 빠르게 하려고 같은 세션으로 `gather`를 쓰면 에러가 나요. **세션은 한 번에 하나의 작업만** 처리해요(DB 연결 하나로 대화하니까요). 병렬 쿼리가 꼭 필요하면 **쿼리마다 세션을 따로** 만들어요.' },
+          ],
+        },
+        {
+          title: '그 밖의 실수들',
+          blocks: [
+            { type: 'list', items: ['비동기 라우트 안에서 **동기 함수**(requests, 동기 세션) 호출 → 루프가 막힘 (as-01)', 'commit 후 **관계 속성 접근** → MissingGreenlet. `refresh(obj, ["관계명"])`이나 다시 조회하며 options로 로딩', '**BackgroundTasks**에 요청의 세션을 넘기기 → 응답 후엔 그 세션이 **이미 닫혀** 있어요. 백그라운드 작업은 **자기 세션을 새로** 열어요'] },
+            { type: 'note', tone: 'analogy', text: '요청의 세션은 **손님이 앉은 테이블**이에요. 손님이 나가면(응답 후) 테이블은 치워져요. 손님이 나간 뒤에 할 일(백그라운드 작업)은 **새 테이블**을 잡아서 해야 해요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

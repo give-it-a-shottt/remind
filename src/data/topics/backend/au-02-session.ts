@@ -10,32 +10,59 @@ const topic: Topic = {
     {
       title: '쿠키의 동작',
       notionIds: ['3efdf951bf80816987ffde25fc69913a'],
-      points: [
-        '서버가 응답 헤더 Set-Cookie: name=value; 옵션들 을 보내면 브라우저가 저장하고, 이후 같은 사이트로 보내는 요청마다 Cookie: name=value 헤더를 자동으로 붙인다.',
-        '옵션: Max-Age/Expires(수명, 없으면 브라우저를 닫을 때까지), HttpOnly(JS 접근 금지), Secure(HTTPS에서만 전송), SameSite(다른 사이트에서 시작된 요청에 보낼지: Strict/Lax/None), Path·Domain(범위).',
-        '쿠키는 클라이언트가 마음대로 바꿀 수 있다. 쿠키에 user_id=3 처럼 신원을 그대로 넣으면 user_id=1로 바꿔 관리자로 행세할 수 있다. 그래서 신원 정보는 서명하거나 서버에 보관한다.',
+      slides: [
+        {
+          title: '브라우저가 자동으로 들고 다니는 쪽지',
+          blocks: [
+            { type: 'say', text: 'Basic 인증은 요청마다 비밀번호를 보냈죠. 대부분의 웹사이트는 **한 번 로그인하면** 그다음부터는 비밀번호 없이 다녀요. 그 비결이 **쿠키**예요.\n\n서버가 응답에 `Set-Cookie: name=value; 옵션들`을 보내면, 브라우저가 저장해 뒀다가 이후 **같은 사이트로 보내는 요청마다** `Cookie: name=value` 헤더를 **자동으로** 붙여요.' },
+            {
+              type: 'table',
+              head: ['옵션', '뜻'],
+              rows: [
+                ['`Max-Age` / `Expires`', '수명. 없으면 브라우저를 닫을 때까지'],
+                ['`HttpOnly`', '**자바스크립트 접근 금지** → XSS로 쿠키 훔치기 어려움'],
+                ['`Secure`', '**HTTPS에서만** 전송'],
+                ['`SameSite`', '다른 사이트에서 시작된 요청에 보낼지 (Strict / Lax / None)'],
+                ['`Path`, `Domain`', '쿠키가 적용되는 범위'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '쿠키는 손님이 고칠 수 있어요',
+          blocks: [
+            { type: 'say', text: '중요한 사실 하나. 쿠키는 **클라이언트의 브라우저에 저장**돼 있어서, 사용자가 개발자 도구로 **마음대로 바꿀 수** 있어요.' },
+            { type: 'note', tone: 'warn', text: '로그인 후 `Set-Cookie: user_id=3`처럼 신원을 **그대로** 넣으면? 사용자가 쿠키를 `user_id=1`로 바꾸기만 하면 **1번(관리자)으로 행세**할 수 있어요. 그래서 신원 정보는 **서명**해서 변조를 막거나, **서버에 보관**하고 쿠키엔 추측할 수 없는 번호만 둬요.' },
+          ],
+        },
       ],
     },
     {
       title: '세션 인증의 흐름',
       notionIds: ['3efdf951bf80816987ffde25fc69913a'],
-      points: [
-        '① 로그인 성공 → 서버가 세션을 만들고(예: user_id=3을 서버 저장소에 보관) 추측할 수 없는 세션 ID를 쿠키로 보낸다.',
-        '② 이후 요청 → 브라우저가 세션 ID 쿠키를 자동으로 보냄 → 서버가 세션 저장소에서 user_id를 찾아 "누구인지" 안다.',
-        '③ 로그아웃 → 서버에서 세션을 삭제하고 쿠키도 지운다. 서버가 세션을 지우면 그 ID는 즉시 무효가 된다(토큰 방식보다 강제 로그아웃이 쉬움).',
-        'Flask의 flask_login이 해 주던 일(login_user로 세션 생성, current_user로 사용자 조회, @login_required로 보호)을 FastAPI에서는 세션 미들웨어 + 의존성으로 직접 조립한다.',
+      slides: [
+        {
+          title: '세 단계',
+          blocks: [
+            { type: 'list', ordered: true, items: ['**로그인 성공** → 서버가 세션을 만들고(user_id=3을 서버 저장소에 보관), **추측할 수 없는 세션 ID**를 쿠키로 보내요', '**이후 요청** → 브라우저가 세션 ID 쿠키를 자동으로 보내고, 서버가 저장소에서 user_id를 찾아 "누구인지" 알아요', '**로그아웃** → 서버에서 세션을 삭제하고 쿠키도 지워요'] },
+            { type: 'note', tone: 'analogy', text: '세션은 **목욕탕 옷장 열쇠**예요. 카운터(서버)에 신분을 확인받으면 번호 열쇠(세션 ID)를 줘요. 열쇠 번호만으로는 내 물건이 뭔지 알 수 없고, 카운터가 장부(세션 저장소)를 보고 확인해요. 카운터가 장부에서 지우면 그 열쇠는 **즉시 쓸모없어져요.**' },
+          ],
+        },
+        {
+          title: 'flask_login이 하던 일',
+          blocks: [
+            { type: 'say', text: '서버가 세션을 지우면 그 ID는 **즉시 무효**예요. 그래서 세션 방식은 "이 사용자 **강제 로그아웃**"이 쉬워요(다음 수업의 토큰 방식과 비교해 보세요).\n\nFlask의 flask_login이 해 주던 일\n• `login_user` → 세션 생성\n• `current_user` → 사용자 조회\n• `@login_required` → 보호\n을 FastAPI에서는 **세션 미들웨어 + 의존성**으로 직접 조립해요. 다음 두 개념이 그 조립이에요.' },
+          ],
+        },
       ],
     },
     {
       title: 'SessionMiddleware (서명된 쿠키 세션)',
-      points: [
-        'Starlette의 SessionMiddleware는 세션 데이터(dict)를 쿠키에 담되, secret_key로 서명해서 변조를 막는다. 서버에 저장소가 따로 없다(쿠키 기반 세션). itsdangerous 패키지가 필요하다.',
-        'request.session 이 dict처럼 동작한다. 로그인: request.session["user_id"] = user.id, 로그아웃: request.session.clear().',
-        '서명은 "변조 방지"이지 "암호화"가 아니다. 쿠키 내용은 Base64로 디코딩해 볼 수 있으므로 비밀번호 같은 민감 정보를 넣지 않는다. user_id 같은 최소 정보만 넣는다.',
-        'secret_key가 바뀌면 기존 세션 쿠키가 모두 무효(전원 로그아웃)가 된다. secret_key가 유출되면 누구나 세션을 위조할 수 있으니 환경 변수로 안전하게 관리한다.',
-        '옵션: max_age(초), https_only=True(Secure), same_site="lax".',
-      ],
-      code: `from starlette.middleware.sessions import SessionMiddleware
+      slides: [
+        {
+          title: '서명된 쿠키에 세션 담기',
+          blocks: [
+            { type: 'code', code: `from starlette.middleware.sessions import SessionMiddleware
 
 app.add_middleware(
     SessionMiddleware,
@@ -43,16 +70,30 @@ app.add_middleware(
     max_age=60 * 60 * 24 * 7,           # 7일
     same_site="lax",
     https_only=True,                    # 운영(HTTPS)
-)`,
+)
+
+# 라우트에서
+request.session["user_id"] = user.id   # 로그인
+request.session.clear()                # 로그아웃` },
+            { type: 'say', text: 'Starlette의 **SessionMiddleware**는 세션 데이터(dict)를 **쿠키 자체에** 담되, `secret_key`로 **서명**해서 변조를 막아요. 서버에 저장소가 따로 없는 **쿠키 기반 세션**이에요(`itsdangerous` 패키지 필요). `request.session`이 dict처럼 동작해요.' },
+          ],
+        },
+        {
+          title: '서명 ≠ 암호화, 그리고 secret_key',
+          blocks: [
+            { type: 'note', tone: 'warn', text: '**서명은 "변조 방지"이지 "암호화"가 아니에요.** 쿠키 내용은 Base64로 디코딩해서 **누구나 읽을 수** 있어요. 비밀번호 같은 민감 정보는 넣지 말고, `user_id` 같은 **최소 정보만** 넣어요.' },
+            { type: 'say', text: '`secret_key`가 바뀌면 기존 세션 쿠키가 **모두 무효**(전원 로그아웃)가 돼요.\n\n그리고 `secret_key`가 **유출되면** 누구나 서명을 만들 수 있어서 `{"user_id": 1}` 같은 **세션을 위조**해 관리자로 로그인할 수 있어요. 코드에 `"dev-secret"`을 하드코딩한 채로 배포하면 GitHub에서 그 값을 본 사람 누구나요. 반드시 **환경 변수**로 관리해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '현재 사용자 의존성',
-      points: [
-        'get_current_user: request.session에서 user_id를 꺼내 DB에서 사용자를 찾는다. 없으면 401. 라우트는 user: CurrentUser 만 선언하면 로그인 필수가 된다(flask_login의 @login_required + current_user 역할).',
-        '선택적 로그인(로그인하면 추가 정보, 아니면 기본 화면)은 None을 허용하는 get_optional_user를 따로 만든다.',
-        '세션에 있는 user_id의 사용자가 탈퇴·정지됐을 수 있으므로 매 요청 DB에서 상태를 확인한다.',
-      ],
-      code: `def get_current_user(request: Request, db: SessionDep) -> User:
+      slides: [
+        {
+          title: 'get_current_user',
+          blocks: [
+            { type: 'code', code: `def get_current_user(request: Request, db: SessionDep) -> User:
     user_id = request.session.get("user_id")
     if user_id is None:
         raise HTTPException(401, "로그인이 필요합니다")
@@ -62,15 +103,43 @@ app.add_middleware(
         raise HTTPException(401, "다시 로그인해 주세요")
     return user
 
-CurrentUser = Annotated[User, Depends(get_current_user)]`,
+CurrentUser = Annotated[User, Depends(get_current_user)]` },
+            { type: 'say', text: 'fa-16에서 본 그 의존성이 이제 진짜로 완성돼요. 라우트는 `user: CurrentUser`만 선언하면 **로그인 필수**가 돼요. flask_login의 `@login_required` + `current_user`가 이 한 줄이에요.' },
+          ],
+        },
+        {
+          title: '매 요청 DB를 확인하는 이유',
+          blocks: [
+            { type: 'say', text: '세션에 user_id가 있다고 그 사용자가 **지금도** 유효한 건 아니에요. 로그인한 뒤 **탈퇴하거나 정지**됐을 수 있죠. 그래서 매 요청 DB에서 사용자 **상태를 다시 확인**해요.\n\n로그인하면 추가 정보, 안 하면 기본 화면을 보여 주는 **선택적 로그인**은 None을 허용하는 `get_optional_user`를 따로 만들어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '세션 저장소와 보안 고려',
-      points: [
-        '서버 저장소 세션: 세션 ID만 쿠키에 두고 데이터는 Redis·DB에 둔다. 강제 로그아웃·동시 접속 관리가 쉽고 쿠키 크기 제한(약 4KB)도 없다. 서버가 여러 대면 저장소를 공유해야 한다.',
-        '세션 고정(Session Fixation) 방어: 로그인 성공 시 기존 세션을 비우고 새로 만든다(request.session.clear() 후 다시 설정).',
-        'CSRF: 쿠키는 자동으로 붙기 때문에, 다른 사이트가 사용자의 브라우저로 우리 사이트에 요청을 보내게 만들 수 있다. SameSite=Lax 쿠키, 상태 변경에 GET 금지, 중요한 요청에 CSRF 토큰으로 막는다.',
-        '프론트(다른 출처)에서 쿠키 세션을 쓰려면 fetch에 credentials: "include", 서버 CORS에 allow_credentials=True와 정확한 allow_origins가 필요하다.',
+      slides: [
+        {
+          title: '쿠키 세션 vs 서버 저장소 세션',
+          blocks: [
+            {
+              type: 'table',
+              head: ['', '쿠키 세션 (SessionMiddleware)', '서버 저장소 세션'],
+              rows: [
+                ['데이터 위치', '쿠키 안 (서명)', '**Redis·DB** (쿠키엔 세션 ID만)'],
+                ['강제 로그아웃', '어려움', '**쉬움** (저장소에서 지우면 끝)'],
+                ['크기', '쿠키 한도 약 **4KB**', '제한 없음'],
+                ['서버 여러 대', '그대로 됨', '저장소를 **공유**해야 함'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '꼭 챙길 보안 세 가지',
+          blocks: [
+            { type: 'list', items: ['**세션 고정 방어** — 로그인 성공 시 기존 세션을 **비우고 새로** 만들어요 (`request.session.clear()` 후 설정)', '**CSRF** — 쿠키는 자동으로 붙어서, 다른 사이트가 사용자의 브라우저를 시켜 우리 사이트에 요청을 보내게 할 수 있어요. **SameSite=Lax**, 상태 변경에 **GET 금지**, 중요한 요청엔 **CSRF 토큰**', '**다른 출처의 프론트** — React(5173)에서 FastAPI(8000)의 쿠키 세션을 쓰려면 fetch에 `credentials: "include"`, 서버 CORS에 `allow_credentials=True`와 **정확한** `allow_origins`'] },
+            { type: 'ask', q: 'React에서 로그인은 성공했는데 다음 요청마다 401이 나요. 가장 먼저 볼 곳은?', a: 'fetch에 **`credentials: "include"`** 가 있는지예요. 없으면 다른 출처로 보내는 요청에 브라우저가 **쿠키를 안 붙여요.** 그다음 서버 CORS의 `allow_credentials=True`와 `allow_origins`(정확한 주소, `*` 금지)를 확인해요.' },
+          ],
+        },
       ],
     },
   ],

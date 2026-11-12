@@ -9,79 +9,118 @@ const topic: Topic = {
   sections: [
     {
       title: '비동기 드라이버와 URL',
-      points: [
-        '비동기 SQLAlchemy는 비동기 DB 드라이버 위에서 동작한다. PostgreSQL: asyncpg(또는 psycopg 3 async), MySQL: aiomysql/asyncmy, SQLite: aiosqlite.',
-        'URL의 드라이버 부분만 바뀐다: postgresql+asyncpg://..., mysql+aiomysql://..., sqlite+aiosqlite:///./app.db.',
-        '동기 드라이버(psycopg2, pymysql)로는 비동기 엔진을 만들 수 없다. "The asyncio extension requires an async driver" 같은 에러가 난다.',
-        'Supabase처럼 커넥션 풀러(PgBouncer, transaction 모드)를 거치는 경우 asyncpg의 prepared statement 캐시가 문제를 일으킬 수 있어, connect_args={"statement_cache_size": 0} 같은 설정이 필요할 수 있다.',
-      ],
-      code: `pip install "sqlalchemy[asyncio]" asyncpg aiosqlite
+      slides: [
+        {
+          title: '드라이버만 바꾸면 돼요',
+          blocks: [
+            { type: 'say', text: '지난 수업에서 "async def 안에서 동기 DB 드라이버는 루프를 막는다"고 했죠. 그래서 비동기 FastAPI에는 **비동기 SQLAlchemy**가 짝이에요. 비동기 SQLAlchemy는 **비동기 DB 드라이버** 위에서 동작해요.' },
+            { type: 'code', code: `pip install "sqlalchemy[asyncio]" asyncpg aiosqlite
 
-DATABASE_URL = "postgresql+asyncpg://user:pw@localhost:5432/app"
-# 개발용: "sqlite+aiosqlite:///./app.db"`,
+postgresql+asyncpg://user:pw@localhost:5432/app    # PostgreSQL
+mysql+aiomysql://user:pw@localhost:3306/app        # MySQL (또는 asyncmy)
+sqlite+aiosqlite:///./app.db                       # 개발용 SQLite` },
+            { type: 'say', text: 'URL에서 **드라이버 부분만** 바뀌어요. 동기 드라이버(psycopg2, pymysql)로는 비동기 엔진을 만들 수 없고, "The asyncio extension requires an async driver" 같은 에러가 나요.' },
+            { type: 'note', tone: 'tip', text: 'Supabase처럼 **커넥션 풀러**(PgBouncer, transaction 모드)를 거치면 asyncpg의 prepared statement 캐시가 문제를 일으킬 수 있어요. 그때는 `connect_args={"statement_cache_size": 0}` 같은 설정이 필요해요.' },
+          ],
+        },
+      ],
     },
     {
       title: 'create_async_engine과 async_sessionmaker',
-      points: [
-        'engine = create_async_engine(URL, echo=True). 앱 전체에 하나.',
-        'SessionLocal = async_sessionmaker(engine, expire_on_commit=False). 비동기에서는 expire_on_commit=False가 사실상 필수다. commit 후 속성에 접근할 때 자동 재조회(지연 로딩)가 일어나면 에러가 나기 때문이다.',
-        '의존성: async def get_db(): async with SessionLocal() as session: yield session. async with가 블록 끝에서 세션을 닫는다.',
-        '테이블 생성은 동기 함수인 metadata.create_all을 run_sync로 실행한다: async with engine.begin() as conn: await conn.run_sync(Base.metadata.create_all).',
-        '앱 종료 시 await engine.dispose()로 커넥션 풀을 정리한다. lifespan에서 처리하면 깔끔하다.',
-      ],
-      code: `from contextlib import asynccontextmanager
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+      slides: [
+        {
+          title: '비동기 엔진과 세션 공장',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 engine = create_async_engine(DATABASE_URL, echo=True)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 async def get_db():
-    async with SessionLocal() as session:
+    async with SessionLocal() as session:     # 블록 끝에서 닫힘
         yield session
 
-AsyncSessionDep = Annotated[AsyncSession, Depends(get_db)]
+AsyncSessionDep = Annotated[AsyncSession, Depends(get_db)]` },
+            { type: 'say', text: '동기 버전과 모양이 똑같고 이름에 **async**가 붙었을 뿐이에요. `create_async_engine`, `async_sessionmaker`, `async with`.' },
+            { type: 'note', tone: 'warn', text: '비동기에서 **`expire_on_commit=False`는 사실상 필수**예요. 기본값(True)이면 commit 후 속성이 만료돼서, `post.title`에 접근하는 순간 **몰래 다시 조회**하려 해요. 그런데 속성 접근은 await할 수 없어서 **에러**가 나요. 이 "몰래 조회 금지"는 마지막 개념에서 자세히 봐요.' },
+          ],
+        },
+        {
+          title: '테이블 만들기와 정리',
+          blocks: [
+            { type: 'code', code: `from contextlib import asynccontextmanager
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)   # 개발용
     yield
-    await engine.dispose()
+    await engine.dispose()                              # 종료 시 커넥션 풀 정리
 
-app = FastAPI(lifespan=lifespan)`,
+app = FastAPI(lifespan=lifespan)` },
+            { type: 'say', text: '`metadata.create_all`은 **동기 함수**예요. 비동기 연결에서는 `run_sync`로 감싸서 실행해요.\n\n앱이 끝날 때 `await engine.dispose()`로 커넥션 풀을 정리해요. fa-16에서 배운 **lifespan**의 yield 앞(시작)과 뒤(종료)에 딱 맞게 들어가죠.' },
+          ],
+        },
+      ],
     },
     {
       title: '무엇을 await 하나',
-      points: [
-        'DB와 통신하는 메서드는 await: await session.execute(stmt), await session.scalars(stmt), await session.scalar(stmt), await session.get(Model, id), await session.commit(), await session.flush(), await session.refresh(obj), await session.delete(obj), await session.rollback().',
-        '메모리에서만 일어나는 메서드는 await 하지 않는다: session.add(obj), session.add_all([...]). 결과 객체의 .all(), .first(), .one() 도 이미 받은 결과를 꺼내는 것이라 await 하지 않는다.',
-        'await를 빼먹으면 코루틴 객체가 그대로 남고 "was never awaited" 경고가 나며, 결과가 없거나 커밋이 안 된다.',
-      ],
-      code: `post = Post(title="hi", content="...")
+      slides: [
+        {
+          title: 'DB와 대화하면 await',
+          blocks: [
+            { type: 'code', code: `post = Post(title="hi", content="...")
 session.add(post)              # await 없음 (메모리)
 await session.commit()         # await (DB)
 await session.refresh(post)
 
 result = await session.scalars(select(Post))   # await (DB)
-posts = result.all()                           # await 없음 (이미 받은 결과)`,
+posts = result.all()                           # await 없음 (이미 받은 결과)` },
+            {
+              type: 'table',
+              head: ['await O (DB와 통신)', 'await X (메모리에서만)'],
+              rows: [
+                ['`execute`, `scalars`, `scalar`, `get`', '`add`, `add_all`'],
+                ['`commit`, `flush`, `refresh`, `rollback`', '결과의 `.all()`, `.first()`, `.one()`'],
+                ['`delete` (비동기에선 코루틴)', ''],
+              ],
+            },
+            { type: 'say', text: '기준은 하나예요. **DB까지 다녀와야 하나?** 다녀와야 하면 기다림이 생기니 await, 메모리에서 끝나면 await 없음.' },
+          ],
+        },
+        {
+          title: 'await를 빼먹으면',
+          blocks: [
+            { type: 'say', text: '`session.commit()`처럼 await를 빼먹으면 코루틴 객체만 만들어지고 **실행되지 않아요.** "coroutine ... was never awaited" 경고가 뜨고, **커밋이 안 되거나** 결과가 없어요. 에러가 아니라 경고라서 놓치기 쉬워요.' },
+          ],
+        },
+      ],
     },
     {
       title: '비동기에서 지연 로딩이 안 되는 이유',
-      points: [
-        '동기 ORM에서는 post.author에 접근하면 그 순간 몰래 SELECT를 실행한다(지연 로딩). 속성 접근은 await할 수 없으므로 비동기에서는 이 "몰래 실행"이 불가능하다.',
-        '그래서 비동기에서 로딩 안 된 관계에 접근하면 MissingGreenlet 에러("greenlet_spawn has not been called...")가 난다. 응답 모델 변환 중에 나면 원인을 찾기 더 어렵다.',
-        '해결 1: 쿼리에서 관계를 미리 로딩한다. select(Post).options(selectinload(Post.author)).',
-        '해결 2: 모델의 relationship(lazy="selectin" 또는 lazy="raise")로 기본 전략을 바꾼다. lazy="raise"는 실수로 접근하면 명확한 에러를 낸다.',
-        '해결 3: 꼭 필요하면 await session.refresh(obj, ["author"]) 나 AsyncAttrs 믹스인의 await obj.awaitable_attrs.author 로 명시적으로 불러온다.',
-      ],
-      code: `# MissingGreenlet 발생
+      slides: [
+        {
+          title: '몰래 쿼리를 못 보내요',
+          blocks: [
+            { type: 'code', code: `# MissingGreenlet 발생
 post = await session.get(Post, 1)
 print(post.author.nickname)          # 💥 지연 로딩 시도
 
 # 해결
 stmt = select(Post).where(Post.id == 1).options(selectinload(Post.author))
 post = await session.scalar(stmt)
-print(post.author.nickname)          # OK (이미 로딩됨)`,
+print(post.author.nickname)          # OK (이미 로딩됨)` },
+            { type: 'say', text: '동기 ORM에서는 `post.author`에 접근하면 그 순간 **몰래 SELECT**를 보냈죠(지연 로딩). 그런데 **속성 접근은 await할 수 없어요.** `await post.author`라는 문법이 없잖아요.\n\n그래서 비동기에서 로딩 안 된 관계에 접근하면 **MissingGreenlet** 에러("greenlet_spawn has not been called...")가 나요. 응답 모델 변환 중에 나면 원인을 찾기 더 어려워요.' },
+          ],
+        },
+        {
+          title: '해결 세 가지',
+          blocks: [
+            { type: 'list', ordered: true, items: ['**쿼리에서 미리 로딩** — `select(Post).options(selectinload(Post.author))`. sa-06의 N+1 해결법이 비동기에선 **필수**가 돼요', '**모델의 기본 전략 바꾸기** — `relationship(lazy="selectin")`(항상 미리) 또는 `lazy="raise"`(실수로 접근하면 **명확한 에러**)', '**명시적으로 불러오기** — `await session.refresh(obj, ["author"])` 또는 AsyncAttrs의 `await obj.awaitable_attrs.author`'] },
+            { type: 'note', tone: 'tip', text: '동기에서는 N+1이 "느린" 문제였다면, 비동기에서는 "**에러**"예요. 오히려 좋은 점도 있어요. 숨어 있던 N+1이 무조건 드러나니까요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
