@@ -9,42 +9,71 @@ const topic: Topic = {
   sections: [
     {
       title: '문자열 검색: like · ilike · contains',
-      points: [
-        'Post.title.like("%fast%") → SQL LIKE. % 는 "아무 글자 0개 이상", _ 는 "아무 글자 1개".',
-        'contains("fast") 는 like("%fast%")의 줄임, startswith("fast") 는 like("fast%"), endswith 도 있다.',
-        'ilike 는 대소문자를 무시한다(PostgreSQL ILIKE, 다른 DB에서는 lower()로 흉내). MySQL은 기본 정렬 규칙(collation)이 대소문자를 구분하지 않는 경우가 많다.',
-        '"%키워드%" 처럼 앞에 %가 붙은 검색은 일반 B-tree 인덱스를 쓰지 못해 데이터가 많으면 느리다. 본격적인 검색은 전문 검색(Full-Text) 인덱스나 검색 엔진을 쓴다.',
-        '사용자가 입력한 검색어에 % 나 _ 가 들어 있으면 와일드카드로 해석된다. 정확히 그 글자를 찾으려면 escape 처리를 한다(contains(q, autoescape=True)).',
+      slides: [
+        {
+          title: '글자 패턴으로 찾기',
+          blocks: [
+            { type: 'code', code: `stmt = select(Post).where(Post.title.contains(q, autoescape=True))   # LIKE '%q%'
+stmt = select(User).where(User.email.ilike("%@gmail.com"))           # 대소문자 무시
+stmt = select(Post).where(Post.title.startswith("[공지]"))           # LIKE '[공지]%'` },
+            {
+              type: 'table',
+              head: ['메서드', 'SQL'],
+              rows: [
+                ['`.like("%fast%")`', '`LIKE` 그대로 (`%` 0글자 이상, `_` 한 글자)'],
+                ['`.contains("fast")`', '`LIKE \'%fast%\'` 줄임'],
+                ['`.startswith` / `.endswith`', '`LIKE \'fast%\'` / `LIKE \'%fast\'`'],
+                ['`.ilike(...)`', '**대소문자 무시** (PostgreSQL ILIKE, 다른 DB는 lower로 흉내)'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '검색의 두 가지 함정',
+          blocks: [
+            { type: 'say', text: '**① 앞에 %가 붙으면 느려요.** `%검색어%`는 "어디에든 들어 있나"라서, 정렬된 인덱스(B-tree)를 쓸 수 없어요. 사전에서 "**가운데에** \'사\'가 들어간 단어"를 찾으려면 처음부터 끝까지 넘겨 봐야 하는 것과 같아요. 글 100만 개라면 본격적인 검색은 **전문 검색(Full-Text) 인덱스**나 검색 엔진을 써요.' },
+            { type: 'say', text: '**② 사용자가 %를 입력하면?** 검색창에 "100%"를 쓰면 `%`가 **와일드카드**로 해석돼서 "100으로 시작하는 모든 것"이 나와요. `contains(q, autoescape=True)`를 주면 `%`, `_`를 **글자 그대로** 찾아요.' },
+          ],
+        },
       ],
-      code: `stmt = select(Post).where(Post.title.contains(q, autoescape=True))
-stmt = select(User).where(User.email.ilike("%@gmail.com"))
-stmt = select(Post).where(Post.title.startswith("[공지]"))`,
     },
     {
       title: '목록·범위 조건: in_ · between · not',
-      points: [
-        'Post.id.in_([1, 3, 5]) → IN (1, 3, 5). 목록이 비어 있으면 결과는 0건(SQLAlchemy가 안전하게 처리).',
-        'Post.created_at.between(start, end) → BETWEEN (양 끝 포함). 날짜 범위는 끝 날짜의 시각 처리에 주의한다. 보통 created_at >= start AND created_at < 다음날 0시 로 쓴다.',
-        '부정: ~Post.id.in_([...]) 또는 Post.id.not_in([...]), not_(조건).',
-        'NOT IN에 NULL이 섞이면 결과가 비는 SQL 함정이 있다(NULL 비교는 참도 거짓도 아니기 때문).',
-      ],
-      code: `from datetime import datetime, timedelta
+      slides: [
+        {
+          title: 'IN과 범위',
+          blocks: [
+            { type: 'code', code: `from datetime import datetime, timedelta
 
-ids = [1, 3, 5]
-stmt = select(Post).where(Post.id.in_(ids))
+stmt = select(Post).where(Post.id.in_([1, 3, 5]))       # IN (1, 3, 5)
+stmt = select(Post).where(Post.id.not_in([1, 3, 5]))    # NOT IN (또는 ~Post.id.in_(...))
 
 day = datetime(2026, 10, 20)
-stmt = select(Post).where(Post.created_at >= day, Post.created_at < day + timedelta(days=1))`,
+stmt = select(Post).where(Post.created_at >= day,
+                          Post.created_at < day + timedelta(days=1))` },
+            { type: 'say', text: '`in_([])`처럼 목록이 **비어 있으면** SQLAlchemy가 알아서 0건으로 안전하게 처리해요.\n\n`between(start, end)`는 **양 끝 포함**이에요. 그런데 날짜를 DATETIME으로 저장했다면 `between("2026-10-20", "2026-10-20")`은 **0시 0분 0초 딱 그 순간**만 찾아요. 하루를 찾으려면 **"그날 0시 이상, 다음 날 0시 미만"** 으로 써요.' },
+            { type: 'note', tone: 'warn', text: 'SQL 수업에서 본 함정 기억나죠? `NOT IN (1, 2, NULL)`은 **아무 행도** 돌려주지 않아요. NULL과의 비교가 "모름"이 되어 조건 전체가 참이 될 수 없거든요.' },
+          ],
+        },
+      ],
     },
     {
       title: '정렬: order_by',
-      points: [
-        '.order_by(Post.created_at.desc()) 최신순, .asc() 오름차순(기본). 여러 기준: .order_by(Post.pinned.desc(), Post.created_at.desc()).',
-        '정렬 기준이 같은 행이 여러 개면 순서가 매번 달라질 수 있다. 페이지네이션에서는 고유한 값(id)을 마지막 정렬 기준으로 추가해 순서를 고정한다.',
-        '사용자가 정렬 기준을 고르게 할 때 문자열을 그대로 컬럼 이름으로 쓰지 말고, 허용 목록(Literal/Enum) → 컬럼 매핑으로 처리한다.',
-        'NULL의 정렬 위치는 DB마다 다르다. .desc().nulls_last() 로 명시할 수 있다(지원 DB에서).',
-      ],
-      code: `SORTS = {
+      slides: [
+        {
+          title: '정렬 기준 여러 개',
+          blocks: [
+            { type: 'code', code: `.order_by(Post.created_at.desc())                     # 최신순
+.order_by(Post.pinned.desc(), Post.created_at.desc())  # 고정 글 먼저, 그다음 최신순
+.order_by(Post.likes.desc(), Post.id.desc())           # 좋아요 같으면 id 로 순서 고정
+.order_by(Post.score.desc().nulls_last())              # NULL 은 맨 뒤로 (지원 DB)` },
+            { type: 'say', text: '정렬 기준이 **같은 행이 여러 개**면 그 사이 순서는 매번 달라질 수 있어요. 페이지를 넘길 때 같은 글이 두 번 나오거나 빠지는 원인이에요. 그래서 **고유한 값(id)을 마지막 정렬 기준**으로 붙여 순서를 고정해요.' },
+          ],
+        },
+        {
+          title: '사용자가 정렬을 고를 때',
+          blocks: [
+            { type: 'code', code: `SORTS = {
     "latest": (Post.created_at.desc(), Post.id.desc()),
     "popular": (Post.likes.desc(), Post.id.desc()),
 }
@@ -52,17 +81,19 @@ stmt = select(Post).where(Post.created_at >= day, Post.created_at < day + timede
 @router.get("/")
 def list_posts(db: SessionDep, sort: Literal["latest", "popular"] = "latest"):
     stmt = select(Post).order_by(*SORTS[sort])
-    return db.scalars(stmt).all()`,
+    return db.scalars(stmt).all()` },
+            { type: 'say', text: '`?sort=created_at` 같은 문자열을 **그대로 컬럼 이름으로** 쓰면, 엉뚱한 컬럼(비밀번호 해시!)으로 정렬하거나 SQL 조작의 틈이 생겨요. **허용 목록**(Literal) → **컬럼 매핑**(dict)으로 처리하면 정해진 정렬만 가능해요.' },
+          ],
+        },
+      ],
     },
     {
       title: '페이지네이션: limit · offset · 개수',
-      points: [
-        '.limit(size).offset((page - 1) * size). SQL LIMIT/OFFSET. 정렬(order_by)과 반드시 함께 쓴다.',
-        '전체 개수: db.scalar(select(func.count()).select_from(Post).where(...)). 목록 조회와 같은 where 조건을 써야 한다. 조건을 공유하려면 조건 목록을 변수로 만들어 두 쿼리에 함께 넘긴다.',
-        'OFFSET이 크면(예: 50만 번째부터) DB가 앞의 50만 행을 읽고 버리므로 느려진다. 무한 스크롤처럼 깊이 들어가는 화면은 "마지막으로 본 id보다 작은 것" 조건을 쓰는 커서(keyset) 방식을 쓴다.',
-        'distinct(): 중복 행 제거. select(Post.category).distinct() → 카테고리 종류 목록(노션의 SELECT DISTINCT CATEGORY).',
-      ],
-      code: `def list_posts(db, page: int, size: int, keyword: str | None):
+      slides: [
+        {
+          title: '목록 + 전체 개수',
+          blocks: [
+            { type: 'code', code: `def list_posts(db, page: int, size: int, keyword: str | None):
     conds = [Post.deleted_at.is_(None)]
     if keyword:
         conds.append(Post.title.contains(keyword, autoescape=True))
@@ -73,10 +104,23 @@ def list_posts(db: SessionDep, sort: Literal["latest", "popular"] = "latest"):
         .order_by(Post.id.desc())
         .limit(size).offset((page - 1) * size)
     ).all()
-    return {"items": items, "total": total, "page": page, "size": size}
+    return {"items": items, "total": total, "page": page, "size": size}` },
+            { type: 'say', text: '`.limit(size).offset((page - 1) * size)`. 3페이지(20개씩)면 `.limit(20).offset(40)`이에요. **order_by와 반드시 함께** 써요.\n\n전체 개수(total)는 목록과 **같은 조건**이어야 해요. 목록엔 검색어 조건을 넣고 total엔 깜빡하면 숫자가 안 맞아요. 그래서 조건을 **`conds` 리스트로 한 번 만들어** 두 쿼리에 함께 넘겼어요.' },
+          ],
+        },
+        {
+          title: '깊은 페이지는 커서 방식',
+          blocks: [
+            { type: 'code', code: `# offset: 앞의 10만 행을 읽고 버림 → 뒤로 갈수록 느림
+select(Post).order_by(Post.id.desc()).offset(100_000).limit(20)
 
-# 커서 방식: 마지막으로 본 id 이후
-stmt = select(Post).where(Post.id < last_id).order_by(Post.id.desc()).limit(20)`,
+# 커서(keyset): "마지막으로 본 id 이후" → 인덱스로 바로 찾아감
+select(Post).where(Post.id < last_id).order_by(Post.id.desc()).limit(20)` },
+            { type: 'say', text: 'OFFSET이 크면 DB는 앞의 행을 **전부 읽고 버려요.** 무한 스크롤처럼 깊이 들어가는 화면은 "**마지막으로 본 id보다 작은 것**" 조건을 쓰는 **커서 방식**이 빨라요. 대신 "37페이지로 바로 가기"는 못 해요.' },
+            { type: 'say', text: '`select(Product.category).distinct()`는 중복을 없앤 **종류 목록**이에요. SQL의 `SELECT DISTINCT`와 같아요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [

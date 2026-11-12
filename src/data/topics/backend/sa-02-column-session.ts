@@ -9,14 +9,11 @@ const topic: Topic = {
   sections: [
     {
       title: '컬럼 옵션',
-      points: [
-        'primary_key=True: 기본 키. autoincrement는 정수 단일 기본 키면 자동이다.',
-        'unique=True: 같은 값 중복 금지(UNIQUE 제약). index=True: 조회를 빠르게 하는 인덱스 생성. unique=True는 내부적으로 인덱스를 함께 만든다.',
-        'nullable=False/True: NULL 허용 여부. 2.0 스타일에서는 Mapped[X] / Mapped[X | None]으로 정해지지만 명시적으로 덮어쓸 수 있다.',
-        'default=값 또는 함수: 파이썬 쪽 기본값. server_default=text("0") 또는 func.now(): DB 쪽 기본값. onupdate=func.now(): UPDATE 시 자동 갱신.',
-        '자료형: Integer, BigInteger, String(길이), Text, Boolean, DateTime(timezone=True), Date, Numeric(10, 2)(금액), JSON, Enum.',
-      ],
-      code: `from decimal import Decimal
+      slides: [
+        {
+          title: 'mapped_column에 붙이는 옵션',
+          blocks: [
+            { type: 'code', code: `from decimal import Decimal
 from sqlalchemy import String, Numeric, Boolean, DateTime, func, text
 
 class Product(Base):
@@ -28,17 +25,44 @@ class Product(Base):
     is_active: Mapped[bool] = mapped_column(Boolean, server_default=text("true"))
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )`,
+    )` },
+            {
+              type: 'table',
+              head: ['옵션', '뜻'],
+              rows: [
+                ['`unique=True`', '중복 금지 (내부적으로 **인덱스도** 만듦)'],
+                ['`index=True`', '조회를 빠르게 하는 인덱스'],
+                ['`nullable=`', 'NULL 허용 여부 (Mapped로 정해지지만 덮어쓸 수 있음)'],
+                ['`default=`', '**파이썬 쪽** 기본값'],
+                ['`server_default=`', '**DB 쪽** 기본값'],
+                ['`onupdate=func.now()`', 'UPDATE 때마다 **자동 갱신**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '자료형 고르기',
+          blocks: [
+            { type: 'say', text: 'SQL 수업의 자료형이 SQLAlchemy 이름으로 바뀌었을 뿐이에요.\n`Integer`, `BigInteger`, `String(길이)`, `Text`, `Boolean`, `DateTime(timezone=True)`, `Date`, **`Numeric(10, 2)`**(금액), `JSON`, `Enum`.' },
+            { type: 'ask', q: '이메일은 중복 가입을 막아야 하고 로그인 때 자주 조회돼요. 어떤 옵션을 줄까요?', a: '`unique=True` 하나면 돼요. UNIQUE 제약이 중복을 막고, 내부적으로 인덱스도 만들어져서 조회도 빨라요. `index=True`를 또 줄 필요는 없어요.' },
+          ],
+        },
+      ],
     },
     {
       title: '외래 키와 제약 조건',
-      points: [
-        'ForeignKey("users.id")는 "이 컬럼 값은 users 테이블의 id에 반드시 존재해야 한다"는 참조 무결성 제약이다. author_id: Mapped[int] = mapped_column(ForeignKey("users.id")).',
-        'ondelete="CASCADE": 부모(사용자)가 삭제되면 자식(글)도 DB가 함께 삭제. ondelete="SET NULL": 자식의 FK를 NULL로. 기본은 부모 삭제를 막는다(RESTRICT/NO ACTION).',
-        '여러 컬럼에 걸친 제약은 __table_args__ 에 넣는다. UniqueConstraint("user_id", "post_id")는 "한 사용자는 한 글에 좋아요 1번"을 DB 수준에서 보장한다. CheckConstraint("price >= 0")는 값 범위를 보장한다.',
-        '앱 코드 검증만으로는 동시 요청이나 다른 경로의 입력을 막을 수 없다. 제약은 DB가 지키는 마지막 방어선이다.',
-      ],
-      code: `from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
+      slides: [
+        {
+          title: 'ForeignKey와 ondelete',
+          blocks: [
+            { type: 'code', code: `author_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))` },
+            { type: 'say', text: '`ForeignKey("users.id")`는 "이 값은 **users.id에 반드시 있어야** 한다"는 참조 무결성 제약이에요. 테이블 이름.컬럼 이름으로 적어요(클래스 이름이 아니라).\n• `ondelete="CASCADE"` → 사용자 삭제 시 **글도 DB가 함께** 삭제\n• `ondelete="SET NULL"` → 글의 author_id를 NULL로\n• 기본 → 글이 남아 있으면 사용자 삭제를 **막음**' },
+          ],
+        },
+        {
+          title: '여러 컬럼에 걸친 제약',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy import ForeignKey, UniqueConstraint, CheckConstraint
 
 class Like(Base):
     __tablename__ = "likes"
@@ -46,41 +70,74 @@ class Like(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"))
-    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))`,
+    post_id: Mapped[int] = mapped_column(ForeignKey("posts.id", ondelete="CASCADE"))` },
+            { type: 'say', text: '"한 사용자는 한 글에 좋아요 **한 번만**"은 `(user_id, post_id)` **조합**이 유일해야 한다는 규칙이에요. 여러 컬럼에 걸친 제약은 `__table_args__`에 넣어요. `CheckConstraint("price >= 0")`도 여기에요.' },
+            { type: 'note', tone: 'warn', text: '앱 코드에서 "이미 눌렀나?" 확인만으로는 부족해요. 두 요청이 **동시에** 확인하면 둘 다 "아직 안 눌렀네"를 보고 둘 다 저장하거든요. **DB 제약이 마지막 방어선**이에요.' },
+          ],
+        },
+      ],
     },
     {
       title: '세션이란',
-      points: [
-        'Session은 DB와 대화하는 작업 단위다. ① 객체 변경을 모아 두었다가(add, 속성 변경) ② flush 때 SQL로 보내고 ③ commit 때 트랜잭션을 확정한다.',
-        '세션은 "Identity Map"을 가진다. 같은 세션에서 같은 기본 키를 두 번 조회하면 같은 파이썬 객체가 돌아온다. 두 번째는 DB에 묻지 않을 수도 있다.',
-        '세션은 가볍게 만들고 짧게 쓴다. 웹에서는 "요청 1개 = 세션 1개"가 원칙이다. 전역 세션 하나를 여러 요청이 공유하면 트랜잭션이 섞이고 스레드 안전하지 않다.',
-        'sessionmaker(engine)로 세션 공장을 만들고, 요청마다 SessionLocal()로 세션을 만든다. with Session(engine) as session: 처럼 with 문을 쓰면 블록이 끝날 때 자동으로 닫힌다.',
-      ],
-      code: `from sqlalchemy.orm import sessionmaker, Session
+      slides: [
+        {
+          title: 'DB와 대화하는 작업 단위',
+          blocks: [
+            { type: 'say', text: '**Session**은 DB와 대화하는 작업 단위예요. 세 단계로 일해요.\n① 객체 변경을 **모아 두었다가** (add, 속성 변경)\n② **flush** 때 SQL로 보내고\n③ **commit** 때 트랜잭션을 확정해요.' },
+            { type: 'note', tone: 'analogy', text: '세션은 **장바구니**예요. 담기(add)만 해서는 아직 결제가 안 됐어요. 결제 버튼(commit)을 눌러야 주문이 확정되고 다른 사람(다른 요청)도 그 주문을 볼 수 있어요.' },
+            { type: 'say', text: '세션은 **Identity Map**을 가져요. 같은 세션에서 같은 기본 키를 두 번 조회하면 **같은 파이썬 객체**가 돌아와요(`a is b`가 True). 두 번째는 DB에 묻지도 않을 수 있어요.' },
+          ],
+        },
+        {
+          title: '요청 1개 = 세션 1개',
+          blocks: [
+            { type: 'code', code: `from sqlalchemy.orm import sessionmaker, Session
 
 SessionLocal = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 
 def get_db():
-    with SessionLocal() as db:     # 블록 끝에서 close
+    with SessionLocal() as db:     # 블록 끝에서 자동 close
         yield db
 
-SessionDep = Annotated[Session, Depends(get_db)]`,
+SessionDep = Annotated[Session, Depends(get_db)]` },
+            { type: 'say', text: '세션은 **가볍게 만들고 짧게** 써요. 웹에서는 **요청 1개 = 세션 1개**가 원칙이에요. 전역 세션 하나를 모든 요청이 공유하면 트랜잭션이 섞이고 스레드 안전하지도 않아요.\n\n`sessionmaker`로 세션 **공장**을 만들고, 요청마다 하나씩 찍어 내요. `with`를 쓰면 블록이 끝날 때(에러가 나도) **자동으로 닫혀서** 커넥션이 반납돼요. FastAPI 수업의 yield 의존성과 그대로 이어지죠.' },
+          ],
+        },
+      ],
     },
     {
       title: '객체 상태와 flush · commit · refresh',
-      points: [
-        '객체 상태: transient(그냥 만든 객체) → pending(add 후, 아직 SQL 안 보냄) → persistent(flush 후, DB에 행이 있음) → detached(세션이 닫힘).',
-        'flush: 모아 둔 변경을 SQL(INSERT/UPDATE)로 보내지만 트랜잭션은 열린 상태. 자동 증가 id가 이때 채워진다. commit 전에 id가 필요하면 db.flush().',
-        'commit: 트랜잭션 확정. 다른 세션(다른 요청)에서도 보이게 된다. 기본 설정(expire_on_commit=True)에서는 commit 후 객체 속성이 만료되어 다음 접근 때 다시 SELECT 한다.',
-        'refresh(obj): DB에서 최신 값을 다시 읽는다. server_default로 DB가 채운 값(created_at)을 응답에 넣으려면 commit 후 refresh 한다.',
-        'rollback: 트랜잭션의 변경을 모두 취소한다. 에러 후에는 반드시 rollback해야 세션을 다시 쓸 수 있다.',
-      ],
-      code: `post = Post(title="hi", content="...")   # transient
-db.add(post)                              # pending
-db.flush()                                # INSERT 실행, post.id 채워짐
+      slides: [
+        {
+          title: '객체의 네 가지 상태',
+          blocks: [
+            { type: 'code', code: `post = Post(title="hi", content="...")   # transient  (그냥 만든 객체)
+db.add(post)                              # pending    (세션에 올림, SQL 아직)
+db.flush()                                # persistent (INSERT 실행, post.id 채워짐)
 print(post.id)
 db.commit()                               # 트랜잭션 확정
-db.refresh(post)                          # created_at 등 DB 값 다시 읽기`,
+db.refresh(post)                          # created_at 등 DB 값 다시 읽기
+db.close()                                # detached   (세션과 분리)` },
+            {
+              type: 'table',
+              head: ['메서드', '하는 일'],
+              rows: [
+                ['`flush()`', '변경을 SQL로 **보내지만** 트랜잭션은 열린 채. 자동 증가 **id가 이때 채워짐**'],
+                ['`commit()`', '트랜잭션 **확정**. 다른 세션에서도 보임'],
+                ['`refresh(obj)`', 'DB에서 **최신 값을 다시 읽음**'],
+                ['`rollback()`', '트랜잭션 변경을 **모두 취소**'],
+              ],
+            },
+          ],
+        },
+        {
+          title: '자주 쓰는 장면',
+          blocks: [
+            { type: 'say', text: '**commit 전에 id가 필요하면** `flush()`. 주문을 만들고 그 id로 주문 항목을 넣을 때처럼요.\n\n**DB가 채운 값을 응답에 넣으려면** commit 후 `refresh()`. `server_default=func.now()`인 created_at은 DB가 정한 값이라, 파이썬 객체는 아직 모르거든요.\n\n**에러 후에는 반드시** `rollback()`. IntegrityError가 난 세션은 "실패한 트랜잭션" 상태라, rollback 하기 전엔 다른 쿼리를 못 해요.' },
+            { type: 'note', tone: 'tip', text: '기본 설정(`expire_on_commit=True`)에서는 commit 후 객체 속성이 **만료**돼서, 다음에 `post.title`에 접근하면 SQLAlchemy가 DB에서 **다시 읽어 와요.** 위 sessionmaker는 이걸 False로 꺼서 commit 후에도 값을 그대로 쓰게 했어요.' },
+          ],
+        },
+      ],
     },
   ],
   questions: [
